@@ -264,7 +264,7 @@ const filteredCards = computed(() => {
 const groupedCards = computed(() => {
   const groups: Record<string, typeof filteredCards.value> = {}
   for (const card of filteredCards.value) {
-    const dateLabel = card.created === todayStr ? 'Today' : card.created === yesterdayStr ? 'Yesterday' : card.created
+    const dateLabel = card.created === todayStr ? '今天' : card.created === yesterdayStr ? '昨天' : formatDateShort(card.created)
     if (!groups[dateLabel]) groups[dateLabel] = []
     groups[dateLabel].push(card)
   }
@@ -303,6 +303,14 @@ function formatDate(ts: number): string {
   const d = new Date(ts)
   const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+}
+
+function formatDateShort(dateStr: string): string {
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return `${parts[1]}-${parts[2]}`
+  }
+  return dateStr
 }
 
 function toggleStatus(_card: any, _status: string) {
@@ -458,6 +466,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 16px;
 }
 
 .attach-btns {

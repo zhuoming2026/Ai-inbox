@@ -13,14 +13,7 @@
   },
   "dependencies": {
     "@bytemd/vue-next": "^1.22.0",
-    "@milkdown/core": "^7.20.0",
-    "@milkdown/kit": "^7.20.0",
-    "@milkdown/plugin-prism": "^7.20.0",
-    "@milkdown/preset-commonmark": "^7.20.0",
-    "@milkdown/theme-nord": "^7.20.0",
-    "@milkdown/vue": "^7.20.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@praisesink/calendarcn": "^0.1.2",
     "@vicons/ionicons5": "^0.13.0",
     "bytemd": "^1.22.0",
     "chokidar": "^3.6.0",
@@ -30,8 +23,7 @@
     "naive-ui": "^2.44.1",
     "pinia": "^2.1.0",
     "vue": "^3.4.0",
-    "vue-router": "^4.3.0",
-    "xicons": "^1.0.0"
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
