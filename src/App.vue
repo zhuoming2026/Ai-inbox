@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 
-let unsub: (() => void) | null = null
+let unsub: (() => void) | null | undefined = null
 let settings: any = null
 
 function applyTheme(theme: string) {

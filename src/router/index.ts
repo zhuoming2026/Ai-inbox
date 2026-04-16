@@ -1,13 +1,13 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
-import ArticlePage from '@/pages/ArticlePage.vue'
+// import ArticlePage from '@/pages/ArticlePage.vue'
 import SettingsPage from '@/pages/SettingsPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', name: 'home', component: HomePage },
-    { path: '/article/:slug', name: 'article', component: ArticlePage },
+    // { path: '/article/:slug', name: 'article', component: ArticlePage },
     { path: '/settings', name: 'settings', component: SettingsPage }
   ]
 })

@@ -32,7 +32,8 @@
       "Bash(ls -la postcss.config*)",
       "Bash(sips -g pixelWidth -g pixelHeight .figma/image/screenshot_2013_294.png)",
       "Bash(identify .figma/image/screenshot_2013_294.png)",
-      "Bash(ls ~/ai-inbox/*.md)"
+      "Bash(ls ~/ai-inbox/*.md)",
+      "Bash(curl -s http://localhost:5173/)"
     ]
   }
 }

@@ -223,11 +223,10 @@ const themeOverrides: GlobalThemeOverrides = {
 
 const mode = ref<'write' | 'read'>('write')
 const searchQuery = ref('')
-const selectedDateTs = ref<number | null>(null)
+const selectedDateTs = ref<number | undefined>(undefined)
 const dateFilterActive = ref(false)
 const inputText = ref('')
 const notifCount = ref(12)
-const attachType = ref<string | null>(null)
 
 const statuses = ['ready', 'working', 'finished']
 
@@ -256,7 +255,7 @@ const filteredCards = computed(() => {
     const q = searchQuery.value.toLowerCase()
     cards = cards.filter(c =>
       c.title.toLowerCase().includes(q) ||
-      c.body.toLowerCase().includes(q)
+      (c.raw && c.raw.toLowerCase().includes(q))
     )
   }
   return cards
@@ -291,7 +290,7 @@ function onDateSelect(ts: number) {
 }
 
 function clearDateSelection() {
-  selectedDateTs.value = null
+  selectedDateTs.value = undefined
   dateFilterActive.value = false
 }
 
@@ -306,7 +305,7 @@ function formatDate(ts: number): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
-function toggleStatus(card: any, status: string) {
+function toggleStatus(_card: any, _status: string) {
   // TODO
 }
 
