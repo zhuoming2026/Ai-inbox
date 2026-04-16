@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app rev-parse --show-toplevel)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app worktree list)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app remote -v)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app branch:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app checkout:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app switch:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app add:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app commit:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app push:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app pull:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app stash:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app status:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app log:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app diff:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(esbuild:*)",
+      "Bash(mcporter call:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
+    ]
+  }
+}
