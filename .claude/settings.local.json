@@ -33,7 +33,8 @@
       "Bash(sips -g pixelWidth -g pixelHeight .figma/image/screenshot_2013_294.png)",
       "Bash(identify .figma/image/screenshot_2013_294.png)",
       "Bash(ls ~/ai-inbox/*.md)",
-      "Bash(curl -s http://localhost:5173/)"
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(ls -la ~/ai-inbox/*.md)"
     ]
   }
 }
