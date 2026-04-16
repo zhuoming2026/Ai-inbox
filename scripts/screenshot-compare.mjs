@@ -19,7 +19,24 @@ async function takeScreenshot() {
   const page = await context.newPage();
 
   console.log('Navigating to app...');
+  // Navigate to homepage first
   await page.goto(serverUrl, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForTimeout(2000);
+
+  // If there's a slug argument, navigate to article page
+  const slug = process.argv[2];
+  if (slug) {
+    console.log(`Navigating to article: ${slug}`);
+    await page.goto(`${serverUrl}/#/article/${slug}`, { waitUntil: 'networkidle', timeout: 30000 });
+  } else {
+    // Click on first card if exists
+    const card = page.locator('.card').first();
+    if (await card.isVisible()) {
+      console.log('Clicking first card...');
+      await card.click();
+      await page.waitForTimeout(1000);
+    }
+  }
   await page.waitForTimeout(3000); // Wait for fonts and dynamic content
 
   const screenshotDir = join(projectRoot, '.screenshots');

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>AI-Inbox - Content Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Acme&family=Inter:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@400;500&family=Inclusive+Sans:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1920px;
+      height: 1780px;
+      overflow: hidden;
+      background: #f5f4ed;
+      font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+
+    .content-page {
+      display: flex;
+      align-items: flex-start;
+      width: 1920px;
+      height: 1780px;
+    }
+
+    /* Left Panel - Editor */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 37px;
+      flex: 1;
+    }
+
+    .logo {
+      font-family: 'Acme', sans-serif;
+      font-size: 36px;
+      color: #000;
+      margin-left: 25px;
+    }
+
+    .logo span {
+      color: #fabb18;
+    }
+
+    .editor-container {
+      margin-top: 108px;
+      padding-left: 27px;
+      padding-right: 54px;
+      height: 1481px;
+      overflow: hidden;
+    }
+
+    .markdown-editor {
+      width: 780px;
+      font-family: 'Inclusive Sans', 'Inter', sans-serif;
+      font-size: 32px;
+      letter-spacing: 3px;
+      color: #000;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .markdown-editor .frontmatter {
+      color: #666;
+      font-size: 28px;
+    }
+
+    .markdown-editor .heading {
+      font-weight: bold;
+    }
+
+    .markdown-editor .link {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    .markdown-editor .tag {
+      color: #888;
+    }
+
+    /* Right Panel - Preview */
+    .right-panel {
+      position: relative;
+      width: 986px;
+      height: 1769px;
+    }
+
+    .preview-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 38px 0 0 38px;
+      background: #f9f9f9;
+      padding: 43px 46px 47px;
+      width: 986px;
+      height: 1769px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 43px;
+      right: 46px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn::before,
+    .close-btn::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 2px;
+      background: #000;
+    }
+
+    .close-btn::before {
+      transform: rotate(45deg);
+    }
+
+    .close-btn::after {
+      transform: rotate(-45deg);
+    }
+
+    .preview-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      align-self: stretch;
+      margin-top: 56px;
+      margin-right: 3px;
+      padding: 32px;
+      overflow: hidden;
+    }
+
+    /* AI Insights Card */
+    .ai-insights-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border: 1px solid rgba(26, 26, 26, 0.05);
+      border-radius: 16px;
+      background: rgba(228, 225, 217, 0.4);
+      padding: 23px;
+      width: 827px;
+      gap: 15px;
+    }
+
+    .ai-insights-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-insights-icon {
+      width: 13px;
+      height: 13px;
+      background: #7d341c;
+      border-radius: 50%;
+    }
+
+    .ai-insights-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #7d341c;
+      text-transform: uppercase;
+    }
+
+    .ai-insights-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 1px;
+    }
+
+    .ai-insights-quote {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-style: italic;
+      line-height: 23px;
+      color: #1a1a1a;
+      opacity: 0.8;
+    }
+
+    .ai-insights-tags {
+      display: flex;
+      gap: 8px;
+      padding-top: 16px;
+    }
+
+    .ai-tag {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #4a4a4a;
+      border-radius: 9999px;
+      padding: 4px 12px;
+    }
+
+    .ai-tag-neoclassicism {
+      background: rgba(181, 163, 120, 0.2);
+    }
+
+    .ai-tag-historiography {
+      background: rgba(148, 132, 154, 0.2);
+    }
+
+    /* Article Preview */
+    .article-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      align-self: stretch;
+      margin-top: 45px;
+    }
+
+    .article-image {
+      width: 827px;
+      height: 192px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #e8e8e8 0%, #d0d0d0 100%);
+      opacity: 0.6;
+      margin-bottom: 32px;
+    }
+
+    .article-title {
+      font-family: 'Newsreader', serif;
+      font-size: 30px;
+      line-height: 36px;
+      color: #1a1a1a;
+      margin-bottom: 24px;
+    }
+
+    .article-paragraph {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 26px;
+      color: #4a4a4a;
+    }
+
+    .article-paragraph .highlight {
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    .article-subsection {
+      font-family: 'Newsreader', serif;
+      font-size: 20px;
+      line-height: 28px;
+      color: #1a1a1a;
+      margin: 24px 0 16px;
+    }
+
+    .article-blockquote {
+      border-left: 2px solid rgba(125, 52, 28, 0.5);
+      padding: 8px 0 8px 22px;
+      margin: 32px 0;
+    }
+
+    .blockquote-text {
+      font-family: 'Newsreader', serif;
+      font-size: 18px;
+      font-style: italic;
+      line-height: 28px;
+      color: rgba(26, 26, 26, 0.8);
+      width: 326px;
+    }
+
+    /* Mode Switcher */
+    .mode-switcher {
+      position: absolute;
+      top: 55px;
+      left: -174px;
+      display: flex;
+      align-items: center;
+      width: 358px;
+      height: 35px;
+      cursor: pointer;
+    }
+
+    .mode-raw {
+      font-family: 'Acme', sans-serif;
+      font-size: 28px;
+      color: #000;
+    }
+
+    .mode-divider {
+      margin-left: 106px;
+      width: 16px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mode-divider::before {
+      content: '';
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 16px solid #000;
+    }
+
+    .mode-preview {
+      font-family: 'Acme', sans-serif;
+      font-size: 28px;
+      color: #000;
+      margin-left: 77px;
+    }
+  </style>
+</head>
+<body>
+  <div class="content-page">
+    <!-- Left Panel - Editor -->
+    <div class="left-panel">
+      <div class="logo">Ai-Inbo<span>X</span></div>
+
+      <div class="editor-container">
+        <div class="markdown-editor"><span class="frontmatter">type: source
+title: "AI 早报 2026-03-27"
+created: 2026-04-15
+updated: 2026-04-15
+tags: [AI, 早报, newsletter]
+source: juya-ai-daily
+related:
+  - https://imjuya.github.io/juya-ai-daily/issue-41/
+
+---
+
+## AI 早报 2026-03-27
+
+视频版：[哔哩哔哩](https://www.bilibili.com/video/BV19LX8BuE8m) ｜ [YouTube](https://www.youtube.com/watch?v=dFZnIq3puSk)
+
+## 概览
+
+## 要闻
+
+谷歌发布 Gemini 3.1 Flash Live，支持 90 种语言对话 [↗](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-live/) #1
+
+## 模型发布
+
+Suno 正式推出 Suno v5.5 模型及个性化声音等新功能 [↗](https://suno.com/blog/v5-5) #2
+Cohere 发布开源语音识别模型 Cohere Transcribe [↗](https://huggingface.co/CohereLabs/cohere-transcribe-03-2026) #3
+放 GLM-5-Turbo 模型 #9
+Codex 上线 Plugins 插件功能 [↗](https://developers.openai.com/codex/plugins) #10
+Claude Code 推出云端 auto-fix 功能，支持 PR 自动化修复 [↗](https://code.claude.com/docs/en/claude-code-on-the-web#auto-fix-pull-requests) #11
+Anthropic 调整 Claude 高峰限制 [↗](https://x.com/trq212/status/2037254607001559305) #12
+Cline 推出 Cline Kanban，开源多 Agent 编排工具 #13
+
+## 产品应用</span></div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Preview -->
+    <div class="right-panel">
+      <div class="preview-container">
+        <div class="close-btn"></div>
+
+        <div class="preview-content">
+          <!-- AI Insights Card -->
+          <div class="ai-insights-card">
+            <div class="ai-insights-header">
+              <div class="ai-insights-icon"></div>
+              <span class="ai-insights-title">AI Insights</span>
+            </div>
+            <div class="ai-insights-body">
+              <p class="ai-insights-quote">"This article posits that library design is not merely functional but symbolic of the hierarchical nature of human knowledge in the Enlightenment era."</p>
+              <div class="ai-insights-tags">
+                <span class="ai-tag ai-tag-neoclassicism">Neoclassicism</span>
+                <span class="ai-tag ai-tag-historiography">Historiography</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Article Preview -->
+          <div class="article-preview">
+            <div class="article-image"></div>
+
+            <h1 class="article-title">The Architecture of<br>Neoclassical Libraries</h1>
+
+            <p class="article-paragraph">
+              Neoclassicism in library architecture represents more than a stylistic choice; it was a physical manifestation of the <span class="highlight">Enlightenment</span> ideals. The grand central domes and symmetrical wings were designed to reflect the perceived order of the universe.
+            </p>
+
+            <h2 class="article-subsection">Spatial Distribution</h2>
+
+            <p class="article-paragraph">
+              Unlike modern modular spaces, the 19th-century library was a fixed hierarchy. Theology and Law occupied the upper galleries, physically elevating the "foundational" disciplines, while Science—then termed Natural Philosophy—was often positioned in peripheral cabinets.
+            </p>
+
+            <div class="article-blockquote">
+              <p class="blockquote-text">"To build a library is to build a map of the mind.<br>Every bookshelf is a synapse, every corridor a<br>pathway of logic."</p>
+            </div>
+
+            <p class="article-paragraph">
+              In the modern digital age, we lack these physical anchors. The "AI-Inbox" aims to restore this tactile sense of hierarchy to your digital information stream...
+            </p>
+          </div>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+          <span class="mode-raw">Raw</span>
+          <div class="mode-divider"></div>
+          <span class="mode-preview">Preview</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

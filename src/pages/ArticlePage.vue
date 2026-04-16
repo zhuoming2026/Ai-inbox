@@ -6,44 +6,44 @@
           <!-- Main Column: Markdown Editor -->
           <div class="main-column">
             <!-- Logo -->
-            <h1 class="logo">Ai-In<span class="logo-x">bo</span>X</h1>
+            <div class="header">
+              <button class="back-btn" @click="$router.back()">←</button>
+              <h1 class="logo">Ai-In<span class="logo-x">box</span></h1>
+            </div>
 
-            <!-- Markdown Editor -->
+            <!-- Editor Area -->
             <div class="editor-container">
-              <div class="editor-scroll">
-                <pre class="markdown-source">{{ markdownSource }}</pre>
+              <div class="editor-wrapper" v-if="mode === 'edit'">
+                <textarea
+                  v-model="content"
+                  class="editor-textarea"
+                  placeholder="Start writing..."
+                  @input="onContentChange"
+                ></textarea>
+              </div>
+              <div class="preview-wrapper" v-else>
+                <div class="preview-content" v-html="renderedContent"></div>
               </div>
             </div>
           </div>
 
           <!-- Right Sidebar: Preview Panel -->
           <div class="preview-wrapper">
-            <!-- Mode Switcher (positioned to the left of preview panel) -->
+            <!-- Mode Switcher -->
             <div class="mode-switcher">
-              <span class="mode-label" :class="{ active: mode === 'raw' }">Raw</span>
-              <span class="slider-icon">◁</span>
-              <span class="slider-line"></span>
-              <span class="slider-icon">▷</span>
-              <span class="mode-label" :class="{ active: mode === 'preview' }">Preview</span>
+              <span class="mode-label" :class="{ active: mode === 'edit' }" @click="mode = 'edit'">Edit</span>
+              <span class="mode-divider"></span>
+              <span class="mode-label" :class="{ active: mode === 'preview' }" @click="mode = 'preview'">Preview</span>
             </div>
 
             <aside class="preview-panel">
-              <!-- Close Button (positioned near left edge) -->
-              <button class="close-btn" @click="$router.back()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9L9 15M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
-              </button>
+              <button class="close-btn" @click="$router.back()">×</button>
 
-              <!-- Preview Content -->
               <div class="preview-content">
                 <!-- AI Insights Card -->
                 <div class="insights-card">
                   <div class="insights-header">
-                    <svg class="insights-icon" width="13" height="13" viewBox="0 0 13 13">
-                      <circle cx="6.5" cy="6.5" r="6.5" fill="#7d341c"/>
-                    </svg>
+                    <span class="insights-dot"></span>
                     <span class="insights-title">AI INSIGHTS</span>
                   </div>
                   <p class="insights-quote">
@@ -57,30 +57,18 @@
 
                 <!-- Article Preview -->
                 <div class="article-preview">
-                  <div class="preview-image">
-                    <img src="../image/mo1m2i4k-m2yvc8n.png" alt="Architecture" />
-                  </div>
-                  <h2 class="preview-title">The Architecture of<br/>Neoclassical Libraries</h2>
-
-                  <div class="preview-body">
-                    <p class="preview-paragraph">
-                      Neoclassicism in library architecture represents more than a stylistic choice; it was a physical manifestation of the <span class="highlight">Enlightenment</span> ideals. The grand central domes and symmetrical wings were designed to reflect the perceived order of the universe.
-                    </p>
-
-                    <p class="preview-subtitle">Spatial Distribution</p>
-
-                    <p class="preview-paragraph">
-                      Unlike modern modular spaces, the 19th-century library was a fixed hierarchy. Theology and Law occupied the upper galleries, physically elevating the "foundational" disciplines, while Science—then termed Natural Philosophy—was often positioned in peripheral cabinets.
-                    </p>
-
-                    <div class="blockquote">
-                      <p>"To build a library is to build a map of the mind.<br/>Every bookshelf is a synapse, every corridor a pathway of logic."</p>
-                    </div>
-
-                    <p class="preview-paragraph">
-                      In the modern digital age, we lack these physical anchors. The "AI-Inbox" aims to restore this tactile sense of hierarchy to your digital information stream...
-                    </p>
-                  </div>
+                  <div class="preview-image"></div>
+                  <h2 class="preview-title">The Architecture of Neoclassical Libraries</h2>
+                  <p class="preview-paragraph">
+                    Neoclassicism in library architecture represents more than a stylistic choice; it was a physical manifestation of the Enlightenment ideals. The grand central domes and symmetrical wings were designed to reflect the perceived order of the universe.
+                  </p>
+                  <h3 class="preview-subtitle">Spatial Distribution</h3>
+                  <p class="preview-paragraph">
+                    Unlike modern modular spaces, the 19th-century library was a fixed hierarchy. Theology and Law occupied the upper galleries, physically elevating the "foundational" disciplines.
+                  </p>
+                  <blockquote class="blockquote">
+                    "To build a library is to build a map of the mind. Every bookshelf is a synapse, every corridor a pathway of logic."
+                  </blockquote>
                 </div>
               </div>
             </aside>
@@ -126,37 +114,35 @@ const themeOverrides: GlobalThemeOverrides = {
   },
 }
 
-const mode = ref<'raw' | 'preview'>('preview')
+const mode = ref<'edit' | 'preview'>('edit')
 const article = ref<any>(null)
+const content = ref('')
 const currentStatus = ref('ready')
 const statuses = ['ready', 'working', 'finished']
 
-const markdownSource = computed(() => {
-  if (!article.value) return ''
-  const { title, created, tags, source, related, body } = article.value
-  const lines = [
-    'type: source',
-    `title: "${title || 'Untitled'}"`,
-    `created: ${created || ''}`,
-    `updated: ${new Date().toISOString().split('T')[0]}`,
-    `tags: [${(tags || []).join(', ')}]`,
-    `source: ${source || 'app'}`,
-    'related:',
-    ...(related || []).map((r: string) => `  - ${r}`),
-    '---',
-    '',
-    body || '',
-  ]
-  return lines.join('\n')
+const renderedContent = computed(() => {
+  // Simple markdown to HTML conversion
+  return content.value
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*)\*/gim, '<em>$1</em>')
+    .replace(/\n/gim, '<br>')
 })
 
 onMounted(async () => {
   const data = await window.electronAPI?.readFile(slug)
   if (data) {
     article.value = data
+    content.value = data.body || ''
     currentStatus.value = data.status || 'ready'
   }
 })
+
+function onContentChange() {
+  // Debounced save
+}
 
 async function setStatus(status: string) {
   currentStatus.value = status
@@ -165,16 +151,6 @@ async function setStatus(status: string) {
     await window.electronAPI?.updateFile(slug, article.value)
   }
 }
-
-async function archive() {
-  await window.electronAPI?.archiveFile(slug)
-  router.push('/')
-}
-
-async function deleteDoc() {
-  await window.electronAPI?.deleteFile(slug)
-  router.push('/')
-}
 </script>
 
 <style scoped>
@@ -182,29 +158,55 @@ async function deleteDoc() {
   width: 100%;
   min-height: 100vh;
   background: #f5f4ed;
-}
-
-.page-background {
-  display: flex;
-  min-height: calc(100vh - 60px);
-}
-
-/* Main Column */
-.main-column {
-  flex: 1;
-  min-width: 0;
-  padding: 37px 54px 47px 27px;
   display: flex;
   flex-direction: column;
 }
 
-/* Logo */
+.page-background {
+  display: flex;
+  flex: 1;
+  padding-bottom: 60px;
+}
+
+/* Main Column */
+.main-column {
+  flex: 4;
+  display: flex;
+  flex-direction: column;
+  padding: 31px 48px;
+  min-width: 0;
+  max-width: calc(100% - 400px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn:hover {
+  background: #f5f4ed;
+}
+
 .logo {
   font-family: 'Acme', sans-serif;
-  font-size: 36px;
-  color: #000000;
-  margin: 0 0 0 25px;
-  line-height: 46px;
+  font-size: 28px;
+  color: #1a1a1a;
+  margin: 0;
 }
 
 .logo-x {
@@ -214,129 +216,132 @@ async function deleteDoc() {
 /* Editor */
 .editor-container {
   flex: 1;
-  margin-top: 108px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
-.editor-scroll {
+.editor-wrapper {
+  height: 100%;
+}
+
+.editor-textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  padding: 32px;
+  border: none;
+  outline: none;
+  font-family: 'Newsreader', serif;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #1a1a1a;
+  resize: none;
+  background: transparent;
+}
+
+.editor-textarea::placeholder {
+  color: rgba(26, 26, 26, 0.3);
+}
+
+.preview-wrapper {
   height: 100%;
   overflow-y: auto;
+  padding: 32px;
 }
 
-.markdown-source {
-  font-family: 'Inclusive Sans', 'Inter', sans-serif;
-  font-size: 32px;
-  letter-spacing: 3px;
-  line-height: 1.5;
-  color: #000000;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-}
-
-/* Preview Wrapper */
-.preview-wrapper {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-}
-
-/* Mode Switcher */
-.mode-switcher {
-  position: absolute;
-  top: 55px;
-  left: -174px;
-  display: flex;
-  align-items: center;
-  width: 358px;
-  height: 35px;
-  z-index: 10;
-}
-
-.mode-label {
-  font-family: 'Acme', sans-serif;
-  font-size: 28px;
-  color: #000000;
-  opacity: 0.5;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.mode-label.active {
-  opacity: 1;
-}
-
-.slider-icon {
-  margin-left: 106px;
-  font-size: 16px;
-  color: #000;
-}
-
-.slider-line {
-  display: inline-block;
-  width: 100px;
-  height: 2px;
-  background: linear-gradient(to right, #000 0%, #000 30%, transparent 30%, transparent 70%, #000 70%, #000 100%);
-  background-size: 10px 2px;
-  margin: 0 12px;
+.preview-content {
+  max-width: 780px;
 }
 
 /* Preview Panel */
-.preview-panel {
-  width: 986px;
-  height: 1769px;
-  flex-shrink: 0;
-  background: #f9f9f9;
-  border-radius: 38px 0 0 38px;
-  padding: 43px 46px 47px;
+.preview-wrapper {
   position: relative;
+  flex: 1;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Close Button */
-.close-btn {
-  position: absolute;
-  top: 43px;
-  left: 859px;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
+.mode-switcher {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #000;
+  gap: 16px;
+  padding: 8px 16px;
+  background: #f9f9f9;
+  border-radius: 20px;
+  margin: 16px 0;
+  align-self: center;
 }
 
-/* Preview Content */
-.preview-content {
-  margin-top: 56px;
-  padding: 32px;
+.mode-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.mode-label.active {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.mode-divider {
+  width: 1px;
+  height: 16px;
+  background: #ddd;
+}
+
+.preview-panel {
+  flex: 1;
+  background: #f9f9f9;
+  border-radius: 38px 0 0 38px;
+  padding: 43px 46px;
+  position: relative;
   overflow-y: auto;
-  height: calc(100% - 100px);
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #000;
 }
 
 /* AI Insights Card */
 .insights-card {
-  width: 827px;
+  background: rgba(228, 225, 217, 0.4);
   border: 1px solid rgba(26, 26, 26, 0.05);
   border-radius: 16px;
-  background: rgba(228, 225, 217, 0.4);
   padding: 23px;
-  row-gap: 15px;
+  margin-bottom: 32px;
 }
 
 .insights-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
-.insights-icon {
+.insights-dot {
   width: 13px;
   height: 13px;
-  flex-shrink: 0;
+  border-radius: 50%;
+  background: #7d341c;
 }
 
 .insights-title {
@@ -353,14 +358,12 @@ async function deleteDoc() {
   font-style: italic;
   line-height: 23px;
   color: rgba(26, 26, 26, 0.8);
-  margin: 0 0 15px;
-  width: 777px;
+  margin: 0 0 16px;
 }
 
 .insights-tags {
   display: flex;
   gap: 8px;
-  padding-top: 16px;
 }
 
 .insight-tag {
@@ -384,22 +387,17 @@ async function deleteDoc() {
 
 /* Article Preview */
 .article-preview {
-  margin-top: 45px;
+  display: flex;
+  flex-direction: column;
 }
 
 .preview-image {
-  width: 827px;
-  height: 192px;
-  border-radius: 6px;
-  overflow: hidden;
-  opacity: 0.6;
-  margin-bottom: 32px;
-}
-
-.preview-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 192px;
+  background: #dedede;
+  opacity: 0.6;
+  border-radius: 6px;
+  margin-bottom: 24px;
 }
 
 .preview-title {
@@ -407,21 +405,7 @@ async function deleteDoc() {
   font-size: 30px;
   line-height: 36px;
   color: #1a1a1a;
-  margin: 0;
-  width: 827px;
-}
-
-.preview-body {
-  padding-top: 24px;
-}
-
-.preview-paragraph {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  line-height: 26px;
-  color: #4a4a4a;
-  margin: 0;
-  width: 827px;
+  margin: 0 0 16px;
 }
 
 .preview-subtitle {
@@ -432,14 +416,18 @@ async function deleteDoc() {
   margin: 24px 0 16px;
 }
 
-.highlight {
+.preview-paragraph {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 26px;
   color: #4a4a4a;
+  margin: 0 0 16px;
 }
 
 .blockquote {
   border-left: 2px solid rgba(125, 52, 28, 0.5);
-  padding: 8px 0 8px 22px;
-  margin: 32px 0;
+  padding-left: 22px;
+  margin: 24px 0;
 }
 
 .blockquote p {
@@ -448,7 +436,6 @@ async function deleteDoc() {
   font-style: italic;
   line-height: 28px;
   color: rgba(26, 26, 26, 0.8);
-  width: 326px;
   margin: 0;
 }
 

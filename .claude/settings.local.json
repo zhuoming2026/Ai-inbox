@@ -21,7 +21,18 @@
       "Bash(esbuild:*)",
       "Bash(mcporter call:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(git worktree:*)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app-dev log --oneline -3)",
+      "Bash(git -C /Users/zhuoming/lzm/CodeZone/ai-inbox-app-dev show --name-only 21e37a0)",
+      "Bash(git:*)",
+      "Bash(kill %1)",
+      "Bash(ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ node:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(ls -la postcss.config*)",
+      "Bash(sips -g pixelWidth -g pixelHeight .figma/image/screenshot_2013_294.png)",
+      "Bash(identify .figma/image/screenshot_2013_294.png)",
+      "Bash(ls ~/ai-inbox/*.md)"
     ]
   }
 }

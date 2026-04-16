@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>AI-Inbox - Main Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Acme&family=Inter:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1920px;
+      height: 1780px;
+      overflow: hidden;
+      background: #f5f4ed;
+      font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+
+    .main-page {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 0 1px 159px 48px;
+      width: 1920px;
+      min-width: 1920px;
+    }
+
+    /* Left Panel */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      margin-top: 31px;
+      flex: 1;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-right: 2px;
+      min-width: 1057px;
+      height: 58px;
+    }
+
+    .logo {
+      font-family: 'Acme', sans-serif;
+      font-size: 36px;
+      color: #000;
+    }
+
+    .logo span {
+      color: #fabb18;
+    }
+
+    .nav-items {
+      display: flex;
+      gap: 40px;
+    }
+
+    .nav-item {
+      font-family: 'Acme', sans-serif;
+      font-size: 28px;
+      color: #000;
+      cursor: pointer;
+    }
+
+    .search-container {
+      position: relative;
+      width: 509px;
+      height: 58px;
+    }
+
+    .search-box {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 509px;
+      height: 58px;
+      border-radius: 18px;
+      background: rgba(239, 239, 239, 0.47);
+      display: flex;
+      align-items: center;
+      padding: 17px 36px;
+    }
+
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 16px;
+    }
+
+    .search-placeholder {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      color: #757575;
+    }
+
+    .notification-btn {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 49px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .notification-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 2px;
+      left: 28px;
+      background: #fabb18;
+      border-radius: 50%;
+      padding: 3px 7px;
+      font-family: 'Acme', sans-serif;
+      font-size: 14px;
+      color: #000;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      cursor: pointer;
+    }
+
+    /* Input Area */
+    .input-section {
+      margin-top: 32px;
+      padding-bottom: 48px;
+    }
+
+    .input-card {
+      width: 1009px;
+      border: 1px solid rgba(26, 26, 26, 0.05);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      background: #faf9f6;
+      padding: 23px;
+    }
+
+    .input-placeholder {
+      width: 100%;
+      height: 96px;
+      padding: 8px 12px 60px;
+      border: none;
+      background: transparent;
+      font-family: 'Newsreader', serif;
+      font-size: 20px;
+      font-style: italic;
+      color: rgba(26, 26, 26, 0.3);
+      resize: none;
+      outline: none;
+    }
+
+    .input-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .submit-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a1a1a;
+      color: #f4f1ea;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 32px;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .submit-arrow {
+      width: 11px;
+      height: 9px;
+    }
+
+    /* Content Section */
+    .content-section {
+      margin-top: 28px;
+      margin-right: 1px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .section-title {
+      font-family: 'Acme', sans-serif;
+      font-size: 54px;
+      color: #000;
+    }
+
+    .section-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 48px;
+      padding-right: 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-large {
+      width: 324px;
+    }
+
+    .card-medium {
+      width: 324px;
+    }
+
+    .card-small {
+      width: 324px;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 173px;
+      background: #dedede;
+    }
+
+    .card-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-text-only {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 208px;
+      justify-content: center;
+    }
+
+    .card-tag-only {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      min-height: 208px;
+      justify-content: center;
+    }
+
+    .card-headline {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: #000;
+    }
+
+    .card-description {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      padding: 7px;
+      border-radius: 100px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    .tag-ready {
+      background: #1aae39;
+      border: 1px solid #1aae39;
+    }
+
+    .tag-working {
+      background: #097fe8;
+      border: 1px solid #097fe8;
+    }
+
+    .tag-finished {
+      background: #213183;
+      border: 1px solid #213183;
+    }
+
+    .tag-neutral {
+      background: #3c3c43;
+      border: 1px solid #3c3c43;
+    }
+
+    .card-delete {
+      position: absolute;
+      right: 46px;
+      bottom: 25px;
+      width: 28px;
+      height: 28px;
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .card:hover .card-delete {
+      opacity: 0.6;
+    }
+
+    /* Yesterday Section */
+    .yesterday-section {
+      margin-top: 48px;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      border-radius: 38px 0 0 38px;
+      background: #f9f9f9;
+      padding: 37px 30px 25px 29px;
+      width: 986px;
+    }
+
+    /* Calendar */
+    .calendar-card {
+      border-radius: 34px;
+      box-shadow: 0 16px 31px rgba(0, 0, 0, 0.01);
+      background: #fff;
+      padding: 52px 11px 53px;
+    }
+
+    .calendar-date {
+      margin-left: 60px;
+    }
+
+    .calendar-month {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      font-size: 30px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    .calendar-day {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: #000;
+      margin-top: 10px;
+    }
+
+    .calendar-week {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding: 0 60px;
+    }
+
+    .calendar-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 116px;
+      gap: 20px;
+    }
+
+    .calendar-weekday {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      font-size: 22px;
+      color: #000;
+    }
+
+    .calendar-number {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #000;
+    }
+
+    .calendar-other-month {
+      opacity: 0.3;
+    }
+
+    .calendar-today {
+      color: #fabb18;
+    }
+
+    /* Notes */
+    .notes-section {
+      margin-top: 42px;
+      border-radius: 34px;
+      box-shadow: 0 16px 31px rgba(0, 0, 0, 0.01);
+      background: #fff;
+      padding: 35px 28px 413px 33px;
+    }
+
+    .notes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 18px 0 12px;
+    }
+
+    .notes-title {
+      font-family: 'Acme', sans-serif;
+      font-size: 28px;
+      color: #000;
+    }
+
+    .notes-add {
+      cursor: pointer;
+    }
+
+    .notes-list {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #fabb18;
+      border-radius: 12px;
+      background: #fff;
+      padding: 15px;
+      height: 56px;
+    }
+
+    .task-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .task-checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #9f9f9f;
+      border-radius: 6px;
+    }
+
+    .task-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: #121212;
+    }
+
+    .task-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-dots-row {
+      display: flex;
+      gap: 3px;
+    }
+
+    .task-dot {
+      width: 3px;
+      height: 3px;
+      background: #d9d9d9;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <!-- Navigation -->
+      <nav class="nav">
+        <div class="logo">Ai-Inbo<span>X</span></div>
+        <div class="nav-items">
+          <span class="nav-item">Write</span>
+          <span class="nav-item">Read</span>
+        </div>
+        <div class="search-container">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="#757575" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="#757575" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="search-placeholder">Search Project ...</span>
+          </div>
+        </div>
+        <div class="notification-btn">
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9z" stroke="#000" stroke-width="2"/>
+            <path d="M13.73 21a2 2 0 01-3.46 0" stroke="#000" stroke-width="2"/>
+          </svg>
+          <span class="notification-badge">12</span>
+        </div>
+        <div class="avatar"></div>
+      </nav>
+
+      <!-- Input Area -->
+      <div class="input-section">
+        <div class="input-card">
+          <textarea class="input-placeholder" placeholder="Capture a thought, link, or task..."></textarea>
+          <div class="input-actions">
+            <div class="action-buttons">
+              <button class="action-btn">📷</button>
+              <button class="action-btn">🔗</button>
+              <button class="action-btn">📝</button>
+            </div>
+            <button class="submit-btn">
+              Inbox
+              <svg class="submit-arrow" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4.5h9M6 1l3.5 3.5L6 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="content-section">
+        <!-- Today Section -->
+        <div class="section-header">
+          <span class="section-title">Today</span>
+          <div class="section-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <!-- Card with Image -->
+          <div class="card card-large" style="position: relative;">
+            <div class="card-image"></div>
+            <div class="card-content">
+              <div>
+                <div class="card-headline">Headline</div>
+                <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+              </div>
+              <div class="card-tags">
+                <span class="tag tag-ready">Ready</span>
+                <span class="tag tag-working">Working</span>
+                <span class="tag tag-finished">Finished</span>
+              </div>
+            </div>
+            <svg class="card-delete" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="#000" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <!-- Card Text Only -->
+          <div class="card card-medium">
+            <div class="card-text-only">
+              <div>
+                <div class="card-headline">Headline</div>
+                <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+              </div>
+              <div class="card-tags">
+                <span class="tag tag-neutral">Ready</span>
+                <span class="tag tag-neutral" style="border-color: transparent;">Working</span>
+                <span class="tag tag-neutral" style="border-color: transparent;">Finished</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Tag Only -->
+          <div class="card card-small">
+            <div class="card-tag-only">
+              <div>
+                <div class="card-headline">Headline</div>
+                <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+              </div>
+              <span class="tag tag-neutral">Button</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Yesterday Section -->
+        <div class="yesterday-section">
+          <div class="section-header">
+            <span class="section-title">Yestoday</span>
+            <div class="section-dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+
+          <div class="cards-grid" style="margin-top: 17px;">
+            <!-- Card with Image -->
+            <div class="card card-large" style="position: relative;">
+              <div class="card-image"></div>
+              <div class="card-content">
+                <div>
+                  <div class="card-headline">Headline</div>
+                  <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+                </div>
+                <div class="card-tags">
+                  <span class="tag tag-ready">Ready</span>
+                  <span class="tag tag-working">Working</span>
+                  <span class="tag tag-finished">Finished</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <!-- Card Text Only -->
+              <div class="card card-medium">
+                <div class="card-text-only">
+                  <div>
+                    <div class="card-headline">Headline</div>
+                    <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+                  </div>
+                  <div class="card-tags">
+                    <span class="tag tag-neutral">Ready</span>
+                    <span class="tag tag-neutral" style="border-color: transparent;">Working</span>
+                    <span class="tag tag-neutral" style="border-color: transparent;">Finished</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card with Image (small) -->
+              <div class="card card-medium" style="position: relative;">
+                <div class="card-image" style="height: 120px;"></div>
+                <div class="card-content">
+                  <div>
+                    <div class="card-headline">Headline</div>
+                    <div class="card-description" style="margin-top: 4px;">Please add your content here.</div>
+                  </div>
+                  <div class="card-tags">
+                    <span class="tag tag-ready">Ready</span>
+                    <span class="tag tag-working">Working</span>
+                    <span class="tag tag-finished">Finished</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Tag Only -->
+            <div class="card card-small">
+              <div class="card-tag-only">
+                <div>
+                  <div class="card-headline">Headline</div>
+                  <div class="card-description" style="margin-top: 4px;">Please add your content here. Keep it short and simple. And smile :)</div>
+                </div>
+                <span class="tag tag-neutral">Button</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- Calendar -->
+      <div class="calendar-card">
+        <div class="calendar-date">
+          <div class="calendar-month">april 10, 2021</div>
+          <div class="calendar-day">today</div>
+        </div>
+        <div class="calendar-week">
+          <div class="calendar-column">
+            <span class="calendar-weekday">Sun</span>
+            <span class="calendar-number calendar-other-month">30</span>
+            <span class="calendar-number calendar-today">6</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday">Mon</span>
+            <span class="calendar-number calendar-other-month">31</span>
+            <span class="calendar-number calendar-today">7</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday">Tue</span>
+            <span class="calendar-number">1</span>
+            <span class="calendar-number calendar-today">8</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday">Wed</span>
+            <span class="calendar-number">2</span>
+            <span class="calendar-number calendar-today">9</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday">Thu</span>
+            <span class="calendar-number">3</span>
+            <span class="calendar-number calendar-today">10</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday calendar-today">Fri</span>
+            <span class="calendar-number">4</span>
+            <span class="calendar-number calendar-today">11</span>
+          </div>
+          <div class="calendar-column">
+            <span class="calendar-weekday">Sat</span>
+            <span class="calendar-number">5</span>
+            <span class="calendar-number calendar-today">12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="notes-section">
+        <div class="notes-header">
+          <span class="notes-title">Notes</span>
+          <svg class="notes-add" width="5" height="19" viewBox="0 0 5 19">
+            <circle cx="2.5" cy="2.5" r="2.5" fill="#000"/>
+            <circle cx="2.5" cy="9.5" r="2.5" fill="#000"/>
+            <circle cx="2.5" cy="16.5" r="2.5" fill="#000"/>
+          </svg>
+        </div>
+        <div class="notes-list">
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Drink 8 glasses of water</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Meditate for 10 minutes</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Read a chapter of a book</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Go for a 30-minute walk</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Write in a gratitude journal</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Plan meals for the day</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item" style="height: auto; padding: 15px 15px 15px 15px;">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Practice deep breathing<br>exercises</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Stretch for 15 minutes</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Limit screen time before bed</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-checkbox"></div>
+              <span class="task-text">Review daily goals before sleeping</span>
+            </div>
+            <div class="task-dots">
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+              <div class="task-dots-row"><span class="task-dot"></span><span class="task-dot"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
