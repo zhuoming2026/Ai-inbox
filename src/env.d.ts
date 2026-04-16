@@ -13,6 +13,7 @@ interface ElectronAPI {
   deleteFile(slug: string): Promise<void>
   archiveFile(slug: string): Promise<void>
   processInput(type: string, content: string): Promise<{ slug: string }>
+  captureScreenshot(): Promise<string | null>
   selectFolder(): Promise<string | null>
   onInboxUpdate(cb: () => void): () => void
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, globalShortcut } from 'electron'
 import { join } from 'path'
 import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
@@ -133,6 +133,15 @@ function createWindow() {
   } else {
     win.loadFile(join(__dirname, '../dist/index.html'))
   }
+
+  // Screenshot shortcut: CmdOrCtrl+Shift+S
+  globalShortcut.register('CommandOrControl+Shift+S', async () => {
+    if (!win) return
+    const screenshotPath = join(app.getPath('userData'), 'screenshot.png')
+    const image = await win.webContents.capturePage()
+    fs.writeFileSync(screenshotPath, image.toPNG())
+    console.log('[ai-inbox] Screenshot saved:', screenshotPath)
+  })
 }
 
 // File watcher
@@ -152,6 +161,15 @@ function setupWatcher() {
 
 // IPC Handlers
 function setupIPC() {
+  // Screenshot
+  ipcMain.handle('screenshot:capture', async () => {
+    if (!win) return null
+    const screenshotPath = join(app.getPath('userData'), 'screenshot.png')
+    const image = await win.webContents.capturePage()
+    fs.writeFileSync(screenshotPath, image.toPNG())
+    return screenshotPath
+  })
+
   // Settings
   ipcMain.handle('settings:get', () => store.store)
   ipcMain.handle('settings:save', (_, settings: Record<string, unknown>) => {

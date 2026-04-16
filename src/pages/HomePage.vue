@@ -352,7 +352,8 @@ onMounted(() => {
   flex: 4;
   display: flex;
   flex-direction: column;
-  padding: 31px 24px 48px;
+  padding: 31px 48px 48px;
+  min-width: 0;
 }
 
 /* Navigation */
@@ -422,6 +423,7 @@ onMounted(() => {
 }
 
 .input-card {
+  width: 1009px;
   border-radius: 16px !important;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.03) !important;
   background: #faf9f6 !important;
@@ -442,22 +444,21 @@ onMounted(() => {
 
 .input-field :deep(.n-input-wrapper) {
   background: transparent !important;
-  padding: 8px 12px !important;
+  padding: 8px 12px 60px !important;
 }
 
 .input-field :deep(.n-input__textarea-el) {
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader', serif !important;
   font-style: italic;
-  font-size: 20px;
-  color: rgba(26, 26, 26, 0.3);
-  min-height: 60px !important;
+  font-size: 20px !important;
+  color: rgba(26, 26, 26, 0.3) !important;
+  min-height: 96px !important;
 }
 
 .input-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
 }
 
 .attach-btns {
@@ -469,7 +470,9 @@ onMounted(() => {
   background: #1a1a1a !important;
   color: #f4f1ea !important;
   border-radius: 9999px !important;
-  padding: 8px 20px !important;
+  padding: 8px 32px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 16px !important;
 }
 
 /* Article List */
@@ -488,11 +491,11 @@ onMounted(() => {
 .cards-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 24px;
 }
 
 .card {
-  width: calc(50% - 8px);
+  width: 324px;
   border-radius: 12px !important;
   overflow: hidden;
   cursor: pointer;
@@ -556,8 +559,7 @@ onMounted(() => {
 
 /* Right Content - max 400px, 1080px height */
 .right-content {
-  flex: 1;
-  max-width: 400px;
+  flex: 0 0 400px;
   max-height: 1080px;
   display: flex;
   flex-direction: column;

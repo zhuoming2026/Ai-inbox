@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // MCP 输入（处理用户输入）
   processInput: (type: string, content: string) => ipcRenderer.invoke('mcp:process-input', { type, content }),
 
+  // 截图
+  captureScreenshot: () => ipcRenderer.invoke('screenshot:capture'),
+
   // 事件监听
   onInboxUpdate: (callback: () => void) => {
     ipcRenderer.on('inbox:updated', callback)
