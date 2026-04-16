@@ -34,7 +34,13 @@
       "Bash(identify .figma/image/screenshot_2013_294.png)",
       "Bash(ls ~/ai-inbox/*.md)",
       "Bash(curl -s http://localhost:5173/)",
-      "Bash(ls -la ~/ai-inbox/*.md)"
+      "Bash(ls -la ~/ai-inbox/*.md)",
+      "WebSearch",
+      "WebFetch(domain:milkdown.dev)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(pkill -f \"electron\")",
+      "Bash(curl:*)"
     ]
   }
 }
