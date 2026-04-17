@@ -13,22 +13,41 @@
   --text-primary: #2d2a26;
   --text-secondary: rgba(45, 42, 38, 0.6);
   --text-placeholder: rgba(45, 42, 38, 0.3);
+  --text-muted: rgba(45, 42, 38, 0.6);
 
   --border-color: rgba(45, 42, 38, 0.1);
   --border-color-light: rgba(45, 42, 38, 0.15);
 
   --shadow-card: 0px 4px 24px rgba(194, 109, 71, 0.08);
-  --shadow-card-hover: 0px 4px 8px rgba(194, 109, 71, 0.15);
+  --shadow-card-hover: 0px 8px 30px rgba(194, 109, 71, 0.12);
   --shadow-sidebar: 0px 16px 40px rgba(194, 109, 71, 0.06);
 
   --font-heading: 'Acme', sans-serif;
   --font-body: 'Newsreader', serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  --radius-sm: 2px;
+  --radius-sm: 4px;
   --radius-md: 12px;
-  --radius-lg: 34px;
-  --radius-xl: 38px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 28px;
 
-  --transition: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --color-success: #1AAE39;
+  --color-error: #e74c3c;
+  --color-link: #097FE8;
+  --color-info: #3C9BE0;
+  --color-warning: #fabb18;
 }

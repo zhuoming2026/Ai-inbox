@@ -82,7 +82,7 @@ watch(() => props.selectedDate, (newDate) => {
 <style scoped>
 .week-calendar {
   display: block;
-  padding: 52px 11px 53px;
+  padding: var(--space-12) var(--space-3) var(--space-12);
   width: 100%;
 }
 
@@ -98,41 +98,41 @@ watch(() => props.selectedDate, (newDate) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: var(--space-4);
   cursor: pointer;
 }
 
 .calendar-weekday {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 22px;
-  color: #000;
+  color: var(--text-primary);
 }
 
 .calendar-column.is-today .calendar-weekday {
-  color: #fabb18;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .calendar-number {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 20px;
   font-weight: 600;
-  color: #000;
+  color: var(--text-primary);
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .calendar-number:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--border-color);
 }
 
 .calendar-column.is-today .calendar-number {
-  color: #fabb18;
+  color: var(--color-primary);
 }
 
 .calendar-number.is-other-month {

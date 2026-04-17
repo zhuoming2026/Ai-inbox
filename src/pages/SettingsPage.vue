@@ -144,9 +144,9 @@ async function saveSettings() {
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 32px;
-  border-bottom: 1px solid var(--bg-tertiary);
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-8);
+  border-bottom: 1px solid var(--border-color-light);
   flex-shrink: 0;
 }
 
@@ -156,8 +156,9 @@ async function saveSettings() {
   cursor: pointer;
   font-size: 16px;
   color: var(--text-secondary);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
 .back-btn:hover {
@@ -168,16 +169,17 @@ async function saveSettings() {
 .title {
   font-size: 20px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .body {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
+  padding: var(--space-8);
 }
 
 .section {
-  margin-bottom: 40px;
+  margin-bottom: var(--space-10);
 }
 
 .section-title {
@@ -186,22 +188,22 @@ async function saveSettings() {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--bg-tertiary);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color-light);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   max-width: 520px;
 }
 
 .form-label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .label-text {
@@ -212,12 +214,12 @@ async function saveSettings() {
 
 .form-input {
   padding: 10px 14px;
-  border: 1px solid var(--bg-tertiary);
+  border: 1px solid var(--border-color-light);
   border-radius: var(--radius-md);
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 14px;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-base);
 }
 
 .form-input:focus {
@@ -226,13 +228,13 @@ async function saveSettings() {
 }
 
 .form-input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-placeholder);
 }
 
 .status-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   font-size: 14px;
   color: var(--text-secondary);
 }
@@ -240,7 +242,7 @@ async function saveSettings() {
 .status-dot {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .status-dot::before {
@@ -251,15 +253,15 @@ async function saveSettings() {
 }
 
 .status-dot.running::before {
-  background: #1AAE39;
+  background: var(--color-success);
 }
 
 .status-dot.stopped::before {
-  background: #e74c3c;
+  background: var(--color-error);
 }
 
 .config-box {
-  border: 1px solid var(--bg-tertiary);
+  border: 1px solid var(--border-color-light);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -268,20 +270,20 @@ async function saveSettings() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: var(--space-2) var(--space-3);
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color-light);
 }
 
 .btn-copy {
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--bg-tertiary);
+  background: var(--bg-embedded);
   color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
 .btn-copy:hover {
@@ -291,12 +293,12 @@ async function saveSettings() {
 
 .config-textarea {
   width: 100%;
-  padding: 14px;
+  padding: var(--space-4);
   border: none;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 12px;
-  font-family: 'Source Code Pro', monospace;
+  font-family: var(--font-mono);
   line-height: 1.6;
   resize: vertical;
 }
@@ -306,16 +308,16 @@ async function saveSettings() {
 }
 
 .btn-primary {
-  padding: 10px 20px;
+  padding: var(--space-2) var(--space-5);
   border: none;
   border-radius: var(--radius-md);
-  background: var(--status-finished);
+  background: var(--color-success);
   color: white;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   align-self: flex-start;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-base);
 }
 
 .btn-primary:hover {
@@ -323,16 +325,16 @@ async function saveSettings() {
 }
 
 .btn-secondary {
-  padding: 10px 20px;
+  padding: var(--space-2) var(--space-5);
   border: none;
   border-radius: var(--radius-md);
-  background: var(--bg-tertiary);
+  background: var(--bg-embedded);
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   align-self: flex-start;
-  transition: background 0.2s;
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
 .btn-secondary:hover {

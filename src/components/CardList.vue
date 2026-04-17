@@ -63,27 +63,28 @@ const groupedCards = computed(() => {
 <style scoped>
 .card-list { }
 .date-label {
-  font-size: 12px; color: var(--text-muted); margin: 16px 0 8px;
+  font-size: 12px; color: var(--text-muted); margin: var(--space-4) 0 var(--space-2);
   text-transform: uppercase; letter-spacing: 0.5px;
 }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-3); }
 .card {
   display: flex; border-radius: var(--radius-lg); overflow: hidden;
-  background: var(--bg-secondary); cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: var(--bg-card); cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  box-shadow: var(--shadow-card);
 }
-.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card-hover); }
 .card-bar { width: 3px; background: var(--card-color); flex-shrink: 0; }
-.card-body { padding: 12px; flex: 1; }
-.card-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.card-body { padding: var(--space-3); flex: 1; }
+.card-title { font-size: 14px; font-weight: 500; margin-bottom: var(--space-1); font-family: var(--font-mono); }
 .card-preview {
-  font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;
-  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-2);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--font-mono);
 }
-.card-meta { display: flex; gap: 4px; margin-bottom: 6px; }
+.card-meta { display: flex; gap: var(--space-1); margin-bottom: var(--space-2); }
 .card-meta span {
-  font-size: 10px; padding: 2px 6px; border-radius: var(--radius-sm);
-  background: var(--bg-tertiary); color: var(--text-muted);
+  font-size: 10px; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+  background: var(--bg-embedded); color: var(--text-muted); font-family: var(--font-mono);
 }
 .card-meta span.active { background: var(--color-link); color: white; }
 .card-date { font-size: 11px; color: var(--text-muted); }
