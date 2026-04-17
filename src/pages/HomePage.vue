@@ -190,20 +190,20 @@ const themeOverrides: GlobalThemeOverrides = {
     primaryColorHover: '#f9c84a',
     primaryColorPressed: '#d9a015',
     borderRadius: '12px',
-    fontFamily: 'Inter, PingFang SC, sans-serif',
+    fontFamily: 'Source Sans 3, Nunito Sans, system-ui, sans-serif',
   },
   Card: {
     color: '#ffffff',
-    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
+    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.03)',
   },
   Input: {
     color: 'rgba(239, 239, 239, 0.47)',
     colorFocus: 'rgba(239, 239, 239, 0.7)',
-    borderRadius: '18px',
+    borderRadius: '9999px',
     boxShadowFocus: 'none',
   },
   Tag: {
-    borderRadius: '100px',
+    borderRadius: '9999px',
     height: 'auto',
     padding: '7px',
   },
@@ -290,7 +290,6 @@ function formatDateShort(dateStr: string): string {
 }
 
 function toggleStatus(_card: any, _status: string) {
-  // TODO
 }
 
 function openArticle(slug: string) {
@@ -336,7 +335,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: var(--space-6) var(--space-6) var(--space-6) var(--space-6);
+  padding: var(--space-6);
   min-width: 0;
   overflow: hidden;
 }
@@ -345,13 +344,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  height: 58px;
+  height: var(--nav-height);
   margin-bottom: var(--space-8);
 }
 
 .logo {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: var(--text-3xl);
   font-weight: normal;
   color: var(--text-primary);
   white-space: nowrap;
@@ -369,7 +368,7 @@ onMounted(() => {
 
 .nav-mode-btn {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: var(--text-xl);
   color: var(--text-primary);
   cursor: pointer;
   opacity: 0.5;
@@ -388,12 +387,12 @@ onMounted(() => {
 
 .search-input {
   width: 100%;
-  height: 44px;
+  height: var(--input-height);
 }
 
 .icon-btn {
-  width: 44px;
-  height: 44px;
+  width: var(--input-height);
+  height: var(--input-height);
   flex-shrink: 0;
 }
 
@@ -433,14 +432,14 @@ onMounted(() => {
 
 .input-field :deep(.n-input__textarea-el) {
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: var(--text-xl);
   color: var(--text-primary);
   min-height: 96px;
 }
 
 .input-field :deep(.n-input__placeholder) {
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: var(--text-xl);
   color: var(--text-placeholder);
   top: var(--space-2);
   left: var(--space-3);
@@ -465,7 +464,7 @@ onMounted(() => {
   padding: var(--space-2) var(--space-8);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .article-list {
@@ -476,7 +475,7 @@ onMounted(() => {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: var(--text-3xl);
   color: var(--text-primary);
   margin: var(--space-6) 0 var(--space-4);
 }
@@ -518,7 +517,7 @@ onMounted(() => {
 
 .card-title {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-primary);
   margin: 0;
@@ -526,7 +525,7 @@ onMounted(() => {
 
 .card-preview {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
@@ -551,7 +550,7 @@ onMounted(() => {
 }
 
 .right-content {
-  flex: 0 0 400px;
+  flex: 0 0 var(--sidebar-width);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -605,7 +604,7 @@ onMounted(() => {
 
 .calendar-wrapper :deep(.fc-col-header-cell-cushion) {
   font-family: var(--font-body);
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: normal;
   color: var(--text-primary);
   text-transform: uppercase;
@@ -616,7 +615,7 @@ onMounted(() => {
 }
 
 .calendar-wrapper :deep(.fc-timegrid-slot-label) {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
@@ -637,7 +636,7 @@ onMounted(() => {
 }
 
 .calendar-wrapper :deep(.fc-day-today) {
-  background: rgba(250, 187, 24, 0.1);
+  background: var(--color-warning-bg);
 }
 
 .calendar-wrapper :deep(.fc-day-today .fc-col-header-cell-cushion) {
@@ -651,7 +650,7 @@ onMounted(() => {
 
 .cal-date {
   font-family: var(--font-body);
-  font-size: 30px;
+  font-size: var(--text-3xl);
   color: var(--text-primary);
   opacity: 0.7;
   cursor: pointer;
@@ -662,7 +661,7 @@ onMounted(() => {
 }
 
 .clear-hint {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   margin-left: var(--space-2);
   opacity: 0.5;
 }
@@ -673,7 +672,7 @@ onMounted(() => {
 
 .cal-today-btn {
   font-family: var(--font-body);
-  font-size: 48px;
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: var(--text-primary);
   margin-top: var(--space-3);
@@ -688,7 +687,7 @@ onMounted(() => {
 
 .notes-title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: var(--text-3xl);
   color: var(--text-primary);
 }
 
@@ -711,7 +710,7 @@ onMounted(() => {
 
 .note-text {
   font-family: var(--font-body);
-  font-size: 17px;
+  font-size: var(--text-lg);
   font-weight: 500;
   color: var(--text-primary);
   flex: 1;

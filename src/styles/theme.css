@@ -1,57 +1,56 @@
 :root {
   /* ==================== Background Colors ==================== */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #242424;
-  --bg-card: #2d2d2d;
-  --bg-sidebar: #232323;
-  --bg-modal: #2d2d2d;
-  --bg-embedded: #333333;
-  --bg-tertiary: #3a3a3a;
-  --bg-label: #2a2a2a;
-  --bg-input: rgba(255, 255, 255, 0.08);
-  --bg-input-focus: rgba(255, 255, 255, 0.12);
+  --bg-primary: #f5f4ed;
+  --bg-secondary: #faf9f6;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f9f9f9;
+  --bg-modal: #ffffff;
+  --bg-embedded: #fafaf8;
+  --bg-tertiary: #f0efeb;
+  --bg-label: #fafaf8;
+  --bg-input: rgba(239, 239, 239, 0.47);
+  --bg-input-focus: rgba(239, 239, 239, 0.7);
 
   /* ==================== Text Colors ==================== */
-  --text-primary: #f5f4ed;
-  --text-secondary: rgba(245, 244, 237, 0.6);
-  --text-placeholder: rgba(245, 244, 237, 0.3);
-  --text-muted: rgba(245, 244, 237, 0.6);
-  --text-inverse: #1a1a1a;
-  --text-tertiary: rgba(245, 244, 237, 0.4);
-  --text-link: #fabb18;
+  --text-primary: #1a1a1a;
+  --text-secondary: rgba(26, 26, 26, 0.6);
+  --text-placeholder: rgba(26, 26, 26, 0.3);
+  --text-muted: rgba(26, 26, 26, 0.6);
+  --text-inverse: #ffffff;
+  --text-tertiary: #87867f;
+  --text-link: #097FE8;
 
   /* ==================== Border Colors ==================== */
-  --border-color: rgba(245, 244, 237, 0.1);
-  --border-color-light: rgba(245, 244, 237, 0.2);
+  --border-color: rgba(26, 26, 26, 0.08);
+  --border-color-light: rgba(26, 26, 26, 0.15);
   --border-color-focus: #fabb18;
 
   /* ==================== Brand & Primary Colors ==================== */
   --color-primary: #fabb18;
   --color-primary-hover: #f9c84a;
   --color-primary-pressed: #d9a015;
-  --color-brand: #fabb18;
-  --color-brand-hover: #f9c84a;
-  --color-brand-pressed: #d9a015;
+  --color-brand: #c96442;
+  --color-brand-hover: #d97757;
+  --color-brand-pressed: #a85a38;
 
   /* ==================== Semantic Colors ==================== */
-  --color-success: #2ecc71;
-  --color-success-bg: rgba(46, 204, 113, 0.15);
+  --color-success: #1AAE39;
+  --color-success-bg: rgba(26, 174, 57, 0.1);
   --color-error: #e74c3c;
-  --color-error-bg: rgba(231, 76, 60, 0.15);
+  --color-error-bg: rgba(231, 76, 60, 0.1);
   --color-warning: #fabb18;
-  --color-warning-bg: rgba(250, 187, 24, 0.15);
-  --color-info: #5dade2;
-  --color-info-bg: rgba(93, 173, 226, 0.15);
-  --color-link: #fabb18;
-  --color-link-bg: rgba(250, 187, 24, 0.15);
+  --color-warning-bg: rgba(250, 187, 24, 0.1);
+  --color-info: #3C9BE0;
+  --color-info-bg: rgba(60, 155, 224, 0.1);
+  --color-link: #097FE8;
+  --color-link-bg: rgba(9, 127, 232, 0.1);
 
   /* ==================== Shadow System ==================== */
-  --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0px 8px 30px rgba(0, 0, 0, 0.4);
-  --shadow-sidebar: 0px 16px 40px rgba(0, 0, 0, 0.4);
-  --shadow-elevated: rgba(0, 0, 0, 0.3) 0px 4px 24px;
-  --shadow-button: 0px 0px 0px 1px rgba(245, 244, 237, 0.2);
-  --shadow-ring: 0px 0px 0px 1px;
+  --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0px 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-sidebar: 0px 16px 31px rgba(0, 0, 0, 0.01);
+  --shadow-elevated: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  --shadow-button: 0px 0px 0px 1px rgba(26, 26, 26, 0.1);
 
   /* ==================== Font Families ==================== */
   --font-display: 'Acme', 'Georgia', serif;
@@ -60,7 +59,7 @@
   --font-editor: 'Newsreader', 'Georgia', serif;
   --font-heading-alt: 'Newsreader', 'Georgia', serif;
 
-  /* ==================== Font Sizes ==================== */
+  /* ==================== Font Sizes (Based on Claude Design) ==================== */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;

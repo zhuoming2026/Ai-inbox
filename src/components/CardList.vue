@@ -45,8 +45,12 @@ const props = defineProps<{ cards: Card[] }>()
 defineEmits<{ 'card-click': [slug: string] }>()
 
 const colorMap: Record<string, string> = {
-  todo: '#097FE8', link: '#097FE8', note: '#FABB18',
-  research: '#FABB18', image: '#3C9BE0', source: '#DADADA'
+  todo: 'var(--color-link)',
+  link: 'var(--color-link)',
+  note: 'var(--color-primary)',
+  research: 'var(--color-primary)',
+  image: 'var(--color-info)',
+  source: 'var(--text-muted)'
 }
 
 const groupedCards = computed(() => {
@@ -63,29 +67,73 @@ const groupedCards = computed(() => {
 <style scoped>
 .card-list { }
 .date-label {
-  font-size: 12px; color: var(--text-muted); margin: var(--space-4) 0 var(--space-2);
-  text-transform: uppercase; letter-spacing: 0.5px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: var(--space-4) 0 var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-3); }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
 .card {
-  display: flex; border-radius: var(--radius-lg); overflow: hidden;
-  background: var(--bg-card); cursor: pointer;
+  display: flex;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+  cursor: pointer;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
   box-shadow: var(--shadow-card);
 }
-.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card-hover); }
-.card-bar { width: 3px; background: var(--card-color); flex-shrink: 0; }
-.card-body { padding: var(--space-3); flex: 1; }
-.card-title { font-size: 14px; font-weight: 500; margin-bottom: var(--space-1); font-family: var(--font-mono); }
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+.card-bar {
+  width: 3px;
+  background: var(--card-color);
+  flex-shrink: 0;
+}
+.card-body {
+  padding: var(--space-3);
+  flex: 1;
+}
+.card-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+  font-family: var(--font-mono);
+}
 .card-preview {
-  font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-2);
-  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
 }
-.card-meta { display: flex; gap: var(--space-1); margin-bottom: var(--space-2); }
+.card-meta {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
 .card-meta span {
-  font-size: 10px; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
-  background: var(--bg-embedded); color: var(--text-muted); font-family: var(--font-mono);
+  font-size: 10px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-embedded);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
-.card-meta span.active { background: var(--color-link); color: white; }
-.card-date { font-size: 11px; color: var(--text-muted); }
+.card-meta span.active {
+  background: var(--color-link);
+  color: var(--text-inverse);
+}
+.card-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
 </style>

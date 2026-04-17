@@ -1,41 +1,87 @@
 :root {
-  --bg-primary: #fef9f5;
-  --bg-secondary: #fdf6ef;
+  /* ==================== Background Colors ==================== */
+  --bg-primary: #f5f4ed;
+  --bg-secondary: #faf9f6;
   --bg-card: #ffffff;
-  --bg-sidebar: #fef6ed;
+  --bg-sidebar: #f9f9f9;
   --bg-modal: #ffffff;
-  --bg-embedded: #fef6ed;
+  --bg-embedded: #fafaf8;
+  --bg-tertiary: #f0efeb;
+  --bg-label: #fafaf8;
+  --bg-input: rgba(239, 239, 239, 0.47);
+  --bg-input-focus: rgba(239, 239, 239, 0.7);
 
-  --color-primary: #c26d47;
-  --color-primary-hover: #d17d5a;
-  --color-primary-pressed: #a85a38;
-
-  --text-primary: #2d2a26;
-  --text-secondary: rgba(45, 42, 38, 0.6);
+  /* ==================== Text Colors ==================== */
+  --text-primary: #141413;
+  --text-secondary: #5e5d59;
   --text-placeholder: rgba(45, 42, 38, 0.3);
-  --text-muted: rgba(45, 42, 38, 0.6);
+  --text-muted: #87867f;
+  --text-inverse: #faf9f5;
+  --text-tertiary: #87867f;
+  --text-link: #c96442;
 
-  --border-color: rgba(45, 42, 38, 0.1);
-  --border-color-light: rgba(45, 42, 38, 0.15);
+  /* ==================== Border Colors ==================== */
+  --border-color: #f0eee6;
+  --border-color-light: #e8e6dc;
+  --border-color-focus: #c96442;
 
-  --shadow-card: 0px 4px 24px rgba(194, 109, 71, 0.08);
-  --shadow-card-hover: 0px 8px 30px rgba(194, 109, 71, 0.12);
-  --shadow-sidebar: 0px 16px 40px rgba(194, 109, 71, 0.06);
+  /* ==================== Brand & Primary Colors (Claude Warm Palette) ==================== */
+  --color-primary: #c96442;
+  --color-primary-hover: #d97757;
+  --color-primary-pressed: #a85a38;
+  --color-brand: #c96442;
+  --color-brand-hover: #d97757;
+  --color-brand-pressed: #a85a38;
 
-  --font-display: 'Acme', sans-serif;
-  --font-body: 'Source Sans 3', 'Nunito Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  /* ==================== Semantic Colors ==================== */
+  --color-success: #1AAE39;
+  --color-success-bg: rgba(26, 174, 57, 0.1);
+  --color-error: #b53333;
+  --color-error-bg: rgba(181, 51, 51, 0.1);
+  --color-warning: #fabb18;
+  --color-warning-bg: rgba(250, 187, 24, 0.1);
+  --color-info: #3C9BE0;
+  --color-info-bg: rgba(60, 155, 224, 0.1);
+  --color-link: #c96442;
+  --color-link-bg: rgba(201, 100, 66, 0.1);
 
-  --radius-sm: 4px;
+  /* ==================== Shadow System ==================== */
+  --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0px 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-sidebar: 0px 16px 31px rgba(0, 0, 0, 0.01);
+  --shadow-elevated: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  --shadow-button: 0px 0px 0px 1px #d1cfc5;
+  --shadow-ring: 0px 0px 0px 1px;
+
+  /* ==================== Font Families ==================== */
+  --font-display: 'Acme', 'Georgia', serif;
+  --font-body: 'Source Sans 3', 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+  --font-editor: 'Newsreader', 'Georgia', serif;
+  --font-heading-alt: 'Newsreader', 'Georgia', serif;
+
+  /* ==================== Font Sizes ==================== */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* ==================== Border Radius ==================== */
+  --radius-sharp: 4px;
+  --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --radius-full: 28px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
 
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
+  /* ==================== Spacing Scale ==================== */
+  --space-0: 0;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -48,10 +94,30 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
 
-  --color-success: #1AAE39;
-  --color-error: #e74c3c;
-  --color-link: #097FE8;
-  --color-info: #3C9BE0;
-  --color-warning: #fabb18;
+  /* ==================== Transitions ==================== */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==================== Z-Index Scale ==================== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+
+  /* ==================== Component Specific ==================== */
+  --btn-height-sm: 32px;
+  --btn-height-md: 40px;
+  --btn-height-lg: 48px;
+  --input-height: 44px;
+  --nav-height: 58px;
+  --sidebar-width: 400px;
 }

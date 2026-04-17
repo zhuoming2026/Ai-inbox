@@ -102,7 +102,6 @@ function handleToday() {
   emit('select', Date.now())
 }
 
-// 当选中日期不在当前周时，更新周视图
 watch(() => props.selectedDate, (newDate) => {
   refreshTrigger.value++
   if (newDate) {
@@ -136,7 +135,7 @@ watch(() => props.selectedDate, (newDate) => {
 
 .calendar-date {
   font-family: var(--font-body);
-  font-size: 24px;
+  font-size: var(--text-2xl);
   color: var(--text-secondary);
   user-select: none;
 }
@@ -162,7 +161,7 @@ watch(() => props.selectedDate, (newDate) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--btn-color);
   margin-left: var(--space-2);
   transition: all var(--transition);
@@ -177,13 +176,13 @@ watch(() => props.selectedDate, (newDate) => {
   --btn-size: 28px;
   --btn-bg: var(--color-primary);
   --btn-border: var(--color-primary);
-  --btn-color: #ffffff;
+  --btn-color: var(--text-inverse);
   --btn-border-hover: var(--color-primary-hover);
-  --btn-color-hover: #ffffff;
+  --btn-color-hover: var(--text-inverse);
 }
 
 .today-btn {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -205,13 +204,13 @@ watch(() => props.selectedDate, (newDate) => {
 
 .calendar-weekday {
   font-family: var(--font-body);
-  font-size: 22px;
+  font-size: var(--text-xl);
   color: var(--text-primary);
 }
 
 .calendar-number {
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: 400;
   color: var(--text-primary);
   width: 32px;

@@ -54,7 +54,7 @@ const ArrowBackIcon = h(NIcon, null, () => h(ArrowBackOutline))
 const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#fabb18',
-    fontFamily: 'Inter, PingFang SC, sans-serif',
+    fontFamily: 'Source Sans 3, Nunito Sans, system-ui, sans-serif',
   },
 }
 
@@ -62,25 +62,17 @@ const article = ref<any>(null)
 const content = ref('')
 const lastSaved = ref('')
 
-// 简单的 Markdown 转 HTML
 const renderedContent = computed(() => {
   let html = content.value
-    // 标题
     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
     .replace(/^## (.*$)/gim, '<h2>$1</h2>')
     .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    // 粗体斜体
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // 代码
     .replace(/`(.*?)`/g, '<code>$1</code>')
-    // 链接
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-    // 引用
     .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-    // 列表
     .replace(/^- (.*$)/gim, '<li>$1</li>')
-    // 换行
     .replace(/\n/g, '<br>')
 
   return html
@@ -138,51 +130,50 @@ router.beforeEach((_to, _from, next) => {
 .article-page {
   width: 100%;
   height: 100vh;
-  background: #f5f4ed;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
 
-/* Header */
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px 32px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-8);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .back-btn {
-  width: 40px;
-  height: 40px;
+  width: var(--btn-height-md);
+  height: var(--btn-height-md);
   border-radius: 50%;
-  border: 1px solid rgba(26, 26, 26, 0.1);
-  background: #ffffff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
+  color: var(--text-primary);
 }
 
 .back-btn:hover {
-  background: #f5f4ed;
+  background: var(--bg-secondary);
 }
 
 .logo {
-  font-family: 'Acme', sans-serif;
-  font-size: 24px;
-  color: #1a1a1a;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
   margin: 0;
 }
 
 .logo-x {
-  color: #fabb18;
+  color: var(--color-primary);
 }
 
-/* Editor Area */
 .editor-area {
   flex: 1;
   display: flex;
@@ -199,81 +190,79 @@ router.beforeEach((_to, _from, next) => {
 }
 
 .edit-panel {
-  border-right: 1px solid rgba(26, 26, 26, 0.08);
+  border-right: 1px solid var(--border-color);
 }
 
 .panel-label {
-  font-family: 'Acme', sans-serif;
-  font-size: 18px;
-  color: rgba(26, 26, 26, 0.3);
-  padding: 12px 24px;
-  border-bottom: 1px solid rgba(26, 26, 26, 0.05);
-  background: #fafaf8;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-label);
   flex-shrink: 0;
 }
 
-/* Textarea Editor */
 .markdown-textarea {
   flex: 1;
   width: 100%;
-  padding: 24px;
+  padding: var(--space-6);
   border: none;
   outline: none;
   resize: none;
-  font-family: 'Newsreader', serif;
-  font-size: 18px;
+  font-family: var(--font-editor);
+  font-size: var(--text-lg);
   line-height: 1.8;
-  color: #1a1a1a;
-  background: #ffffff;
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .markdown-textarea::placeholder {
-  color: rgba(26, 26, 26, 0.3);
+  color: var(--text-placeholder);
 }
 
-/* Preview Area */
 .bytemd-viewer {
   flex: 1;
-  padding: 24px;
+  padding: var(--space-6);
   overflow-y: auto;
-  font-family: 'Newsreader', serif;
-  font-size: 18px;
+  font-family: var(--font-editor);
+  font-size: var(--text-lg);
   line-height: 1.8;
-  color: #1a1a1a;
-  background: #fafaf8;
+  color: var(--text-primary);
+  background: var(--bg-label);
 }
 
 .bytemd-viewer :deep(h1) {
-  font-size: 30px;
-  margin: 24px 0 16px;
+  font-size: var(--text-3xl);
+  margin: var(--space-6) 0 var(--space-4);
 }
 
 .bytemd-viewer :deep(h2) {
-  font-size: 24px;
-  margin: 20px 0 12px;
+  font-size: var(--text-2xl);
+  margin: var(--space-5) 0 var(--space-3);
 }
 
 .bytemd-viewer :deep(h3) {
-  font-size: 20px;
-  margin: 16px 0 8px;
+  font-size: var(--text-xl);
+  margin: var(--space-4) 0 var(--space-2);
 }
 
 .bytemd-viewer :deep(p) {
-  margin: 12px 0;
+  margin: var(--space-3) 0;
 }
 
 .bytemd-viewer :deep(code) {
-  background: #f5f4ed;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Source Code Pro', monospace;
-  font-size: 16px;
+  background: var(--bg-primary);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sharp);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
 }
 
 .bytemd-viewer :deep(pre) {
-  background: #f5f4ed;
-  padding: 16px;
-  border-radius: 8px;
+  background: var(--bg-primary);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
   overflow-x: auto;
 }
 
@@ -283,30 +272,30 @@ router.beforeEach((_to, _from, next) => {
 }
 
 .bytemd-viewer :deep(blockquote) {
-  border-left: 3px solid #fabb18;
-  padding-left: 16px;
-  margin: 16px 0;
+  border-left: 3px solid var(--color-primary);
+  padding-left: var(--space-4);
+  margin: var(--space-4) 0;
   font-style: italic;
 }
 
 .bytemd-viewer :deep(ul),
 .bytemd-viewer :deep(ol) {
-  margin: 12px 0;
-  padding-left: 24px;
+  margin: var(--space-3) 0;
+  padding-left: var(--space-6);
 }
 
 .bytemd-viewer :deep(li) {
-  margin: 4px 0;
+  margin: var(--space-1) 0;
 }
 
 .bytemd-viewer :deep(a) {
-  color: #fabb18;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
 .bytemd-viewer :deep(hr) {
   border: none;
-  border-top: 1px solid rgba(26, 26, 26, 0.1);
-  margin: 24px 0;
+  border-top: 1px solid var(--border-color);
+  margin: var(--space-6) 0;
 }
 </style>

@@ -1,34 +1,123 @@
 :root {
+  /* ==================== Background Colors ==================== */
   --bg-primary: #f5f4ed;
   --bg-secondary: #faf9f6;
   --bg-card: #ffffff;
   --bg-sidebar: #f9f9f9;
   --bg-modal: #ffffff;
-  --bg-embedded: rgb(250, 250, 252);
+  --bg-embedded: #fafaf8;
+  --bg-tertiary: #f0efeb;
+  --bg-label: #fafaf8;
+  --bg-input: rgba(239, 239, 239, 0.47);
+  --bg-input-focus: rgba(239, 239, 239, 0.7);
 
-  --color-primary: #fabb18;
-  --color-primary-hover: #f9c84a;
-  --color-primary-pressed: #d9a015;
-
+  /* ==================== Text Colors ==================== */
   --text-primary: #1a1a1a;
   --text-secondary: rgba(26, 26, 26, 0.6);
   --text-placeholder: rgba(26, 26, 26, 0.3);
+  --text-muted: rgba(26, 26, 26, 0.6);
+  --text-inverse: #ffffff;
+  --text-tertiary: #87867f;
+  --text-link: #097FE8;
 
+  /* ==================== Border Colors ==================== */
   --border-color: rgba(26, 26, 26, 0.08);
-  --border-color-light: rgb(224, 224, 230);
+  --border-color-light: rgba(26, 26, 26, 0.15);
+  --border-color-focus: #097FE8;
 
+  /* ==================== Brand & Primary Colors ==================== */
+  --color-primary: #fabb18;
+  --color-primary-hover: #f9c84a;
+  --color-primary-pressed: #d9a015;
+  --color-brand: #fabb18;
+  --color-brand-hover: #f9c84a;
+  --color-brand-pressed: #d9a015;
+
+  /* ==================== Semantic Colors ==================== */
+  --color-success: #1AAE39;
+  --color-success-bg: rgba(26, 174, 57, 0.1);
+  --color-error: #e74c3c;
+  --color-error-bg: rgba(231, 76, 60, 0.1);
+  --color-warning: #fabb18;
+  --color-warning-bg: rgba(250, 187, 24, 0.1);
+  --color-info: #3C9BE0;
+  --color-info-bg: rgba(60, 155, 224, 0.1);
+  --color-link: #097FE8;
+  --color-link-bg: rgba(9, 127, 232, 0.1);
+
+  /* ==================== Shadow System ==================== */
   --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
-  --shadow-card-hover: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0px 8px 30px rgba(0, 0, 0, 0.08);
   --shadow-sidebar: 0px 16px 31px rgba(0, 0, 0, 0.01);
+  --shadow-elevated: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  --shadow-button: 0px 0px 0px 1px rgba(26, 26, 26, 0.1);
+  --shadow-ring: 0px 0px 0px 1px;
 
-  --font-heading: 'Acme', sans-serif;
-  --font-body: 'Newsreader', serif;
+  /* ==================== Font Families ==================== */
+  --font-display: 'Acme', 'Georgia', serif;
+  --font-body: 'Source Sans 3', 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+  --font-editor: 'Newsreader', 'Georgia', serif;
+  --font-heading-alt: 'Newsreader', 'Georgia', serif;
 
-  --radius-sm: 2px;
+  /* ==================== Font Sizes ==================== */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* ==================== Border Radius ==================== */
+  --radius-sharp: 4px;
+  --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 34px;
-  --radius-xl: 38px;
-  --radius-full: 28px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
 
+  /* ==================== Spacing Scale ==================== */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ==================== Transitions ==================== */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==================== Z-Index Scale ==================== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+
+  /* ==================== Component Specific ==================== */
+  --btn-height-sm: 32px;
+  --btn-height-md: 40px;
+  --btn-height-lg: 48px;
+  --input-height: 44px;
+  --nav-height: 58px;
+  --sidebar-width: 400px;
 }
