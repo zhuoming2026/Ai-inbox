@@ -110,19 +110,9 @@
         <aside class="right-content">
           <!-- Calendar -->
           <n-card class="sidebar-card calendar-card" :bordered="false">
-            <template #header>
-              <div class="cal-header">
-                <p class="cal-date" @click="clearDateSelection">
-                  {{ selectedDateTs ? formatDate(selectedDateTs) : 'april 10, 2021' }}
-                  <span v-if="selectedDateTs" class="clear-hint">×</span>
-                </p>
-                <n-button text type="primary" class="cal-today-btn" @click="goToToday">today</n-button>
-              </div>
-            </template>
-            <n-calendar
-              v-model:value="selectedDateTs"
-              :is-date-disabled="isDateDisabled"
-              @update:value="onDateSelect"
+            <WeekCalendar
+              :selected-date="selectedDateTs"
+              @select="onDateSelect"
             />
           </n-card>
 
@@ -162,12 +152,12 @@ import {
   NBadge,
   NSpace,
   NTag,
-  NCalendar,
   NEmpty,
   NCheckbox,
   NMessageProvider,
   type GlobalThemeOverrides,
 } from 'naive-ui'
+import WeekCalendar from '@/components/WeekCalendar.vue'
 import {
   SearchOutline,
   NotificationsOutline,
@@ -280,29 +270,9 @@ function getStatusType(status: string): 'success' | 'info' | 'warning' | 'defaul
   return map[status] || 'default'
 }
 
-function isDateDisabled(_ts: number): boolean {
-  return false
-}
-
 function onDateSelect(ts: number) {
   selectedDateTs.value = ts
   dateFilterActive.value = true
-}
-
-function clearDateSelection() {
-  selectedDateTs.value = undefined
-  dateFilterActive.value = false
-}
-
-function goToToday() {
-  selectedDateTs.value = Date.now()
-  dateFilterActive.value = true
-}
-
-function formatDate(ts: number): string {
-  const d = new Date(ts)
-  const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
 function formatDateShort(dateStr: string): string {
@@ -430,12 +400,12 @@ onMounted(() => {
 }
 
 .input-card {
-  width: 1009px;
+  width: 100%;
   border-radius: 16px !important;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.03) !important;
   background: #faf9f6 !important;
   border: 1px solid rgba(26, 26, 26, 0.05) !important;
-  padding: 23px !important;
+  padding: 0 !important;
   position: relative;
 }
 
@@ -584,13 +554,70 @@ onMounted(() => {
 }
 
 .calendar-card {
-  height: 400px;
-  overflow: hidden;
+  overflow: visible;
 }
 
-.calendar-card :deep(.n-calendar) {
-  height: 320px;
-  overflow: hidden;
+.calendar-wrapper {
+  padding: 0 10px;
+}
+
+/* FullCalendar Customization */
+.calendar-wrapper :deep(.fc) {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+.calendar-wrapper :deep(.fc-timegrid) {
+  height: 350px;
+}
+
+.calendar-wrapper :deep(.fc-col-header) {
+  background: transparent;
+}
+
+.calendar-wrapper :deep(.fc-col-header-cell) {
+  padding: 8px 0;
+}
+
+.calendar-wrapper :deep(.fc-col-header-cell-cushion) {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+  text-transform: uppercase;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-slot) {
+  height: 32px;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-slot-label) {
+  font-size: 12px;
+  color: #666;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-slot-label-cushion) {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-event) {
+  display: none;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-col) {
+  cursor: pointer;
+}
+
+.calendar-wrapper :deep(.fc-timegrid-col:hover) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.calendar-wrapper :deep(.fc-day-today) {
+  background: rgba(250, 187, 24, 0.1) !important;
+}
+
+.calendar-wrapper :deep(.fc-day-today .fc-col-header-cell-cushion) {
+  color: #fabb18 !important;
+  font-weight: 600;
 }
 
 .cal-header {
