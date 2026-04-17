@@ -350,7 +350,7 @@ onMounted(() => {
 }
 
 .logo {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: normal;
   color: var(--text-primary);
@@ -368,7 +368,7 @@ onMounted(() => {
 }
 
 .nav-mode-btn {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 20px;
   color: var(--text-primary);
   cursor: pointer;
@@ -433,7 +433,6 @@ onMounted(() => {
 
 .input-field :deep(.n-input__textarea-el) {
   font-family: var(--font-body);
-  font-style: italic;
   font-size: 20px;
   color: var(--text-primary);
   min-height: 96px;
@@ -441,7 +440,6 @@ onMounted(() => {
 
 .input-field :deep(.n-input__placeholder) {
   font-family: var(--font-body);
-  font-style: italic;
   font-size: 20px;
   color: var(--text-placeholder);
   top: var(--space-2);
@@ -466,6 +464,7 @@ onMounted(() => {
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-8);
   font-family: var(--font-body);
+  font-weight: 600;
   font-size: 16px;
 }
 
@@ -476,7 +475,7 @@ onMounted(() => {
 }
 
 .section-title {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 28px;
   color: var(--text-primary);
   margin: var(--space-6) 0 var(--space-4);
@@ -688,7 +687,7 @@ onMounted(() => {
 }
 
 .notes-title {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 28px;
   color: var(--text-primary);
 }
