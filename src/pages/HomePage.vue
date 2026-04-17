@@ -106,13 +106,14 @@
           </div>
         </div>
 
-        <!-- Right Content (暂不修改) -->
+        <!-- Right Content -->
         <aside class="right-content">
           <!-- Calendar -->
           <n-card class="sidebar-card calendar-card" :bordered="false">
             <WeekCalendar
               :selected-date="selectedDateTs"
               @select="onDateSelect"
+              @clear="clearDateSelection"
             />
           </n-card>
 
@@ -275,6 +276,11 @@ function onDateSelect(ts: number) {
   dateFilterActive.value = true
 }
 
+function clearDateSelection() {
+  selectedDateTs.value = undefined
+  dateFilterActive.value = false
+}
+
 function formatDateShort(dateStr: string): string {
   const parts = dateStr.split('-')
   if (parts.length === 3) {
@@ -319,9 +325,10 @@ onMounted(() => {
 <style scoped>
 .home-page {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   background: #f5f4ed;
   display: flex;
+  overflow: hidden;
 }
 
 /* Left Content - 4/1 ratio */
@@ -329,8 +336,10 @@ onMounted(() => {
   flex: 4;
   display: flex;
   flex-direction: column;
+  height: 100vh;
   padding: 31px 48px 48px;
   min-width: 0;
+  overflow: hidden;
 }
 
 /* Navigation */
@@ -456,6 +465,8 @@ onMounted(() => {
 /* Article List */
 .article-list {
   flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .section-title {
@@ -535,17 +546,16 @@ onMounted(() => {
   text-transform: capitalize;
 }
 
-/* Right Content - max 400px, 1080px height */
+/* Right Content - 400px width, full height */
 .right-content {
   flex: 0 0 400px;
-  max-height: 1080px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 42px;
   padding: 37px 30px 25px 29px;
   background: #f9f9f9;
   border-radius: 38px 0 0 38px;
-  overflow: hidden;
 }
 
 .sidebar-card {
@@ -555,6 +565,19 @@ onMounted(() => {
 
 .calendar-card {
   overflow: visible;
+  flex: 0 0 auto;
+}
+
+.notes-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.notes-card :deep(.n-card__content) {
+  flex: 1;
+  overflow: auto;
 }
 
 .calendar-wrapper {
@@ -662,7 +685,7 @@ onMounted(() => {
 }
 
 .notes-title {
-  font-family: 'Acme', sans-serif;
+  font-family: 'Comic Sans MS', cursive;
   font-size: 28px;
   color: #000000;
 }
