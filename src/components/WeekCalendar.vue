@@ -4,7 +4,12 @@
     <div class="calendar-header">
       <div class="calendar-date">{{ formattedDate }}</div>
       <div class="header-spacer"></div>
-      <button class="icon-btn close-btn" @click="handleClear">×</button>
+      <button class="icon-btn close-btn" @click="handleClear">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <button class="icon-btn today-btn" @click="handleToday">今</button>
     </div>
 
@@ -122,9 +127,8 @@ watch(() => props.selectedDate, (newDate) => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: auto;
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-6);
+  margin-top: 0;
+  margin-bottom: var(--space-5);
   margin-left: 0;
   margin-right: 0;
   font-family: var(--font-body);
@@ -142,29 +146,40 @@ watch(() => props.selectedDate, (newDate) => {
 }
 
 .icon-btn {
-  width: 28px;
-  height: 28px;
+  --btn-size: 28px;
+  --btn-bg: transparent;
+  --btn-border: var(--border-color);
+  --btn-color: var(--text-primary);
+  --btn-border-hover: var(--color-primary);
+  --btn-color-hover: var(--color-primary);
+
+  width: var(--btn-size);
+  height: var(--btn-size);
   border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: transparent;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--btn-color);
   margin-left: var(--space-2);
-  transition: all var(--transition-base);
+  transition: all var(--transition);
 }
 
 .icon-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--btn-border-hover);
+  color: var(--btn-color-hover);
 }
 
 .close-btn {
-  font-size: 16px;
-  font-weight: bold;
+  --btn-size: 28px;
+  --btn-bg: var(--color-primary);
+  --btn-border: var(--color-primary);
+  --btn-color: #ffffff;
+  --btn-border-hover: var(--color-primary-hover);
+  --btn-color-hover: #ffffff;
 }
 
 .today-btn {
@@ -205,7 +220,7 @@ watch(() => props.selectedDate, (newDate) => {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: all var(--transition-base);
+  transition: all var(--transition);
 }
 
 .calendar-number:hover {
