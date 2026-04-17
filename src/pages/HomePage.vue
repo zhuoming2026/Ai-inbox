@@ -430,7 +430,7 @@ onMounted(() => {
 
 .input-field :deep(.n-input-wrapper) {
   background: transparent !important;
-  padding: 8px 12px 60px !important;
+  padding: 8px 12px 8px !important;
   cursor: text;
 }
 
