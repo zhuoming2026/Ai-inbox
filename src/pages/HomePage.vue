@@ -24,11 +24,11 @@
               </n-input>
             </div>
             <n-badge :value="notifCount" :max="99" class="noti-badge">
-              <n-button quaternary circle class="icon-btn">
+              <n-button type="primary" class="icon-btn">
                 <template #icon><BellIcon /></template>
               </n-button>
             </n-badge>
-            <n-button quaternary circle class="icon-btn" @click="$router.push('/settings')">
+            <n-button type="primary" class="icon-btn" @click="$router.push('/settings')">
               <template #icon><SettingsIcon /></template>
             </n-button>
           </nav>
@@ -46,19 +46,19 @@
               />
               <div class="input-actions">
                 <div class="attach-btns">
-                  <n-button quaternary circle size="small">
+                  <n-button type="primary" size="small">
                     <template #icon><ImageIcon /></template>
                   </n-button>
-                  <n-button quaternary circle size="small">
+                  <n-button type="primary" size="small">
                     <template #icon><LinkIcon /></template>
                   </n-button>
-                  <n-button quaternary circle size="small">
+                  <n-button type="primary" size="small">
                     <template #icon><NoteIcon /></template>
                   </n-button>
                 </div>
                 <n-button type="primary" class="submit-btn" @click="submitInput">
-                  <template #icon><ArrowRightIcon /></template>
                   Inbox
+                  <template #icon><ArrowRightIcon /></template>
                 </n-button>
               </div>
             </n-card>
@@ -91,7 +91,7 @@
                           @click.stop="toggleStatus(card, s)"
                         >{{ s }}</n-tag>
                       </n-space>
-                      <n-button quaternary circle size="small" @click.stop="deleteCard(card.slug)">
+                      <n-button type="primary" size="small" @click.stop="deleteCard(card.slug)">
                         <template #icon><TrashIcon /></template>
                       </n-button>
                     </div>
@@ -199,7 +199,7 @@ const themeOverrides: GlobalThemeOverrides = {
   Input: {
     color: 'rgba(239, 239, 239, 0.47)',
     colorFocus: 'rgba(239, 239, 239, 0.7)',
-    borderRadius: '9999px',
+    borderRadius: '12px',
     boxShadowFocus: 'none',
   },
   Tag: {
@@ -209,6 +209,43 @@ const themeOverrides: GlobalThemeOverrides = {
   },
   Button: {
     borderRadiusMedium: '9999px',
+    borderRadiusSmall: '9999px',
+    borderRadiusTiny: '9999px',
+    color: '#fabb18',
+    colorHover: '#fabb18',
+    colorPressed: '#fabb18',
+    colorFocus: '#fabb18',
+    colorDisabled: '#fabb18',
+    colorPrimary: '#fabb18',
+    colorHoverPrimary: '#fabb18',
+    colorPressedPrimary: '#fabb18',
+    colorFocusPrimary: '#fabb18',
+    colorDisabledPrimary: '#fabb18',
+    textColor: '#FFF',
+    textColorHover: '#FFF',
+    textColorPressed: '#FFF',
+    textColorFocus: '#FFF',
+    textColorDisabled: '#FFF',
+    textColorPrimary: '#FFF',
+    textColorHoverPrimary: '#FFF',
+    textColorPressedPrimary: '#FFF',
+    textColorFocusPrimary: '#FFF',
+    textColorDisabledPrimary: '#FFF',
+    border: '1px solid #fabb18',
+    borderHover: '1px solid #fabb18',
+    borderPressed: '1px solid #fabb18',
+    borderFocus: '1px solid #fabb18',
+    borderDisabled: '1px solid #fabb18',
+    borderPrimary: '1px solid #fabb18',
+    borderHoverPrimary: '1px solid #fabb18',
+    borderPressedPrimary: '1px solid #fabb18',
+    borderFocusPrimary: '1px solid #fabb18',
+    borderDisabledPrimary: '1px solid #fabb18',
+    iconColor: '#FFF',
+    iconColorHover: '#FFF',
+    iconColorPressed: '#FFF',
+    iconColorFocus: '#FFF',
+    iconColorDisabled: '#FFF',
   },
 }
 
@@ -458,13 +495,60 @@ onMounted(() => {
 }
 
 .submit-btn {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-8);
   font-family: var(--font-body);
   font-weight: 600;
   font-size: var(--text-base);
+}
+
+.submit-btn:hover {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
+}
+
+.icon-btn {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+}
+
+.icon-btn:hover {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
+}
+
+.icon-btn .n-icon {
+  color: var(--text-inverse) !important;
+}
+
+.attach-btns .n-button {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+}
+
+.attach-btns .n-button:hover {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: 1px solid var(--color-primary) !important;
+}
+
+.submit-btn {
+  height: 28px !important;
+  min-height: 28px !important;
 }
 
 .article-list {
