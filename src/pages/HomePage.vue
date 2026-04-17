@@ -336,7 +336,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: var(--space-8) var(--space-12) var(--space-12);
+  padding: var(--space-6) var(--space-6) var(--space-6) var(--space-6);
   min-width: 0;
   overflow: hidden;
 }
