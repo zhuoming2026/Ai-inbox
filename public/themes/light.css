@@ -1,0 +1,34 @@
+:root {
+  --bg-primary: #f5f4ed;
+  --bg-secondary: #faf9f6;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f9f9f9;
+  --bg-modal: #ffffff;
+  --bg-embedded: rgb(250, 250, 252);
+
+  --color-primary: #fabb18;
+  --color-primary-hover: #f9c84a;
+  --color-primary-pressed: #d9a015;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: rgba(26, 26, 26, 0.6);
+  --text-placeholder: rgba(26, 26, 26, 0.3);
+
+  --border-color: rgba(26, 26, 26, 0.08);
+  --border-color-light: rgb(224, 224, 230);
+
+  --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  --shadow-sidebar: 0px 16px 31px rgba(0, 0, 0, 0.01);
+
+  --font-heading: 'Acme', sans-serif;
+  --font-body: 'Newsreader', serif;
+
+  --radius-sm: 2px;
+  --radius-md: 12px;
+  --radius-lg: 34px;
+  --radius-xl: 38px;
+  --radius-full: 28px;
+
+  --transition: cubic-bezier(0.4, 0, 0.2, 1);
+}

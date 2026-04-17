@@ -83,6 +83,7 @@
             <select class="form-input" v-model="settings.theme">
               <option value="light">浅色模式</option>
               <option value="dark">深色模式</option>
+              <option value="claude">Claude 风格</option>
               <option value="system">跟随系统</option>
             </select>
           </label>

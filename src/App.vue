@@ -4,30 +4,22 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { useTheme } from './composables/useTheme'
 
 let unsub: (() => void) | null | undefined = null
 let settings: any = null
 
-function applyTheme(theme: string) {
-  if (theme === 'system') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light')
-  } else if (theme) {
-    document.documentElement.setAttribute('data-theme', theme)
-  } else {
-    document.documentElement.removeAttribute('data-theme')
-  }
-}
+const { setTheme, initTheme } = useTheme()
 
 onMounted(async () => {
   settings = await window.electronAPI?.getSettings()
-  applyTheme(settings?.theme || 'light')
+  await initTheme()
 
   // Listen for system theme changes
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   mediaQuery.addEventListener('change', () => {
     if (settings?.theme === 'system') {
-      applyTheme('system')
+      setTheme('system')
     }
   })
 
@@ -39,7 +31,7 @@ onMounted(async () => {
   // Listen for settings changes (custom event from settings page)
   window.addEventListener('settings-changed', ((e: CustomEvent) => {
     settings = e.detail
-    applyTheme(settings?.theme || 'light')
+    setTheme(settings?.theme || 'light')
   }) as EventListener)
 })
 
