@@ -1,16 +1,24 @@
 <template>
   <div class="week-calendar">
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+      <div class="calendar-date">{{ formattedDate }}</div>
+      <div class="header-spacer"></div>
+      <button class="icon-btn close-btn" @click="handleClear">×</button>
+      <button class="icon-btn today-btn" @click="handleToday">今</button>
+    </div>
+
     <!-- Week View -->
     <div class="calendar-week">
       <div
         v-for="(col, index) in weekColumns"
         :key="index"
         class="calendar-column"
-        :class="{ 'is-today': col.isToday }"
+        :class="{ 'is-selected': col.isSelected }"
         @click="selectDate(col.date)"
       >
         <span class="calendar-weekday">{{ col.weekday }}</span>
-        <span class="calendar-number" :class="{ 'is-other-month': col.isOtherMonth }">
+        <span class="calendar-number" :class="{ 'is-selected': col.isSelected, 'is-other-month': col.isOtherMonth }">
           {{ col.day }}
         </span>
       </div>
@@ -31,6 +39,7 @@ const emit = defineEmits<{
 }>()
 
 const weekStart = ref(getWeekStart(new Date()))
+const refreshTrigger = ref(0)
 
 function getWeekStart(date: Date): Date {
   const d = new Date(date)
@@ -61,14 +70,36 @@ function getWeekColumns(ws: Date) {
   return columns
 }
 
-const weekColumns = computed(() => getWeekColumns(weekStart.value))
+const weekColumns = computed(() => {
+  refreshTrigger.value
+  return getWeekColumns(weekStart.value)
+})
+
+const formattedDate = computed(() => {
+  if (!props.selectedDate) {
+    const today = new Date()
+    return `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  }
+  const d = new Date(props.selectedDate)
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
 
 function selectDate(date: number) {
   emit('select', date)
 }
 
+function handleClear() {
+  emit('clear')
+}
+
+function handleToday() {
+  weekStart.value = getWeekStart(new Date())
+  emit('select', Date.now())
+}
+
 // 当选中日期不在当前周时，更新周视图
 watch(() => props.selectedDate, (newDate) => {
+  refreshTrigger.value++
   if (newDate) {
     const selected = new Date(newDate)
     const newWeekStart = getWeekStart(selected)
@@ -81,9 +112,64 @@ watch(() => props.selectedDate, (newDate) => {
 
 <style scoped>
 .week-calendar {
-  display: block;
-  padding: var(--space-12) var(--space-3) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
   width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: auto;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+  margin-left: 0;
+  margin-right: 0;
+  font-family: var(--font-body);
+}
+
+.calendar-date {
+  font-family: var(--font-body);
+  font-size: 24px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-left: var(--space-2);
+  transition: all var(--transition-base);
+}
+
+.icon-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.close-btn {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.today-btn {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .calendar-week {
@@ -108,15 +194,10 @@ watch(() => props.selectedDate, (newDate) => {
   color: var(--text-primary);
 }
 
-.calendar-column.is-today .calendar-weekday {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
 .calendar-number {
   font-family: var(--font-body);
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-primary);
   width: 32px;
   height: 32px;
@@ -131,8 +212,9 @@ watch(() => props.selectedDate, (newDate) => {
   background: var(--border-color);
 }
 
-.calendar-column.is-today .calendar-number {
+.calendar-number.is-selected {
   color: var(--color-primary);
+  font-weight: 600;
 }
 
 .calendar-number.is-other-month {
