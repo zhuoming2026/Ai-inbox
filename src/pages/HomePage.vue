@@ -19,7 +19,7 @@
                 class="search-input"
               >
                 <template #prefix>
-                  <n-icon><SearchIcon /></n-icon>
+                  <SearchIcon />
                 </template>
               </n-input>
             </div>
