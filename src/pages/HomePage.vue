@@ -326,7 +326,7 @@ onMounted(() => {
 .home-page {
   width: 100%;
   height: 100vh;
-  background: #f5f4ed;
+  background: var(--bg-primary);
   display: flex;
   overflow: hidden;
 }
@@ -360,7 +360,7 @@ onMounted(() => {
 }
 
 .logo-x {
-  color: #fabb18;
+  color: var(--color-primary);
 }
 
 .nav-modes {
@@ -499,7 +499,7 @@ onMounted(() => {
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  background: #ffffff;
+  background: var(--bg-card);
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -564,7 +564,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 42px;
   padding: 37px 30px 25px 29px;
-  background: #f9f9f9;
+  background: var(--bg-sidebar);
   border-radius: 38px 0 0 38px;
 }
 
@@ -649,7 +649,7 @@ onMounted(() => {
 }
 
 .calendar-wrapper :deep(.fc-day-today .fc-col-header-cell-cushion) {
-  color: #fabb18 !important;
+  color: var(--color-primary) !important;
   font-weight: 600;
 }
 
@@ -710,9 +710,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid #fabb18;
+  border: 1px solid var(--color-primary);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--bg-card);
   padding: 15px;
   height: 56px;
 }

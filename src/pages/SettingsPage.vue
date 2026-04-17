@@ -125,8 +125,11 @@ async function copyConfig() {
 }
 
 async function saveSettings() {
-  await window.electronAPI?.saveSettings(settings.value)
-  window.dispatchEvent(new CustomEvent('settings-changed', { detail: settings.value }))
+  const plainSettings = JSON.parse(JSON.stringify(settings.value))
+  console.log('[SettingsPage] Saving:', plainSettings)
+  await window.electronAPI?.saveSettings(plainSettings)
+  window.dispatchEvent(new CustomEvent('settings-changed', { detail: plainSettings }))
+  console.log('[SettingsPage] Event dispatched')
 }
 </script>
 

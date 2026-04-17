@@ -1,0 +1,321 @@
+/* AI-inbox Design Tokens - 完整色卡系统 */
+
+/* ============================================
+   基础色板 - 供多套主题使用
+   ============================================ */
+
+/* Light Theme */
+[data-theme="light"], :root, .theme-light {
+  /* 背景色 */
+  --bg-primary: #f5f4ed;
+  --bg-secondary: #faf9f6;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f9f9f9;
+  --bg-modal: #ffffff;
+  --bg-embedded: rgb(250, 250, 252);
+
+  /* 前景色 */
+  --fg-primary: #1a1a1a;
+  --fg-secondary: rgba(26, 26, 26, 0.6);
+  --fg-tertiary: rgba(26, 26, 26, 0.3);
+  --fg-inverse: #ffffff;
+
+  /* 主色 */
+  --color-primary: #fabb18;
+  --color-primary-hover: #f9c84a;
+  --color-primary-pressed: #d9a015;
+  --color-primary-subtle: rgba(250, 187, 24, 0.1);
+
+  /* 强调色 */
+  --accent-blue: #097fe8;
+  --accent-green: #1aae39;
+  --accent-red: #e53935;
+
+  /* 边框 */
+  --border-default: rgba(26, 26, 26, 0.08);
+  --border-subtle: rgb(224, 224, 230);
+  --border-focus: #fabb18;
+
+  /* 阴影 */
+  --shadow-sm: 0px 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0px 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0px 16px 31px rgba(0, 0, 0, 0.01);
+
+  /* 字体 */
+  --font-display: 'Acme', sans-serif;
+  --font-body: 'Newsreader', serif;
+  --font-mono: 'SF Mono', monospace;
+
+  /* 字号 */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  /* 行高 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* 圆角 */
+  --radius-sm: 2px;
+  --radius-md: 12px;
+  --radius-lg: 34px;
+  --radius-xl: 38px;
+  --radius-full: 9999px;
+
+  /* 过渡 */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.6s;
+}
+
+/* Claude Theme - 暖色调 */
+[data-theme="claude"], .theme-claude {
+  /* 背景色 */
+  --bg-primary: #fef9f5;
+  --bg-secondary: #fdf6ef;
+  --bg-card: #ffffff;
+  --bg-sidebar: #fef6ed;
+  --bg-modal: #ffffff;
+  --bg-embedded: #fef6ed;
+
+  /* 前景色 */
+  --fg-primary: #2d2a26;
+  --fg-secondary: rgba(45, 42, 38, 0.6);
+  --fg-tertiary: rgba(45, 42, 38, 0.3);
+  --fg-inverse: #ffffff;
+
+  /* 主色 - Terracotta */
+  --color-primary: #c26d47;
+  --color-primary-hover: #d17d5a;
+  --color-primary-pressed: #a85a38;
+  --color-primary-subtle: rgba(194, 109, 71, 0.1);
+
+  /* 强调色 */
+  --accent-blue: #5b8def;
+  --accent-green: #4caf6e;
+  --accent-red: #d64545;
+
+  /* 边框 */
+  --border-default: rgba(45, 42, 38, 0.1);
+  --border-subtle: rgba(45, 42, 38, 0.15);
+  --border-focus: #c26d47;
+
+  /* 阴影 */
+  --shadow-sm: 0px 2px 8px rgba(194, 109, 71, 0.06);
+  --shadow-md: 0px 4px 24px rgba(194, 109, 71, 0.08);
+  --shadow-lg: 0px 16px 40px rgba(194, 109, 71, 0.06);
+
+  /* 字体 */
+  --font-display: 'Acme', sans-serif;
+  --font-body: 'Newsreader', serif;
+  --font-mono: 'SF Mono', monospace;
+
+  /* 字号 */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  /* 行高 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* 圆角 */
+  --radius-sm: 2px;
+  --radius-md: 12px;
+  --radius-lg: 34px;
+  --radius-xl: 38px;
+  --radius-full: 9999px;
+
+  /* 过渡 */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.6s;
+}
+
+/* Dark Theme */
+[data-theme="dark"], .theme-dark {
+  /* 背景色 */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-card: #2d2d2d;
+  --bg-sidebar: #232323;
+  --bg-modal: #2d2d2d;
+  --bg-embedded: #333333;
+
+  /* 前景色 */
+  --fg-primary: #f5f4ed;
+  --fg-secondary: rgba(245, 244, 237, 0.6);
+  --fg-tertiary: rgba(245, 244, 237, 0.3);
+  --fg-inverse: #1a1a1a;
+
+  /* 主色 - 暖橙 */
+  --color-primary: #e89c6a;
+  --color-primary-hover: #f0ad7e;
+  --color-primary-pressed: #d08854;
+  --color-primary-subtle: rgba(232, 156, 106, 0.15);
+
+  /* 强调色 */
+  --accent-blue: #5b9aef;
+  --accent-green: #4caf6e;
+  --accent-red: #ef5350;
+
+  /* 边框 */
+  --border-default: rgba(245, 244, 237, 0.1);
+  --border-subtle: rgba(245, 244, 237, 0.2);
+  --border-focus: #e89c6a;
+
+  /* 阴影 */
+  --shadow-sm: 0px 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0px 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0px 16px 40px rgba(0, 0, 0, 0.4);
+
+  /* 字体 */
+  --font-display: 'Acme', sans-serif;
+  --font-body: 'Newsreader', serif;
+  --font-mono: 'SF Mono', monospace;
+
+  /* 字号 */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  /* 行高 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* 圆角 */
+  --radius-sm: 2px;
+  --radius-md: 12px;
+  --radius-lg: 34px;
+  --radius-xl: 38px;
+  --radius-full: 9999px;
+
+  /* 过渡 */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.6s;
+}
+
+/* ============================================
+   语义色 - 映射到实际使用场景
+   ============================================ */
+[data-theme="light"], :root, .theme-light {
+  /* 页面 */
+  --page-bg: var(--bg-primary);
+  --page-fg: var(--fg-primary);
+
+  /* 卡片 */
+  --card-bg: var(--bg-card);
+  --card-fg: var(--fg-primary);
+  --card-border: var(--border-default);
+  --card-shadow: var(--shadow-md);
+
+  /* 侧边栏 */
+  --sidebar-bg: var(--bg-sidebar);
+
+  /* 输入框 */
+  --input-bg: var(--bg-card);
+  --input-fg: var(--fg-primary);
+  --input-border: var(--border-default);
+  --input-placeholder: var(--fg-tertiary);
+
+  /* 按钮 Primary */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-fg: var(--fg-inverse);
+  --btn-primary-hover: var(--color-primary-hover);
+  --btn-primary-pressed: var(--color-primary-pressed);
+
+  /* 分割线 */
+  --divider: var(--border-default);
+
+  /* 链接 */
+  --link-color: var(--color-primary);
+  --link-hover: var(--color-primary-hover);
+}
+
+[data-theme="claude"], .theme-claude {
+  --page-bg: var(--bg-primary);
+  --page-fg: var(--fg-primary);
+  --card-bg: var(--bg-card);
+  --card-fg: var(--fg-primary);
+  --card-border: var(--border-default);
+  --card-shadow: var(--shadow-md);
+  --sidebar-bg: var(--bg-sidebar);
+  --input-bg: var(--bg-card);
+  --input-fg: var(--fg-primary);
+  --input-border: var(--border-default);
+  --input-placeholder: var(--fg-tertiary);
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-fg: var(--fg-inverse);
+  --btn-primary-hover: var(--color-primary-hover);
+  --btn-primary-pressed: var(--color-primary-pressed);
+  --divider: var(--border-default);
+  --link-color: var(--color-primary);
+  --link-hover: var(--color-primary-hover);
+}
+
+[data-theme="dark"], .theme-dark {
+  --page-bg: var(--bg-primary);
+  --page-fg: var(--fg-primary);
+  --card-bg: var(--bg-card);
+  --card-fg: var(--fg-primary);
+  --card-border: var(--border-default);
+  --card-shadow: var(--shadow-md);
+  --sidebar-bg: var(--bg-sidebar);
+  --input-bg: var(--bg-card);
+  --input-fg: var(--fg-primary);
+  --input-border: var(--border-default);
+  --input-placeholder: var(--fg-tertiary);
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-fg: var(--fg-inverse);
+  --btn-primary-hover: var(--color-primary-hover);
+  --btn-primary-pressed: var(--color-primary-pressed);
+  --divider: var(--border-default);
+  --link-color: var(--color-primary);
+  --link-hover: var(--color-primary-hover);
+}

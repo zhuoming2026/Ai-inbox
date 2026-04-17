@@ -3,35 +3,33 @@ import type { Ref } from 'vue'
 
 const currentTheme: Ref<string> = ref('light')
 
-let linkEl: HTMLLinkElement | null = null
-
 export function useTheme() {
   const setTheme = async (theme: string) => {
+    console.log('[Theme] setTheme called with:', theme)
+    
     if (theme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       theme = prefersDark ? 'dark' : 'light'
     }
 
     currentTheme.value = theme
-
-    if (!linkEl) {
-      linkEl = document.createElement('link')
-      linkEl.rel = 'stylesheet'
-      document.head.appendChild(linkEl)
-    }
-
-    linkEl.href = `/themes/${theme}.css`
+    
+    // 设置 data-theme 属性
+    document.documentElement.setAttribute('data-theme', theme)
+    console.log('[Theme] Applied theme:', theme)
   }
 
   const initTheme = async () => {
     try {
       const settings = await window.electronAPI?.getSettings()
+      console.log('[Theme] Settings loaded:', settings)
       if (settings?.theme) {
         await setTheme(settings.theme)
       } else {
         await setTheme('light')
       }
-    } catch {
+    } catch (e) {
+      console.error('[Theme] Error loading theme:', e)
       await setTheme('light')
     }
   }
