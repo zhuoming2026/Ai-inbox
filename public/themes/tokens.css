@@ -162,6 +162,125 @@
   --duration-slow: 0.6s;
 }
 
+/* Notion Theme - Anthropic Inspired */
+[data-theme="notion"], .theme-notion {
+  /* 背景色 - Parchment */
+  --bg-primary: #f5f4ed;
+  --bg-secondary: #faf9f5;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f9f9f7;
+  --bg-modal: #ffffff;
+  --bg-embedded: #faf9f5;
+
+  /* 前景色 */
+  --fg-primary: #141413;
+  --fg-secondary: #5e5d59;
+  --fg-tertiary: #87867f;
+  --fg-inverse: #faf9f5;
+
+  /* 主色 - Terracotta */
+  --color-primary: #c96442;
+  --color-primary-hover: #d97757;
+  --color-primary-pressed: #b85538;
+  --color-primary-subtle: rgba(201, 100, 66, 0.1);
+
+  /* 强调色 */
+  --accent-blue: #3898ec;
+  --accent-green: #1aae39;
+  --accent-red: #b53333;
+
+  /* 边框 */
+  --border-default: #f0eee6;
+  --border-subtle: #e8e6dc;
+  --border-focus: #3898ec;
+
+  /* 阴影 - Ring-based depth */
+  --shadow-sm: 0px 0px 0px 1px #d1cfc5;
+  --shadow-md: 0px 4px 24px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0px 8px 40px rgba(0, 0, 0, 0.08);
+
+  /* 字体 - Serif for headlines */
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+
+  /* 字号 */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+
+  /* 行高 */
+  --leading-tight: 1.10;
+  --leading-normal: 1.30;
+  --leading-relaxed: 1.60;
+
+  /* 间距 - 8px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* 圆角 - Comfortably rounded */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* 过渡 */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.3s;
+}
+
+/* Notion Theme - Semantic Tokens */
+[data-theme="notion"], .theme-notion {
+  /* 页面 */
+  --page-bg: var(--bg-primary);
+  --page-fg: var(--fg-primary);
+
+  /* 卡片 */
+  --card-bg: var(--bg-card);
+  --card-fg: var(--fg-primary);
+  --card-border: var(--border-default);
+  --card-shadow: var(--shadow-md);
+
+  /* 侧边栏 */
+  --sidebar-bg: var(--bg-sidebar);
+
+  /* 输入框 */
+  --input-bg: var(--bg-card);
+  --input-fg: var(--fg-primary);
+  --input-border: var(--border-default);
+  --input-placeholder: var(--fg-tertiary);
+
+  /* 按钮 Primary */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-fg: var(--fg-inverse);
+  --btn-primary-hover: var(--color-primary-hover);
+  --btn-primary-pressed: var(--color-primary-pressed);
+
+  /* 按钮 Secondary */
+  --btn-secondary-bg: #e8e6dc;
+  --btn-secondary-fg: #4d4c48;
+  --btn-secondary-hover: #d9d7cc;
+
+  /* 分割线 */
+  --divider: var(--border-default);
+
+  /* 链接 */
+  --link-color: var(--color-primary);
+  --link-hover: var(--color-primary-hover);
+}
+
 /* Dark Theme */
 [data-theme="dark"], .theme-dark {
   /* 背景色 */
