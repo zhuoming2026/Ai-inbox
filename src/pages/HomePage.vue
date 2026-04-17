@@ -431,14 +431,24 @@ onMounted(() => {
 .input-field :deep(.n-input-wrapper) {
   background: transparent !important;
   padding: 8px 12px 60px !important;
+  cursor: text;
 }
 
 .input-field :deep(.n-input__textarea-el) {
   font-family: 'Newsreader', serif !important;
   font-style: italic;
   font-size: 20px !important;
-  color: rgba(26, 26, 26, 0.3) !important;
+  color: rgba(26, 26, 26, 0.8) !important;
   min-height: 96px !important;
+}
+
+.input-field :deep(.n-input__placeholder) {
+  font-family: 'Newsreader', serif !important;
+  font-style: italic;
+  font-size: 20px !important;
+  color: rgba(26, 26, 26, 0.3) !important;
+  top: 8px !important;
+  left: 12px !important;
 }
 
 .input-actions {
