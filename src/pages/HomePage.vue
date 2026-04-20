@@ -1,6 +1,5 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <n-message-provider>
       <div class="home-page">
         <!-- Left Content -->
         <div class="left-content">
@@ -95,14 +94,19 @@
                     <div class="card-footer">
                       <n-space>
                         <n-tag
-                          v-for="s in statuses"
-                          :key="s"
-                          :type="getStatusType(s)"
+                          :type="getEnrichTagType(card.enrichStatus)"
                           :bordered="false"
                           :strong="true"
-                          :class="['status-tag', { active: card.status === s }]"
-                          @click.stop="toggleStatus(card, s)"
-                        >{{ s }}</n-tag>
+                          class="status-tag active"
+                        >{{ getEnrichLabel(card.enrichStatus) }}</n-tag>
+                        <n-tag
+                          v-if="card.enrichStatus === 'failed' || card.enrichStatus === 'none'"
+                          type="warning"
+                          :bordered="false"
+                          :strong="true"
+                          class="status-tag"
+                          @click.stop="enrichCard(card.slug)"
+                        >Enrich</n-tag>
                       </n-space>
                       <PillButton
                         :icon="TrashOutline"
@@ -154,7 +158,6 @@
           </n-card>
         </aside>
       </div>
-    </n-message-provider>
   </n-config-provider>
 </template>
 
@@ -172,22 +175,17 @@ import {
   NTag,
   NEmpty,
   NCheckbox,
-  NMessageProvider,
+  useMessage,
   type GlobalThemeOverrides,
 } from 'naive-ui'
-import PillButton from '@/components/PillButton.vue'
-import WeekCalendar from '@/components/WeekCalendar.vue'
+import PillButton from '../components/PillButton.vue'
+import WeekCalendar from '../components/WeekCalendar.vue'
 import {
   SearchOutline,
-  NotificationsOutline,
   SettingsOutline,
-  ImageOutline,
-  LinkOutline,
-  DocumentTextOutline,
   ArrowForwardOutline,
   TrashOutline,
   AddOutline,
-  NotificationsCircle,
   Notifications,
   Image,
   Link,
@@ -196,6 +194,7 @@ import {
 
 const router = useRouter()
 const inboxStore = useInboxStore()
+const message = useMessage()
 
 const SearchIcon = () => h(NIcon, null, () => h(SearchOutline))
 
@@ -271,8 +270,6 @@ const dateFilterActive = ref(false)
 const inputText = ref('')
 const notifCount = ref(12)
 
-const statuses = ['ready', 'working', 'finished']
-
 const notes = ref([
   { id: 1, text: 'Drink 8 glasses of water', done: false },
   { id: 2, text: 'Meditate for 10 minutes', done: false },
@@ -314,15 +311,6 @@ const groupedCards = computed(() => {
   return groups
 })
 
-function getStatusType(status: string): 'success' | 'info' | 'warning' | 'default' {
-  const map: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
-    ready: 'success',
-    working: 'info',
-    finished: 'default',
-  }
-  return map[status] || 'default'
-}
-
 function onDateSelect(ts: number) {
   selectedDateTs.value = ts
   dateFilterActive.value = true
@@ -341,14 +329,31 @@ function formatDateShort(dateStr: string): string {
   return dateStr
 }
 
-function toggleStatus(_card: any, _status: string) {
+function getEnrichTagType(status: string): 'success' | 'info' | 'warning' | 'default' {
+  const map: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
+    none: 'default',
+    fetching: 'info',
+    success: 'success',
+    failed: 'warning',
+  }
+  return map[status] || 'default'
+}
+
+function getEnrichLabel(status: string) {
+  const map: Record<string, string> = {
+    none: 'No AI',
+    fetching: 'AI Fetching',
+    success: 'AI Ready',
+    failed: 'AI Failed',
+  }
+  return map[status] || 'No AI'
 }
 
 function openArticle(slug: string) {
   router.push(`/article/${slug}`)
 }
 
-function submitInput() {
+async function submitInput() {
   if (!inputText.value.trim()) return
   const content = inputText.value.trim()
   let type = 'note'
@@ -357,14 +362,33 @@ function submitInput() {
   else if (content.startsWith('记录 ')) type = 'note'
   else if (content.startsWith('http')) type = 'link'
 
-  window.electronAPI?.processInput(type, content)
-  inputText.value = ''
-  inboxStore.loadCards()
+  try {
+    await window.electronAPI?.processInput(type, content)
+    inputText.value = ''
+    await inboxStore.loadCards()
+    message.success('已提交到 inbox')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '处理输入失败')
+  }
 }
 
-function deleteCard(slug: string) {
-  window.electronAPI?.deleteFile(slug)
-  inboxStore.loadCards()
+async function deleteCard(slug: string) {
+  try {
+    await window.electronAPI?.deleteFile(slug)
+    await inboxStore.loadCards()
+    message.success('已删除')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '删除失败')
+  }
+}
+
+async function enrichCard(slug: string) {
+  try {
+    await inboxStore.enrichCard(slug)
+    message.success('已触发 AI enrich')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '触发 enrich 失败')
+  }
 }
 
 onMounted(() => {

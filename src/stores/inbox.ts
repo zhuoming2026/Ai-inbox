@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import type { InboxDocument } from '../shared/inbox-document'
+import { getPreviewText } from '../shared/inbox-document'
 
 export interface InboxCard {
   slug: string
   type: string
   title: string
   preview: string
-  status: string
+  enrichStatus: string
   created: string
   raw?: string
 }
@@ -19,20 +21,22 @@ export const useInboxStore = defineStore('inbox', () => {
     loading.value = true
     try {
       const files = await window.electronAPI?.listInbox()
-      cards.value = (files || []).map((f: any) => ({
+      cards.value = (files || [])
+        .filter((f: InboxDocument) => f.frontmatter?.status !== 'deleted')
+        .map((f: InboxDocument) => ({
         slug: f.slug,
         type: f.type,
-        title: f.frontmatter?.title || f.slug,
-        preview: f.body?.slice(0, 100) || '',
-        status: f.frontmatter?.status || 'ready',
-        created: f.frontmatter?.created || f.created?.split('T')[0] || ''
+        title: typeof f.frontmatter?.title === 'string' ? f.frontmatter.title : f.slug,
+        preview: getPreviewText(f.body).slice(0, 100),
+        enrichStatus: typeof f.frontmatter?.enrichStatus === 'string' ? f.frontmatter.enrichStatus : 'none',
+        created: typeof f.frontmatter?.created === 'string' ? f.frontmatter.created : (f.created?.split('T')[0] || '')
       }))
     } finally {
       loading.value = false
     }
   }
 
-  async function readCard(slug: string): Promise<string | null> {
+  async function readCard(slug: string): Promise<InboxDocument | null> {
     return await window.electronAPI?.readFile(slug) ?? null
   }
 
@@ -46,10 +50,15 @@ export const useInboxStore = defineStore('inbox', () => {
     await loadCards()
   }
 
+  async function enrichCard(slug: string) {
+    await window.electronAPI?.enrichFile(slug)
+    await loadCards()
+  }
+
   async function deleteCard(slug: string) {
     await window.electronAPI?.deleteFile(slug)
     await loadCards()
   }
 
-  return { cards, loading, loadCards, readCard, updateCard, archiveCard, deleteCard }
+  return { cards, loading, loadCards, readCard, updateCard, archiveCard, enrichCard, deleteCard }
 })

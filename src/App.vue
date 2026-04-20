@@ -1,9 +1,12 @@
 <template>
-  <router-view />
+  <n-message-provider>
+    <router-view />
+  </n-message-provider>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { NMessageProvider } from 'naive-ui'
 import { useTheme } from './composables/useTheme'
 
 let unsub: (() => void) | null | undefined = null

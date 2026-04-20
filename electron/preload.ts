@@ -12,9 +12,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings: any) => ipcRenderer.invoke('settings:save', settings),
+  testAiConnection: (settings: any) => ipcRenderer.invoke('ai:test', settings),
 
   // MCP 输入（处理用户输入）
   processInput: (type: string, content: string) => ipcRenderer.invoke('mcp:process-input', { type, content }),
+  enrichFile: (slug: string) => ipcRenderer.invoke('ai:enrich', slug),
+  getMcpStatus: () => ipcRenderer.invoke('mcp:status'),
+  startMcp: () => ipcRenderer.invoke('mcp:start'),
+  stopMcp: () => ipcRenderer.invoke('mcp:stop'),
 
   // 截图
   captureScreenshot: () => ipcRenderer.invoke('screenshot:capture'),

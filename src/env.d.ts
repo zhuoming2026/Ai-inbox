@@ -4,15 +4,22 @@ declare module '*.vue' {
   export default component
 }
 
+import type { InboxDocument } from './shared/inbox-document'
+
 interface ElectronAPI {
   getSettings(): Promise<any>
   saveSettings(settings: any): Promise<void>
-  listInbox(): Promise<any[]>
-  readFile(slug: string): Promise<string | null>
+  testAiConnection(settings: any): Promise<{ ok: boolean; message: string }>
+  listInbox(): Promise<InboxDocument[]>
+  readFile(slug: string): Promise<InboxDocument | null>
   updateFile(slug: string, data: any): Promise<void>
   deleteFile(slug: string): Promise<void>
   archiveFile(slug: string): Promise<void>
-  processInput(type: string, content: string): Promise<{ slug: string }>
+  processInput(type: string, content: string): Promise<{ slug: string; enrichStatus: string; documentType: string }>
+  enrichFile(slug: string): Promise<{ ok: boolean }>
+  getMcpStatus(): Promise<{ running: boolean; error: string | null }>
+  startMcp(): Promise<{ running: boolean; error: string | null }>
+  stopMcp(): Promise<{ running: boolean; error: string | null }>
   captureScreenshot(): Promise<string | null>
   selectFolder(): Promise<string | null>
   onInboxUpdate(cb: () => void): () => void

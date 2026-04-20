@@ -30,23 +30,41 @@
             <span class="label-text">基础 URL（可选）</span>
             <input class="form-input" type="text" v-model="settings.baseUrl" placeholder="https://api.minimax.io" />
           </label>
+          <label class="form-label">
+            <span class="label-text">AI 模式</span>
+            <select class="form-input" v-model="settings.aiProcessingMode">
+              <option value="off">关闭</option>
+              <option value="enhance" :disabled="!settings.aiConnectionVerified">自动 Enrich</option>
+            </select>
+          </label>
+          <div class="status-row">
+            <span>AI 状态：</span>
+            <span :class="['status-dot', settings.aiConnectionVerified ? 'running' : 'stopped']">
+              {{ settings.aiConnectionVerified ? '已验证' : '未验证' }}
+            </span>
+          </div>
           <button class="btn-primary" @click="testConnection">测试连接</button>
         </div>
       </section>
 
-      <!-- MCP 服务 -->
+      <!-- 外部 MCP 服务 -->
       <section class="section">
-        <h2 class="section-title">MCP 服务</h2>
+        <h2 class="section-title">外部 MCP 服务</h2>
         <div class="form">
           <label class="form-label">
-            <span class="label-text">HTTP 端口</span>
+            <span class="label-text">HTTP 端口（预留给对外接口）</span>
             <input class="form-input" type="number" v-model="settings.mcpHttpPort" />
           </label>
           <div class="status-row">
-            <span>服务状态：</span>
+            <span>对外接口状态：</span>
             <span :class="['status-dot', mcpRunning ? 'running' : 'stopped']">
               {{ mcpRunning ? '运行中' : '已停止' }}
             </span>
+          </div>
+          <div v-if="mcpError" class="error-text">{{ mcpError }}</div>
+          <div class="action-row">
+            <button class="btn-secondary" @click="startMcp" :disabled="mcpRunning">启动对外 MCP</button>
+            <button class="btn-secondary" @click="stopMcp" :disabled="!mcpRunning">停止对外 MCP</button>
           </div>
           <div class="config-box">
             <div class="config-header">
@@ -70,7 +88,7 @@
             <span class="label-text">归档目录</span>
             <input class="form-input" type="text" v-model="settings.archivePath" />
           </label>
-          <button class="btn-secondary" @click="saveSettings">保存设置</button>
+          <button class="btn-secondary" @click="handleSaveClick">保存设置</button>
         </div>
       </section>
 
@@ -88,7 +106,7 @@
               <option value="system">跟随系统</option>
             </select>
           </label>
-          <button class="btn-secondary" @click="saveSettings">保存</button>
+          <button class="btn-secondary" @click="handleSaveClick">保存</button>
         </div>
       </section>
     </div>
@@ -96,14 +114,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 
 const settings = ref<any>(null)
 const mcpRunning = ref(false)
+const mcpError = ref<string | null>(null)
+const message = useMessage()
 
 onMounted(async () => {
   settings.value = await window.electronAPI?.getSettings()
+  await refreshMcpStatus()
 })
+
+watch(
+  () => settings.value ? [settings.value.aiProvider, settings.value.apiKey, settings.value.model, settings.value.baseUrl] : [],
+  (next, prev) => {
+    if (!settings.value || !prev.length) return
+    if (JSON.stringify(next) !== JSON.stringify(prev)) {
+      settings.value.aiConnectionVerified = false
+      if (settings.value.aiProcessingMode === 'enhance') {
+        settings.value.aiProcessingMode = 'off'
+      }
+    }
+  }
+)
 
 const mcpConfig = computed(() => JSON.stringify({
   mcpServers: {
@@ -118,19 +153,64 @@ const mcpConfig = computed(() => JSON.stringify({
 }, null, 2))
 
 async function testConnection() {
-  // TODO
+  try {
+    const result = await window.electronAPI?.testAiConnection({
+      aiProvider: settings.value.aiProvider,
+      apiKey: settings.value.apiKey,
+      model: settings.value.model,
+      baseUrl: settings.value.baseUrl,
+    })
+    settings.value.aiConnectionVerified = true
+    message.success(result?.message || 'AI 连接成功')
+    await saveSettings(false)
+  } catch (error) {
+    settings.value.aiConnectionVerified = false
+    settings.value.aiProcessingMode = 'off'
+    message.error(error instanceof Error ? error.message : 'AI 测试失败')
+  }
 }
 
 async function copyConfig() {
   await navigator.clipboard.writeText(mcpConfig.value)
+  message.success('MCP 配置已复制')
 }
 
-async function saveSettings() {
+async function saveSettings(showMessage = true) {
   const plainSettings = JSON.parse(JSON.stringify(settings.value))
-  console.log('[SettingsPage] Saving:', plainSettings)
   await window.electronAPI?.saveSettings(plainSettings)
   window.dispatchEvent(new CustomEvent('settings-changed', { detail: plainSettings }))
-  console.log('[SettingsPage] Event dispatched')
+  if (showMessage) {
+    message.success('设置已保存')
+  }
+  await refreshMcpStatus()
+}
+
+function handleSaveClick() {
+  return saveSettings(true)
+}
+
+async function refreshMcpStatus() {
+  const status = await window.electronAPI?.getMcpStatus()
+  mcpRunning.value = Boolean(status?.running)
+  mcpError.value = status?.error || null
+}
+
+async function startMcp() {
+  const status = await window.electronAPI?.startMcp()
+  mcpRunning.value = Boolean(status?.running)
+  mcpError.value = status?.error || null
+  if (status?.running) {
+    message.success('MCP 已启动')
+  } else if (status?.error) {
+    message.error(status.error)
+  }
+}
+
+async function stopMcp() {
+  const status = await window.electronAPI?.stopMcp()
+  mcpRunning.value = Boolean(status?.running)
+  mcpError.value = status?.error || null
+  message.success('MCP 已停止')
 }
 </script>
 
@@ -238,6 +318,17 @@ async function saveSettings() {
   gap: var(--space-2);
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+.action-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.error-text {
+  font-size: 13px;
+  color: #c45b4d;
+  line-height: 1.5;
 }
 
 .status-dot {

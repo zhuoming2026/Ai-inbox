@@ -4,6 +4,9 @@ import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 import Store from 'electron-store'
 import chokidar from 'chokidar'
+import { buildFrontmatter, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
+import { processInputPipeline } from '../src/shared/input-pipeline'
+import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from '../src/shared/ai-enrichment'
 
 let win: BrowserWindow | null = null
 
@@ -16,6 +19,8 @@ const store = new Store({
     apiKey: '',
     model: '',
     baseUrl: '',
+    aiProcessingMode: 'off',
+    aiConnectionVerified: false,
     theme: 'system'
   }
 })
@@ -24,6 +29,7 @@ const store = new Store({
 let mcpProcess: ChildProcess | null = null
 let mcpRequestId = 0
 const mcpPendingRequests = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>()
+let mcpLastError: string | null = null
 
 function getMcpServerPath(): string {
   // Try built-in path first, fall back to external installation
@@ -33,16 +39,30 @@ function getMcpServerPath(): string {
   return appPath
 }
 
+function getMcpStatus() {
+  return {
+    running: Boolean(mcpProcess),
+    error: mcpLastError
+  }
+}
+
 function startMcpProcess() {
+  if (mcpProcess) {
+    mcpLastError = null
+    return getMcpStatus()
+  }
+
   const mcpPath = getMcpServerPath()
   if (!fs.existsSync(mcpPath)) {
-    console.error('[ai-inbox] MCP server not found at:', mcpPath)
-    return
+    mcpLastError = `MCP server not found at: ${mcpPath}`
+    console.error('[ai-inbox]', mcpLastError)
+    return getMcpStatus()
   }
 
   mcpProcess = spawn('node', [mcpPath], {
     stdio: ['pipe', 'pipe', 'pipe']
   })
+  mcpLastError = null
 
   mcpProcess.stdout?.on('data', (data: Buffer) => {
     try {
@@ -60,13 +80,29 @@ function startMcpProcess() {
   })
 
   mcpProcess.stderr?.on('data', (data: Buffer) => {
+    mcpLastError = data.toString().trim() || 'MCP process reported an error'
     console.error('[ai-inbox] MCP stderr:', data.toString())
   })
 
   mcpProcess.on('exit', (code) => {
     console.error('[ai-inbox] MCP process exited with code:', code)
     mcpProcess = null
+    if (code && code !== 0) {
+      mcpLastError = `MCP process exited with code ${code}`
+    }
   })
+
+  return getMcpStatus()
+}
+
+function stopMcpProcess() {
+  if (mcpProcess) {
+    mcpProcess.kill()
+    mcpProcess = null
+  }
+  mcpPendingRequests.clear()
+  mcpLastError = null
+  return getMcpStatus()
 }
 
 function callMcpTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
@@ -77,7 +113,12 @@ function callMcpTool(toolName: string, args: Record<string, unknown>): Promise<u
     }
     const id = ++mcpRequestId
     mcpPendingRequests.set(id, { resolve, reject })
-    const request = { jsonrpc: '2.0', id, method: toolName, params: { arguments: args } }
+    const request = {
+      jsonrpc: '2.0',
+      id,
+      method: 'tools/call',
+      params: { name: toolName, arguments: args }
+    }
     mcpProcess.stdin.write(JSON.stringify(request) + '\n')
   })
 }
@@ -99,19 +140,86 @@ function getArchivePath(): string {
   return p.startsWith('~/') ? join(app.getPath('home'), p.slice(2)) : p
 }
 
-function parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; body: string } {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
-  if (!match) return { frontmatter: {}, body: content }
-  const fm: Record<string, unknown> = {}
-  match[1].split('\n').forEach(line => {
-    const [key, ...rest] = line.split(':')
-    if (key && rest.length) {
-      let val = rest.join(':').trim()
-      if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1)
-      fm[key.trim()] = val
+function getAiSettings(): AiSettings {
+  return {
+    aiProvider: store.get('aiProvider') as string,
+    apiKey: store.get('apiKey') as string,
+    model: store.get('model') as string,
+    baseUrl: store.get('baseUrl') as string,
+    aiProcessingMode: store.get('aiProcessingMode') as 'off' | 'enhance',
+    aiConnectionVerified: Boolean(store.get('aiConnectionVerified')),
+  }
+}
+
+function getInboxFilePath(slug: string) {
+  return join(getInboxPath(), `${slug}.md`)
+}
+
+function createMarkdownFile(slug: string, frontmatter: Record<string, unknown>, body: string) {
+  const inboxPath = getInboxPath()
+  if (!fs.existsSync(inboxPath)) {
+    fs.mkdirSync(inboxPath, { recursive: true })
+  }
+
+  const filepath = join(inboxPath, `${slug}.md`)
+  fs.writeFileSync(filepath, buildFrontmatter(frontmatter, body), 'utf-8')
+  return { slug }
+}
+
+function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'success' | 'failed', error?: string | null) {
+  const filepath = getInboxFilePath(slug)
+  if (!fs.existsSync(filepath)) return
+  const raw = fs.readFileSync(filepath, 'utf-8')
+  const { frontmatter, body } = parseFrontmatter(raw)
+  const nextFrontmatter = {
+    ...frontmatter,
+    updated: new Date().toISOString().split('T')[0],
+    enrichStatus: status,
+  }
+  if (error) {
+    nextFrontmatter.enrichError = error
+  } else {
+    delete nextFrontmatter.enrichError
+  }
+  fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, body), 'utf-8')
+}
+
+async function enrichDocumentBySlug(slug: string) {
+  const filepath = getInboxFilePath(slug)
+  if (!fs.existsSync(filepath)) {
+    throw new Error('文件不存在')
+  }
+
+  const settings = getAiSettings()
+  if (!settings.aiConnectionVerified) {
+    throw new Error('AI 尚未通过测试，请先在设置页测试连接')
+  }
+
+  setDocumentEnrichStatus(slug, 'fetching')
+
+  try {
+    const raw = fs.readFileSync(filepath, 'utf-8')
+    const enrichment = await enrichDocumentContent(raw, settings)
+    const nextRaw = applyEnrichmentToRaw(raw, enrichment, {
+      provider: settings.aiProvider || 'none',
+      status: 'success'
+    })
+    fs.writeFileSync(filepath, nextRaw, 'utf-8')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'AI enrich failed'
+    setDocumentEnrichStatus(slug, 'failed', message)
+    throw error
+  }
+}
+
+function scheduleAutoEnrich(slug: string) {
+  queueMicrotask(async () => {
+    try {
+      await enrichDocumentBySlug(slug)
+    } catch (error) {
+      console.error('[ai-inbox] auto enrich failed:', error)
     }
   })
-  return { frontmatter: fm, body: match[2] }
 }
 
 function createWindow() {
@@ -177,6 +285,22 @@ function setupIPC() {
       store.set(key, value)
     }
   })
+  ipcMain.handle('ai:test', async (_, settings: Record<string, unknown>) => {
+    const candidate = {
+      ...getAiSettings(),
+      ...settings,
+    }
+    const result = await testAiConnection(candidate)
+    return result
+  })
+  ipcMain.handle('ai:enrich', async (_, slug: string) => {
+    await enrichDocumentBySlug(slug)
+    return { ok: true }
+  })
+
+  ipcMain.handle('mcp:status', () => getMcpStatus())
+  ipcMain.handle('mcp:start', () => startMcpProcess())
+  ipcMain.handle('mcp:stop', () => stopMcpProcess())
 
   // Inbox file operations
   ipcMain.handle('inbox:list', () => {
@@ -188,20 +312,12 @@ function setupIPC() {
       const stats = fs.statSync(filepath)
       const content = fs.readFileSync(filepath, 'utf-8')
       const slug = filename.replace('.md', '')
-      const type = slug.startsWith('todo-') ? 'todo'
-        : slug.startsWith('image-') ? 'image'
-        : slug.startsWith('link-') ? 'link'
-        : slug.startsWith('research-') ? 'research'
-        : 'note'
-      const { frontmatter, body } = parseFrontmatter(content)
-      return {
+      return toInboxDocument({
         slug,
-        type,
         filename,
-        created: stats.birthtime.toISOString(),
-        frontmatter,
-        body: body.replace(/## Raw\n[\s\S]*$/, '').trim()
-      }
+        content,
+        created: stats.birthtime.toISOString()
+      })
     }).sort((a: any, b: any) => (b.created > a.created ? 1 : -1))
   })
 
@@ -210,21 +326,25 @@ function setupIPC() {
     const filename = slug.endsWith('.md') ? slug : `${slug}.md`
     const filepath = join(inboxPath, filename)
     if (!fs.existsSync(filepath)) return null
-    return fs.readFileSync(filepath, 'utf-8')
+    const stats = fs.statSync(filepath)
+    const content = fs.readFileSync(filepath, 'utf-8')
+    return toInboxDocument({
+      slug: filename.replace('.md', ''),
+      filename,
+      content,
+      created: stats.birthtime.toISOString()
+    })
   })
 
   ipcMain.handle('inbox:write', (_, slug: string, data: { frontmatter?: Record<string, unknown>; body?: string }) => {
     const inboxPath = getInboxPath()
     const filepath = join(inboxPath, `${slug}.md`)
     if (!fs.existsSync(filepath)) return
-    let content = fs.readFileSync(filepath, 'utf-8')
-    const { frontmatter: fm, body } = parseFrontmatter(content)
-    if (data.frontmatter) {
-      Object.assign(fm, data.frontmatter)
-      const fmLines = Object.entries(fm).map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
-      content = `---\n${fmLines.join('\n')}\n---\n\n## Content\n\n${data.body ?? body.replace(/^## Content\n\n/, '')}`
-    }
-    fs.writeFileSync(filepath, content, 'utf-8')
+    const current = fs.readFileSync(filepath, 'utf-8')
+    const { frontmatter, body } = parseFrontmatter(current)
+    const nextFrontmatter = { ...frontmatter, ...(data.frontmatter || {}) }
+    const nextBody = data.body ?? body
+    fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, nextBody), 'utf-8')
   })
 
   ipcMain.handle('inbox:delete', (_, slug: string) => {
@@ -258,52 +378,28 @@ function setupIPC() {
 
   // MCP process input - call the MCP child process
   ipcMain.handle('mcp:process-input', async (_, { type, content }: { type: string; content: string }) => {
-    if (!mcpProcess) {
-      // Fallback: create file directly without MCP
-      const inboxPath = getInboxPath()
-      const slug = `${type}-${Date.now()}`
-      const fm = [
-        '---',
-        `type: ${type}`,
-        `title: "${content.slice(0, 50).replace(/"/g, '\\"')}"`,
-        `created: ${new Date().toISOString().split('T')[0]}`,
-        `updated: ${new Date().toISOString().split('T')[0]}`,
-        'tags: [app]',
-        'source: app',
-        'status: ready',
-        '---',
-        '',
-        '## Content',
-        '',
-        content
-      ].join('\n')
-      fs.writeFileSync(join(inboxPath, `${slug}.md`), fm, 'utf-8')
-      return { slug }
+    const result = await processInputPipeline(
+      { type, content, source: 'app' },
+      {
+        settings: getAiSettings(),
+        readDocument: (slug: string) => {
+          const filepath = getInboxFilePath(slug)
+          return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null
+        },
+        writeDocument: (slug: string, raw: string) => {
+          const inboxPath = getInboxPath()
+          if (!fs.existsSync(inboxPath)) {
+            fs.mkdirSync(inboxPath, { recursive: true })
+          }
+          fs.writeFileSync(getInboxFilePath(slug), raw, 'utf-8')
+        }
+      }
+    )
+    if (result.enrichStatus === 'fetching') {
+      scheduleAutoEnrich(result.slug)
     }
-
-    let toolName: string
-    let toolArgs: Record<string, unknown> = { content }
-
-    if (type === 'todo') {
-      toolName = 'process_todo'
-      toolArgs = { content: content.replace(/^todo\s+/i, '') }
-    } else if (type === 'link') {
-      toolName = 'process_link'
-      toolArgs = { url: content }
-    } else if (type === 'research') {
-      toolName = 'process_note'
-      toolArgs = { content, intent: '研究' }
-    } else {
-      toolName = 'process_note'
-      toolArgs = { content }
-    }
-
-    const result = await callMcpTool(toolName, toolArgs)
     return result
   })
-
-  // Start MCP process
-  startMcpProcess()
 }
 
 app.whenReady().then(() => {

@@ -1,6 +1,5 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <n-message-provider>
       <div class="article-page">
         <!-- Header -->
         <header class="header">
@@ -30,7 +29,6 @@
           </div>
         </main>
       </div>
-    </n-message-provider>
   </n-config-provider>
 </template>
 
@@ -40,14 +38,16 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   NConfigProvider,
   NIcon,
-  NMessageProvider,
+  useMessage,
   type GlobalThemeOverrides,
 } from 'naive-ui'
 import { ArrowBackOutline } from '@vicons/ionicons5'
+import type { InboxDocument } from '../shared/inbox-document'
 
 const route = useRoute()
 const router = useRouter()
 const slug = route.params.slug as string
+const message = useMessage()
 
 const ArrowBackIcon = h(NIcon, null, () => h(ArrowBackOutline))
 
@@ -58,7 +58,7 @@ const themeOverrides: GlobalThemeOverrides = {
   },
 }
 
-const article = ref<any>(null)
+const article = ref<InboxDocument | null>(null)
 const content = ref('')
 const lastSaved = ref('')
 
@@ -81,13 +81,8 @@ const renderedContent = computed(() => {
 onMounted(async () => {
   const data = await window.electronAPI?.readFile(slug)
   if (data) {
-    try {
-      article.value = typeof data === 'string' ? JSON.parse(data) : data
-      content.value = article.value?.raw || article.value?.body || ''
-    } catch {
-      article.value = { raw: data, created: new Date().toISOString() }
-      content.value = typeof data === 'string' ? data : ''
-    }
+    article.value = data
+    content.value = data.body
     lastSaved.value = content.value
   }
 })
@@ -102,16 +97,27 @@ function onContentChange() {
 }
 
 async function saveArticle() {
-  if (content.value !== lastSaved.value) {
-    const updated = {
-      ...article.value,
-      body: content.value,
-      raw: content.value,
-      updated: new Date().toISOString(),
+  if (!article.value || content.value === lastSaved.value) return
+
+  try {
+    const nextFrontmatter = {
+      ...article.value.frontmatter,
+      updated: new Date().toISOString().split('T')[0],
     }
-    await window.electronAPI?.updateFile(slug, updated)
-    article.value = updated
+
+    await window.electronAPI?.updateFile(slug, {
+      frontmatter: nextFrontmatter,
+      body: content.value,
+    })
+
+    article.value = {
+      ...article.value,
+      frontmatter: nextFrontmatter,
+      body: content.value,
+    }
     lastSaved.value = content.value
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '保存失败')
   }
 }
 
