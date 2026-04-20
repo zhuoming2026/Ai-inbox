@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 import Store from 'electron-store'
 import chokidar from 'chokidar'
-import { buildFrontmatter, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
+import { buildFrontmatter, getDocumentBucket, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
 import { processInputPipeline } from '../src/shared/input-pipeline'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from '../src/shared/ai-enrichment'
 
@@ -155,15 +155,8 @@ function getInboxFilePath(slug: string) {
   return join(getInboxPath(), `${slug}.md`)
 }
 
-function createMarkdownFile(slug: string, frontmatter: Record<string, unknown>, body: string) {
-  const inboxPath = getInboxPath()
-  if (!fs.existsSync(inboxPath)) {
-    fs.mkdirSync(inboxPath, { recursive: true })
-  }
-
-  const filepath = join(inboxPath, `${slug}.md`)
-  fs.writeFileSync(filepath, buildFrontmatter(frontmatter, body), 'utf-8')
-  return { slug }
+function getScratchpadPath() {
+  return join(app.getPath('userData'), 'scratchpad.md')
 }
 
 function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'success' | 'failed', error?: string | null) {
@@ -182,6 +175,37 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
     delete nextFrontmatter.enrichError
   }
   fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, body), 'utf-8')
+}
+
+function setDocumentBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted') {
+  const filepath = getInboxFilePath(slug)
+  if (!fs.existsSync(filepath)) return
+  const raw = fs.readFileSync(filepath, 'utf-8')
+  const { frontmatter, body } = parseFrontmatter(raw)
+  fs.writeFileSync(
+    filepath,
+    buildFrontmatter(
+      {
+        ...frontmatter,
+        updated: new Date().toISOString().split('T')[0],
+        bucket,
+      },
+      body
+    ),
+    'utf-8'
+  )
+}
+
+function readScratchpad() {
+  const filepath = getScratchpadPath()
+  if (!fs.existsSync(filepath)) {
+    return ''
+  }
+  return fs.readFileSync(filepath, 'utf-8')
+}
+
+function writeScratchpad(content: string) {
+  fs.writeFileSync(getScratchpadPath(), content, 'utf-8')
 }
 
 async function enrichDocumentBySlug(slug: string) {
@@ -297,6 +321,10 @@ function setupIPC() {
     await enrichDocumentBySlug(slug)
     return { ok: true }
   })
+  ipcMain.handle('scratchpad:read', () => readScratchpad())
+  ipcMain.handle('scratchpad:write', (_, content: string) => {
+    writeScratchpad(content)
+  })
 
   ipcMain.handle('mcp:status', () => getMcpStatus())
   ipcMain.handle('mcp:start', () => startMcpProcess())
@@ -347,13 +375,12 @@ function setupIPC() {
     fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, nextBody), 'utf-8')
   })
 
+  ipcMain.handle('inbox:set-bucket', (_, slug: string, bucket: 'inbox' | 'collected' | 'deleted') => {
+    setDocumentBucket(slug, bucket)
+  })
+
   ipcMain.handle('inbox:delete', (_, slug: string) => {
-    const inboxPath = getInboxPath()
-    const filepath = join(inboxPath, `${slug}.md`)
-    if (!fs.existsSync(filepath)) return
-    let content = fs.readFileSync(filepath, 'utf-8')
-    content = content.replace(/^status:.*$/m, 'status: deleted')
-    fs.writeFileSync(filepath, content, 'utf-8')
+    setDocumentBucket(slug, 'deleted')
   })
 
   ipcMain.handle('inbox:archive', (_, slug: string) => {
@@ -366,9 +393,7 @@ function setupIPC() {
       fs.mkdirSync(archivePath, { recursive: true })
     }
     fs.copyFileSync(src, dest)
-    let content = fs.readFileSync(src, 'utf-8')
-    content = content.replace(/^status:.*$/m, 'status: archived')
-    fs.writeFileSync(src, content, 'utf-8')
+    setDocumentBucket(slug, 'collected')
   })
 
   ipcMain.handle('inbox:select-folder', async () => {

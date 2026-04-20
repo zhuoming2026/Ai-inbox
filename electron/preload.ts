@@ -8,11 +8,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateFile: (slug: string, data: any) => ipcRenderer.invoke('inbox:write', slug, data),
   archiveFile: (slug: string) => ipcRenderer.invoke('inbox:archive', slug),
   deleteFile: (slug: string) => ipcRenderer.invoke('inbox:delete', slug),
+  setBucket: (slug: string, bucket: 'inbox' | 'collected' | 'deleted') => ipcRenderer.invoke('inbox:set-bucket', slug, bucket),
 
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings: any) => ipcRenderer.invoke('settings:save', settings),
   testAiConnection: (settings: any) => ipcRenderer.invoke('ai:test', settings),
+  readScratchpad: () => ipcRenderer.invoke('scratchpad:read'),
+  writeScratchpad: (content: string) => ipcRenderer.invoke('scratchpad:write', content),
 
   // MCP 输入（处理用户输入）
   processInput: (type: string, content: string) => ipcRenderer.invoke('mcp:process-input', { type, content }),

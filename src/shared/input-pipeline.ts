@@ -114,6 +114,7 @@ function baseFrontmatter(params: {
     updated: params.today,
     tags: [params.type],
     source: params.source,
+    bucket: 'inbox',
     parseMode: params.parseMode || 'deterministic',
     enrichStatus: params.enrichStatus || 'none',
     aiProvider: params.aiProvider || 'none',

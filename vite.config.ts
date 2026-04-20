@@ -79,10 +79,24 @@ function getAiSettings(): AiSettings {
   }
 }
 
+function getScratchpadPath() {
+  return join(homedir(), '.ai-inbox-app-dev-scratchpad.md')
+}
+
 function ensureDir(dirPath: string) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true })
   }
+}
+
+function readScratchpad() {
+  const filepath = getScratchpadPath()
+  if (!fs.existsSync(filepath)) return ''
+  return fs.readFileSync(filepath, 'utf-8')
+}
+
+function writeScratchpad(content: string) {
+  fs.writeFileSync(getScratchpadPath(), content, 'utf-8')
 }
 
 function listInbox() {
@@ -143,6 +157,25 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
   fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, body), 'utf-8')
 }
 
+function setDocumentBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted') {
+  const filepath = getInboxFilePath(slug)
+  if (!fs.existsSync(filepath)) return
+  const raw = fs.readFileSync(filepath, 'utf-8')
+  const { frontmatter, body } = parseFrontmatter(raw)
+  fs.writeFileSync(
+    filepath,
+    buildFrontmatter(
+      {
+        ...frontmatter,
+        updated: new Date().toISOString().split('T')[0],
+        bucket,
+      },
+      body
+    ),
+    'utf-8'
+  )
+}
+
 async function enrichDocumentBySlug(slug: string) {
   const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) {
@@ -189,8 +222,7 @@ function deleteInboxFile(slug: string) {
   const filepath = join(getInboxPath(), `${slug}.md`)
   if (!fs.existsSync(filepath)) return false
 
-  const content = fs.readFileSync(filepath, 'utf-8').replace(/^status:.*$/m, 'status: deleted')
-  fs.writeFileSync(filepath, content, 'utf-8')
+  setDocumentBucket(slug, 'deleted')
   return true
 }
 
@@ -201,9 +233,7 @@ function archiveInboxFile(slug: string) {
   const archivePath = getArchivePath()
   ensureDir(archivePath)
   fs.copyFileSync(inboxFile, join(archivePath, `${slug}.md`))
-
-  const content = fs.readFileSync(inboxFile, 'utf-8').replace(/^status:.*$/m, 'status: archived')
-  fs.writeFileSync(inboxFile, content, 'utf-8')
+  setDocumentBucket(slug, 'collected')
   return true
 }
 
@@ -274,6 +304,18 @@ function devInboxPlugin(): Plugin {
           return
         }
 
+        if (url === '/__dev_api/scratchpad' && req.method === 'GET') {
+          sendJson(res, 200, { content: readScratchpad() })
+          return
+        }
+
+        if (url === '/__dev_api/scratchpad' && req.method === 'POST') {
+          const body = (await readJsonBody(req)) as { content: string }
+          writeScratchpad(body.content || '')
+          sendJson(res, 200, { ok: true })
+          return
+        }
+
         if (url === '/__dev_api/ai/test' && req.method === 'POST') {
           try {
             const body = (await readJsonBody(req)) as Partial<AppSettings>
@@ -295,6 +337,20 @@ function devInboxPlugin(): Plugin {
           } catch (error) {
             sendJson(res, 400, {
               error: error instanceof Error ? error.message : 'AI enrich 失败',
+            })
+          }
+          return
+        }
+
+        const bucketMatch = url.match(/^\/__dev_api\/inbox\/([^/]+)\/bucket$/)
+        if (bucketMatch && req.method === 'POST') {
+          try {
+            const body = (await readJsonBody(req)) as { bucket: 'inbox' | 'collected' | 'deleted' }
+            setDocumentBucket(decodeURIComponent(bucketMatch[1]), body.bucket)
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, {
+              error: error instanceof Error ? error.message : 'Bucket 更新失败',
             })
           }
           return

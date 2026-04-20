@@ -41,6 +41,15 @@ function createBrowserElectronApi(): BrowserElectronApi {
         method: 'POST',
         body: JSON.stringify(settings),
       }),
+    readScratchpad: async () => {
+      const data = await request<{ content: string }>('/__dev_api/scratchpad')
+      return data.content
+    },
+    writeScratchpad: (content: string) =>
+      request('/__dev_api/scratchpad', {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      }),
     listInbox: () => request('/__dev_api/inbox'),
     readFile: (slug: string) => request(`/__dev_api/inbox/${encodeURIComponent(slug)}`),
     updateFile: (slug: string, data: any) =>
@@ -55,6 +64,11 @@ function createBrowserElectronApi(): BrowserElectronApi {
     archiveFile: (slug: string) =>
       request(`/__dev_api/inbox/${encodeURIComponent(slug)}/archive`, {
         method: 'POST',
+      }),
+    setBucket: (slug: string, bucket: 'inbox' | 'collected' | 'deleted') =>
+      request(`/__dev_api/inbox/${encodeURIComponent(slug)}/bucket`, {
+        method: 'POST',
+        body: JSON.stringify({ bucket }),
       }),
     processInput: (type: string, content: string) =>
       request('/__dev_api/process-input', {

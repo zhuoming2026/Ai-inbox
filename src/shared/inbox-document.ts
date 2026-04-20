@@ -12,9 +12,32 @@ export interface InboxDocument {
   raw: string
 }
 
+function normalizeFrontmatter(frontmatter: InboxFrontmatter): InboxFrontmatter {
+  const nextFrontmatter = { ...frontmatter }
+
+  if (typeof nextFrontmatter.status === 'string' && typeof nextFrontmatter.bucket !== 'string') {
+    if (nextFrontmatter.status === 'deleted') nextFrontmatter.bucket = 'deleted'
+    if (nextFrontmatter.status === 'archived' || nextFrontmatter.status === 'finished') nextFrontmatter.bucket = 'collected'
+  }
+
+  if (typeof nextFrontmatter.bucket !== 'string') {
+    nextFrontmatter.bucket = 'inbox'
+  }
+
+  if (typeof nextFrontmatter.enrichStatus !== 'string') {
+    nextFrontmatter.enrichStatus = 'none'
+  }
+
+  if (!Array.isArray(nextFrontmatter.tags)) {
+    nextFrontmatter.tags = []
+  }
+
+  return nextFrontmatter
+}
+
 export function parseFrontmatter(content: string): { frontmatter: InboxFrontmatter; body: string } {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
-  if (!match) return { frontmatter: {}, body: content }
+  if (!match) return { frontmatter: normalizeFrontmatter({}), body: content }
 
   const frontmatter: InboxFrontmatter = {}
   for (const line of match[1].split('\n')) {
@@ -40,7 +63,7 @@ export function parseFrontmatter(content: string): { frontmatter: InboxFrontmatt
     frontmatter[key.trim()] = rawValue
   }
 
-  return { frontmatter, body: match[2] }
+  return { frontmatter: normalizeFrontmatter(frontmatter), body: match[2] }
 }
 
 export function buildFrontmatter(frontmatter: InboxFrontmatter, body: string) {
@@ -64,6 +87,14 @@ export function getPreviewText(body: string) {
   return getEditableBody(body)
     .replace(/## Raw\n[\s\S]*$/, '')
     .trim()
+}
+
+export function getDocumentTags(frontmatter: InboxFrontmatter): string[] {
+  return Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag): tag is string => typeof tag === 'string') : []
+}
+
+export function getDocumentBucket(frontmatter: InboxFrontmatter) {
+  return typeof frontmatter.bucket === 'string' ? frontmatter.bucket : 'inbox'
 }
 
 export function toInboxDocument(params: {
