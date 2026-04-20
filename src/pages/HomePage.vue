@@ -24,13 +24,20 @@
               </n-input>
             </div>
             <n-badge :value="notifCount" :max="99" class="noti-badge">
-              <n-button type="primary" class="icon-btn">
-                <template #icon><BellIcon /></template>
-              </n-button>
+              <PillButton
+                :icon="NotificationsOutline"
+                bg-color="var(--color-primary)"
+                text-color="#fff"
+                size="small"
+              />
             </n-badge>
-            <n-button type="primary" class="icon-btn" @click="$router.push('/settings')">
-              <template #icon><SettingsIcon /></template>
-            </n-button>
+            <PillButton
+              :icon="SettingsOutline"
+              bg-color="var(--color-primary)"
+              text-color="#fff"
+              size="small"
+              @click="$router.push('/settings')"
+            />
           </nav>
 
           <!-- Input Area -->
@@ -46,20 +53,33 @@
               />
               <div class="input-actions">
                 <div class="attach-btns">
-                  <n-button type="primary" size="small">
-                    <template #icon><ImageIcon /></template>
-                  </n-button>
-                  <n-button type="primary" size="small">
-                    <template #icon><LinkIcon /></template>
-                  </n-button>
-                  <n-button type="primary" size="small">
-                    <template #icon><NoteIcon /></template>
-                  </n-button>
+                  <PillButton
+                    :icon="ImageOutline"
+                    bg-color="var(--color-primary)"
+                    text-color="#fff"
+                    size="small"
+                  />
+                  <PillButton
+                    :icon="LinkOutline"
+                    bg-color="var(--color-primary)"
+                    text-color="#fff"
+                    size="small"
+                  />
+                  <PillButton
+                    :icon="DocumentTextOutline"
+                    bg-color="var(--color-primary)"
+                    text-color="#fff"
+                    size="small"
+                  />
                 </div>
-                <n-button type="primary" class="submit-btn" @click="submitInput">
-                  Inbox
-                  <template #icon><ArrowRightIcon /></template>
-                </n-button>
+                <PillButton
+                  text="Inbox"
+                  :icon="ArrowForwardOutline"
+                  bg-color="var(--color-primary)"
+                  text-color="#fff"
+                  size="small"
+                  @click="submitInput"
+                />
               </div>
             </n-card>
           </div>
@@ -91,9 +111,13 @@
                           @click.stop="toggleStatus(card, s)"
                         >{{ s }}</n-tag>
                       </n-space>
-                      <n-button type="primary" size="small" @click.stop="deleteCard(card.slug)">
-                        <template #icon><TrashIcon /></template>
-                      </n-button>
+                      <PillButton
+                        :icon="TrashOutline"
+                        bg-color="var(--color-primary)"
+                        text-color="#fff"
+                        size="small"
+                        @click.stop="deleteCard(card.slug)"
+                      />
                     </div>
                   </div>
                 </div>
@@ -122,9 +146,12 @@
             <template #header>
               <div class="notes-header">
                 <h3 class="notes-title">Notes</h3>
-                <n-button circle size="small" type="primary">
-                  <template #icon><PlusIcon /></template>
-                </n-button>
+                <PillButton
+                  :icon="AddOutline"
+                  bg-color="var(--color-primary)"
+                  text-color="#fff"
+                  size="small"
+                />
               </div>
             </template>
             <div class="notes-list">
@@ -148,7 +175,6 @@ import {
   NConfigProvider,
   NCard,
   NInput,
-  NButton,
   NIcon,
   NBadge,
   NSpace,
@@ -158,6 +184,7 @@ import {
   NMessageProvider,
   type GlobalThemeOverrides,
 } from 'naive-ui'
+import PillButton from '@/components/PillButton.vue'
 import WeekCalendar from '@/components/WeekCalendar.vue'
 import {
   SearchOutline,
@@ -174,15 +201,7 @@ import {
 const router = useRouter()
 const inboxStore = useInboxStore()
 
-const SearchIcon = h(NIcon, null, () => h(SearchOutline))
-const BellIcon = h(NIcon, null, () => h(NotificationsOutline))
-const SettingsIcon = h(NIcon, null, () => h(SettingsOutline))
-const ImageIcon = h(NIcon, null, () => h(ImageOutline))
-const LinkIcon = h(NIcon, null, () => h(LinkOutline))
-const NoteIcon = h(NIcon, null, () => h(DocumentTextOutline))
-const ArrowRightIcon = h(NIcon, null, () => h(ArrowForwardOutline))
-const TrashIcon = h(NIcon, null, () => h(TrashOutline))
-const PlusIcon = h(NIcon, null, () => h(AddOutline))
+const SearchIcon = () => h(NIcon, null, () => h(SearchOutline))
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
@@ -427,12 +446,6 @@ onMounted(() => {
   height: var(--input-height);
 }
 
-.icon-btn {
-  width: var(--input-height);
-  height: var(--input-height);
-  flex-shrink: 0;
-}
-
 .noti-badge {
   flex-shrink: 0;
 }
@@ -492,63 +505,6 @@ onMounted(() => {
 .attach-btns {
   display: flex;
   gap: var(--space-2);
-}
-
-.submit-btn {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-8);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: var(--text-base);
-}
-
-.submit-btn:hover {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-}
-
-.icon-btn {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  padding: 0 !important;
-}
-
-.icon-btn:hover {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-}
-
-.icon-btn .n-icon {
-  color: var(--text-inverse) !important;
-}
-
-.attach-btns .n-button {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-  width: 28px !important;
-  min-width: 28px !important;
-  padding: 0 !important;
-}
-
-.attach-btns .n-button:hover {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: 1px solid var(--color-primary) !important;
-}
-
-.submit-btn {
-  height: 28px !important;
-  min-height: 28px !important;
 }
 
 .article-list {
