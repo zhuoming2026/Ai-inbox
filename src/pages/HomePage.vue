@@ -25,17 +25,15 @@
             </div>
             <n-badge :value="notifCount" :max="99" class="noti-badge">
               <PillButton
-                :icon="NotificationsOutline"
+                :icon="Notifications"
                 bg-color="var(--color-primary)"
-                text-color="#fff"
-                size="small"
+                icon-only
               />
             </n-badge>
             <PillButton
               :icon="SettingsOutline"
               bg-color="var(--color-primary)"
-              text-color="#fff"
-              size="small"
+              icon-only
               @click="$router.push('/settings')"
             />
           </nav>
@@ -54,30 +52,25 @@
               <div class="input-actions">
                 <div class="attach-btns">
                   <PillButton
-                    :icon="ImageOutline"
+                    :icon="Image"
                     bg-color="var(--color-primary)"
-                    text-color="#fff"
-                    size="small"
+                    icon-only
                   />
                   <PillButton
-                    :icon="LinkOutline"
+                    :icon="Link"
                     bg-color="var(--color-primary)"
-                    text-color="#fff"
-                    size="small"
+                    icon-only
                   />
                   <PillButton
-                    :icon="DocumentTextOutline"
+                    :icon="Document"
                     bg-color="var(--color-primary)"
-                    text-color="#fff"
-                    size="small"
+                    icon-only
                   />
                 </div>
                 <PillButton
                   text="Inbox"
                   :icon="ArrowForwardOutline"
                   bg-color="var(--color-primary)"
-                  text-color="#fff"
-                  size="small"
                   @click="submitInput"
                 />
               </div>
@@ -114,8 +107,7 @@
                       <PillButton
                         :icon="TrashOutline"
                         bg-color="var(--color-primary)"
-                        text-color="#fff"
-                        size="small"
+                        icon-only
                         @click.stop="deleteCard(card.slug)"
                       />
                     </div>
@@ -149,8 +141,7 @@
                 <PillButton
                   :icon="AddOutline"
                   bg-color="var(--color-primary)"
-                  text-color="#fff"
-                  size="small"
+                  icon-only
                 />
               </div>
             </template>
@@ -196,6 +187,11 @@ import {
   ArrowForwardOutline,
   TrashOutline,
   AddOutline,
+  NotificationsCircle,
+  Notifications,
+  Image,
+  Link,
+  Document,
 } from '@vicons/ionicons5'
 
 const router = useRouter()

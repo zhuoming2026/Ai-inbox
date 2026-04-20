@@ -8,29 +8,38 @@ const props = defineProps({
   bgColor: String,
   textColor: {
     type: String,
-    default: '#fff'
+    default: '#000'
   },
   iconColor: String,
   size: {
     type: String,
     default: 'small'
+  },
+  iconOnly: {
+    type: Boolean,
+    default: false
   }
 })
 
 const mergedIconColor = computed(() => {
   return props.iconColor || props.textColor
 })
+
+const buttonStyle = computed(() => ({
+  backgroundColor: props.bgColor,
+  color: props.textColor,
+  border: 'none',
+  width: props.iconOnly ? '28px' : undefined,
+  minWidth: props.iconOnly ? '28px' : undefined,
+  padding: props.iconOnly ? '0' : undefined
+}))
 </script>
 
 <template>
   <n-button
     :size="size"
     class="pill-btn"
-    :style="{
-      backgroundColor: bgColor,
-      color: textColor,
-      border: 'none'
-    }"
+    :style="buttonStyle"
   >
     <span v-if="text" class="pill-text">
       {{ text }}
@@ -52,12 +61,13 @@ const mergedIconColor = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
+  padding: 0 6px;
 }
 
 .pill-icon :deep(svg) {
   fill: currentColor;
   stroke: currentColor;
+  font-size: 14px;
 }
 
 .pill-text {
