@@ -52,7 +52,20 @@
 
         <div ref="articleListRef" class="article-list">
           <div class="article-header">
-            <div class="article-filters">
+            <div class="article-filter-state">
+              <div v-if="dateFilterActive" class="filter-chip">
+                <span class="filter-chip-label">日期</span>
+                <span>{{ selectedDateLabel }}</span>
+                <button type="button" class="clear-filter-btn" @click="clearDateSelection">清除</button>
+              </div>
+              <div v-if="searchQuery.trim()" class="filter-chip subtle">
+                <span class="filter-chip-label">搜索</span>
+                <span class="filter-chip-value">{{ searchQuery.trim() }}</span>
+                <button type="button" class="clear-filter-btn" @click="clearSearch">清除</button>
+              </div>
+            </div>
+
+            <div class="article-filters" role="tablist" aria-label="Bucket filters">
               <button
                 v-for="option in bucketFilters"
                 :key="option.value"
@@ -73,10 +86,12 @@
                 v-for="card in group"
                 :key="card.slug"
                 class="card"
-                :class="{ collected: card.bucket === 'collected' }"
+                :class="{
+                  collected: card.bucket === 'collected',
+                  deleted: card.bucket === 'deleted',
+                }"
                 @click="openArticle(card.slug)"
               >
-                <div v-if="card.bucket === 'collected'" class="collect-mark">♛</div>
                 <div v-if="card.type === 'image'" class="card-image"></div>
                 <div class="card-body">
                   <h3 class="card-title">{{ card.title }}</h3>
@@ -98,17 +113,28 @@
                       class="status-tag enrich-tag"
                       @click.stop="handleEnrichClick(card)"
                     >{{ getEnrichLabel(card.enrichStatus) }}</n-tag>
-                    <div class="card-actions">
-                      <button
-                        class="icon-action"
-                        :class="{ active: card.bucket === 'collected' }"
-                        @click.stop="toggleCollect(card)"
-                      >
-                        <n-icon><component :is="card.bucket === 'collected' ? Star : StarOutline" /></n-icon>
-                      </button>
-                      <button class="icon-action danger" @click.stop="deleteCard(card.slug)">
-                        <n-icon><TrashOutline /></n-icon>
-                      </button>
+                    <div class="card-actions-wrap">
+                      <span class="card-date">{{ formatDateShort(card.created) }}</span>
+                      <div class="card-actions">
+                        <button
+                          v-if="card.bucket === 'deleted'"
+                          class="icon-action"
+                          @click.stop="restoreCard(card.slug)"
+                        >
+                          <n-icon><ArrowUndoOutline /></n-icon>
+                        </button>
+                        <button
+                          v-else
+                          class="icon-action"
+                          :class="{ active: card.bucket === 'collected' }"
+                          @click.stop="toggleCollect(card)"
+                        >
+                          <n-icon><component :is="card.bucket === 'collected' ? Star : StarOutline" /></n-icon>
+                        </button>
+                        <button v-if="card.bucket !== 'deleted'" class="icon-action danger" @click.stop="deleteCard(card.slug)">
+                          <n-icon><TrashOutline /></n-icon>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -117,7 +143,11 @@
           </template>
 
           <div v-if="Object.keys(groupedCards).length === 0" class="empty-state">
-            <n-empty description="No content yet" />
+            <n-empty :description="emptyStateDescription">
+              <template #extra>
+                <p class="empty-hint">{{ emptyStateHint }}</p>
+              </template>
+            </n-empty>
           </div>
         </div>
       </div>
@@ -127,11 +157,15 @@
           <template #header>
             <div class="sidebar-header">
               <h3 class="sidebar-title">Calendar</h3>
+              <div class="sidebar-meta">
+                <span class="sidebar-month">{{ visibleMonthLabel }}</span>
+              </div>
             </div>
           </template>
           <MonthCalendar
             :selected-date="selectedDateTs"
             :marked-dates="markedDates"
+            :hide-month-label="true"
             @select="onDateSelect"
             @month-change="onMonthChange"
           />
@@ -156,16 +190,18 @@
             </div>
           </template>
 
-          <div v-if="scratchpadMode === 'edit'" class="scratchpad-edit">
-            <textarea
-              v-model="scratchpadContent"
-              class="scratchpad-textarea"
-              placeholder="临时笔记，随便写点什么吧"
-            ></textarea>
-          </div>
-          <div v-else class="scratchpad-preview">
-            <p v-if="!scratchpadContent" class="scratchpad-placeholder">临时笔记，随便写点什么吧</p>
-            <div v-else class="scratchpad-rendered" v-html="scratchpadPreview"></div>
+          <div class="scratchpad-body">
+            <div v-if="scratchpadMode === 'edit'" class="scratchpad-edit">
+              <textarea
+                v-model="scratchpadContent"
+                class="scratchpad-textarea"
+                placeholder="临时笔记，随便写点什么吧"
+              ></textarea>
+            </div>
+            <div v-else class="scratchpad-preview">
+              <p v-if="!scratchpadContent" class="scratchpad-placeholder">临时笔记，随便写点什么吧</p>
+              <div v-else class="scratchpad-rendered" v-html="scratchpadPreview"></div>
+            </div>
           </div>
         </n-card>
       </aside>
@@ -178,6 +214,7 @@ import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'v
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { useInboxStore, type InboxCard } from '@/stores/inbox'
+import type { DocumentBucket } from '@/shared/inbox-document'
 import {
   NCard,
   NConfigProvider,
@@ -191,6 +228,7 @@ import {
 import PillButton from '../components/PillButton.vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import {
+  ArrowUndoOutline,
   ArrowForwardOutline,
   Document,
   Image,
@@ -242,15 +280,17 @@ const searchQuery = ref('')
 const selectedDateTs = ref<number | undefined>(undefined)
 const dateFilterActive = ref(false)
 const inputText = ref('')
-const activeBucket = ref<'inbox' | 'collected' | 'all'>('all')
+const activeBucket = ref<DocumentBucket | 'all'>('all')
 const scratchpadMode = ref<'edit' | 'preview'>('edit')
 const scratchpadContent = ref('')
 const articleListRef = ref<HTMLElement | null>(null)
+const visibleMonthTs = ref(new Date().setDate(1))
 let scratchpadSaveTimer: ReturnType<typeof setTimeout> | null = null
 
 const bucketFilters = [
   { label: 'Inbox', value: 'inbox' as const },
   { label: 'Collected', value: 'collected' as const },
+  { label: 'Deleted', value: 'deleted' as const },
   { label: 'All', value: 'all' as const },
 ]
 
@@ -261,8 +301,20 @@ yesterday.setDate(yesterday.getDate() - 1)
 const yesterdayStr = yesterday.toISOString().split('T')[0]
 
 const markedDates = computed(() => Array.from(new Set(inboxStore.cards.map((card) => card.created))))
-
 const scratchpadPreview = computed(() => marked.parse(scratchpadContent.value || ''))
+const visibleMonthLabel = computed(() => {
+  const date = new Date(visibleMonthTs.value)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+})
+
+const selectedDateLabel = computed(() => {
+  if (!dateFilterActive.value || !selectedDateTs.value) return ''
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+  }).format(new Date(selectedDateTs.value))
+})
 
 const filteredCards = computed(() => {
   let cards = inboxStore.cards
@@ -284,6 +336,44 @@ const filteredCards = computed(() => {
   return cards
 })
 
+const emptyStateDescription = computed(() => {
+  if (searchQuery.value.trim()) {
+    return `没有找到和“${searchQuery.value.trim()}”相关的内容`
+  }
+  if (dateFilterActive.value) {
+    return '这一天还没有符合筛选条件的内容'
+  }
+  if (activeBucket.value === 'inbox') {
+    return 'Inbox 还是空的'
+  }
+  if (activeBucket.value === 'collected') {
+    return 'Collected 里还没有内容'
+  }
+  if (activeBucket.value === 'deleted') {
+    return 'Deleted 里还是空的'
+  }
+  return '还没有内容'
+})
+
+const emptyStateHint = computed(() => {
+  if (searchQuery.value.trim()) {
+    return '换个关键词，或者清空搜索试试，也可以直接回到 All 看看最近的内容。'
+  }
+  if (dateFilterActive.value) {
+    return '这一天暂时没有命中内容，清掉日期筛选后可以继续沿时间流浏览。'
+  }
+  if (activeBucket.value === 'inbox') {
+    return '这里适合快速分拣新的输入，先丢一条内容进来，我们就能开始整理。'
+  }
+  if (activeBucket.value === 'collected') {
+    return '把真正想沉淀的内容 Collect 起来，这里会逐渐长成你的 retained stream。'
+  }
+  if (activeBucket.value === 'deleted') {
+    return 'Deleted 先作为缓冲区存在，需要的话可以随时恢复到 Inbox。'
+  }
+  return '输入框、日期和筛选是同一条浏览路径，随便从一个入口开始都可以。'
+})
+
 const groupedCards = computed(() => {
   const groups: Record<string, typeof filteredCards.value> = {}
   for (const card of filteredCards.value) {
@@ -302,14 +392,20 @@ function onDateSelect(ts: number) {
   dateFilterActive.value = true
 }
 
-function onMonthChange(_monthStart: number) {}
+function onMonthChange(monthStart: number) {
+  visibleMonthTs.value = monthStart
+}
 
 function clearDateSelection() {
   selectedDateTs.value = undefined
   dateFilterActive.value = false
 }
 
-function setActiveBucket(bucket: 'inbox' | 'collected' | 'all') {
+function clearSearch() {
+  searchQuery.value = ''
+}
+
+function setActiveBucket(bucket: DocumentBucket | 'all') {
   activeBucket.value = bucket
 }
 
@@ -383,6 +479,15 @@ async function toggleCollect(card: InboxCard) {
   }
 }
 
+async function restoreCard(slug: string) {
+  try {
+    await inboxStore.restoreCard(slug)
+    message.success('已恢复到 Inbox')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '恢复失败')
+  }
+}
+
 async function deleteCard(slug: string) {
   try {
     await inboxStore.deleteCard(slug)
@@ -393,7 +498,7 @@ async function deleteCard(slug: string) {
 }
 
 onMounted(() => {
-  inboxStore.loadCards()
+  void inboxStore.loadCards()
   window.electronAPI?.readScratchpad().then((content) => {
     scratchpadContent.value = content || ''
   })
@@ -410,7 +515,7 @@ onBeforeUnmount(() => {
 })
 
 function handleInboxUpdated() {
-  inboxStore.loadCards()
+  void inboxStore.loadCards()
 }
 
 function scrollArticleListToTop() {
@@ -435,18 +540,21 @@ watch(scratchpadContent, (value) => {
 <style scoped>
 .home-page {
   width: 100%;
+  min-width: 1180px;
   height: 100vh;
+  padding: 18px;
   background: var(--bg-primary);
   display: flex;
+  gap: 18px;
   overflow: hidden;
 }
 
 .left-content {
-  flex: 4;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  padding: var(--space-6);
+  height: 100%;
+  padding: 4px 6px 6px;
   min-width: 0;
   overflow: hidden;
 }
@@ -454,9 +562,9 @@ watch(scratchpadContent, (value) => {
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 14px;
   height: var(--nav-height);
-  margin-bottom: var(--space-8);
+  margin-bottom: 18px;
 }
 
 .logo {
@@ -478,43 +586,44 @@ watch(scratchpadContent, (value) => {
 }
 
 .input-section {
-  margin-bottom: var(--space-8);
+  margin-bottom: 18px;
 }
 
 .input-card {
   width: 100%;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border-radius: 28px;
+  box-shadow: 0 10px 28px rgba(40, 32, 16, 0.04);
+  background: rgba(255, 251, 242, 0.74);
+  border: 1px solid rgba(232, 230, 220, 0.92);
 }
 
 .input-card :deep(.n-card__content) {
-  padding: 0;
+  padding: 16px 18px 14px;
 }
 
 .input-field :deep(.n-input-wrapper) {
   background: transparent;
-  padding: var(--space-2) var(--space-3);
+  padding: 0;
 }
 
 .input-field :deep(.n-input__textarea-el) {
+  min-height: 88px;
+  resize: none;
   font-family: var(--font-body);
   font-size: var(--text-xl);
   color: var(--text-primary);
-  min-height: 96px;
 }
 
 .input-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: var(--space-4);
+  margin-top: 14px;
 }
 
 .attach-btns {
   display: flex;
-  gap: var(--space-2);
+  gap: 8px;
 }
 
 .article-list {
@@ -522,34 +631,63 @@ watch(scratchpadContent, (value) => {
   min-height: 0;
   overflow: auto;
   position: relative;
+  padding-right: 4px;
 }
 
 .article-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
+  gap: 12px;
+  margin-bottom: 14px;
   position: sticky;
   top: 0;
   z-index: 5;
-  padding-bottom: var(--space-2);
-  background: linear-gradient(180deg, var(--bg-primary) 74%, rgba(245, 243, 237, 0));
+  padding: 4px 0 10px;
+  background: linear-gradient(180deg, var(--bg-primary) 78%, rgba(245, 243, 237, 0));
+}
+
+.article-filter-state {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .article-filters {
-  display: flex;
-  gap: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(77, 76, 72, 0.08);
+  box-shadow: 0 0 0 1px rgba(232, 230, 220, 0.28);
+  flex-shrink: 0;
 }
 
 .filter-button {
   border: none;
   background: transparent;
-  padding: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
+  padding: 0 12px;
+  height: 32px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color var(--transition-base), opacity var(--transition-base);
+  position: relative;
+  transition: color var(--transition-base), opacity var(--transition-base), background var(--transition-base);
+}
+
+.filter-button:not(:last-child)::after {
+  content: '/';
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(93, 89, 82, 0.26);
+  pointer-events: none;
 }
 
 .filter-button:hover {
@@ -558,47 +696,98 @@ watch(scratchpadContent, (value) => {
 
 .filter-button.active {
   color: var(--color-primary);
+  background: rgba(250, 187, 24, 0.08);
+  border-radius: 999px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(250, 187, 24, 0.12);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.filter-chip.subtle {
+  background: rgba(64, 72, 87, 0.06);
+}
+
+.filter-chip-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-chip-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.clear-filter-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
 }
 
 .section-title {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
   color: var(--text-primary);
-  margin: var(--space-6) 0 var(--space-4);
+  margin: 18px 0 12px;
 }
 
 .cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--space-5);
+  column-width: 280px;
+  column-gap: 18px;
 }
 
 .card {
+  display: inline-block;
+  width: 100%;
   position: relative;
+  margin: 0 0 18px;
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  border-radius: 26px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  break-inside: avoid;
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px rgba(68, 49, 6, 0.08);
 }
 
 .card.collected {
-  background: linear-gradient(180deg, rgba(250, 187, 24, 0.12), rgba(255, 255, 255, 0.96));
-  border-color: rgba(250, 187, 24, 0.35);
+  background:
+    radial-gradient(circle at top right, rgba(250, 187, 24, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(255, 248, 224, 0.92), rgba(255, 255, 255, 0.98));
+  border-color: rgba(250, 187, 24, 0.4);
+  box-shadow: 0 16px 30px rgba(250, 187, 24, 0.14);
 }
 
-.collect-mark {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  font-size: 18px;
-  opacity: 0.35;
+.card.deleted {
+  background: linear-gradient(180deg, rgba(120, 125, 137, 0.05), rgba(255, 255, 255, 0.96));
+  border-style: dashed;
+  border-color: rgba(120, 125, 137, 0.28);
+  box-shadow: none;
+}
+
+.card.deleted:hover {
+  box-shadow: 0 14px 24px rgba(33, 37, 41, 0.06);
 }
 
 .card-image {
@@ -607,11 +796,11 @@ watch(scratchpadContent, (value) => {
 }
 
 .card-body {
-  padding: var(--space-4);
+  padding: 18px 18px 16px;
 }
 
 .card-title {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 10px;
   font-family: var(--font-display);
   font-size: var(--text-xl);
   color: var(--text-primary);
@@ -624,8 +813,9 @@ watch(scratchpadContent, (value) => {
 .card-tags {
   display: flex;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: 10px;
   overflow: hidden;
+  flex-wrap: wrap;
 }
 
 .ai-tag {
@@ -637,7 +827,7 @@ watch(scratchpadContent, (value) => {
   color: var(--text-secondary);
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -646,16 +836,31 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: var(--space-4);
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .enrich-tag {
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.card-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.card-date {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .card-actions {
   display: flex;
-  gap: var(--space-2);
+  gap: 6px;
 }
 
 .icon-action {
@@ -669,6 +874,12 @@ watch(scratchpadContent, (value) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.icon-action:hover {
+  border-color: rgba(64, 72, 87, 0.26);
+  background: rgba(64, 72, 87, 0.04);
 }
 
 .icon-action.active {
@@ -685,29 +896,43 @@ watch(scratchpadContent, (value) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 220px;
+  min-height: 320px;
+  border: 1px dashed rgba(93, 89, 82, 0.14);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.empty-hint {
+  margin: 0;
+  max-width: 320px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: center;
 }
 
 .right-content {
-  width: 380px;
+  width: 344px;
   flex-shrink: 0;
-  padding: var(--space-6);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: 18px;
+  min-height: 0;
 }
 
 .sidebar-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sidebar);
+  border-radius: 32px;
+  border: 1px solid rgba(232, 230, 220, 0.92);
+  box-shadow: 0 10px 28px rgba(40, 32, 16, 0.04);
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.84);
 }
 
 .sidebar-header {
   display: flex;
-  align-items: baseline;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .sidebar-title {
@@ -717,8 +942,40 @@ watch(scratchpadContent, (value) => {
   color: var(--text-primary);
 }
 
+.sidebar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-month {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.calendar-card {
+  flex: 0 0 auto;
+}
+
 .scratchpad-card {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.scratchpad-card :deep(.n-card__header) {
+  flex-shrink: 0;
+  padding-bottom: 10px;
+}
+
+.scratchpad-card :deep(.n-card__content) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
 }
 
 .scratchpad-modes {
@@ -726,14 +983,32 @@ watch(scratchpadContent, (value) => {
   gap: var(--space-2);
 }
 
+.scratchpad-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  height: 100%;
+}
+
 .scratchpad-edit,
 .scratchpad-preview {
-  min-height: 240px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: none;
+}
+
+.scratchpad-edit::-webkit-scrollbar,
+.scratchpad-preview::-webkit-scrollbar,
+.scratchpad-textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .scratchpad-textarea {
   width: 100%;
-  min-height: 240px;
+  height: 100%;
+  min-height: 100%;
   resize: none;
   border: none;
   outline: none;
@@ -741,6 +1016,8 @@ watch(scratchpadContent, (value) => {
   color: var(--text-primary);
   font-family: var(--font-editor);
   line-height: 1.7;
+  overflow: auto;
+  scrollbar-width: none;
 }
 
 .scratchpad-placeholder {
@@ -770,5 +1047,15 @@ watch(scratchpadContent, (value) => {
   background: rgba(0, 0, 0, 0.03);
   padding: var(--space-3);
   border-radius: var(--radius-md);
+}
+
+@media (max-width: 1320px) {
+  .home-page {
+    min-width: 1100px;
+  }
+
+  .cards-grid {
+    column-width: 240px;
+  }
 }
 </style>

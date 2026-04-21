@@ -1,4 +1,5 @@
 export type InboxDocumentType = 'note' | 'todo' | 'link' | 'image' | 'research'
+export type DocumentBucket = 'inbox' | 'collected' | 'deleted'
 
 export type InboxFrontmatter = Record<string, unknown>
 
@@ -30,6 +31,33 @@ function normalizeFrontmatter(frontmatter: InboxFrontmatter): InboxFrontmatter {
 
   if (!Array.isArray(nextFrontmatter.tags)) {
     nextFrontmatter.tags = []
+  }
+
+  return nextFrontmatter
+}
+
+export function syncFrontmatterBucket(frontmatter: InboxFrontmatter, bucket: DocumentBucket): InboxFrontmatter {
+  const nextFrontmatter: InboxFrontmatter = {
+    ...frontmatter,
+    bucket,
+  }
+
+  const currentStatus = typeof nextFrontmatter.status === 'string' ? nextFrontmatter.status : undefined
+
+  if (bucket === 'deleted') {
+    nextFrontmatter.status = 'deleted'
+    return nextFrontmatter
+  }
+
+  if (bucket === 'collected') {
+    if (!currentStatus || currentStatus === 'ready' || currentStatus === 'deleted') {
+      nextFrontmatter.status = 'archived'
+    }
+    return nextFrontmatter
+  }
+
+  if (!currentStatus || currentStatus === 'deleted' || currentStatus === 'archived') {
+    nextFrontmatter.status = 'ready'
   }
 
   return nextFrontmatter
@@ -93,8 +121,25 @@ export function getDocumentTags(frontmatter: InboxFrontmatter): string[] {
   return Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag): tag is string => typeof tag === 'string') : []
 }
 
-export function getDocumentBucket(frontmatter: InboxFrontmatter) {
-  return typeof frontmatter.bucket === 'string' ? frontmatter.bucket : 'inbox'
+export function getDocumentBucket(frontmatter: InboxFrontmatter): DocumentBucket {
+  return frontmatter.bucket === 'collected' || frontmatter.bucket === 'deleted' ? frontmatter.bucket : 'inbox'
+}
+
+export function getDocumentTitle(document: Pick<InboxDocument, 'slug' | 'frontmatter'>) {
+  return typeof document.frontmatter?.title === 'string' ? document.frontmatter.title : document.slug
+}
+
+export function getDocumentDate(frontmatter: InboxFrontmatter, key: 'created' | 'updated') {
+  return typeof frontmatter[key] === 'string' ? frontmatter[key] : ''
+}
+
+export function getBucketLabel(bucket: DocumentBucket) {
+  const labels: Record<DocumentBucket, string> = {
+    inbox: 'Inbox',
+    collected: 'Collected',
+    deleted: 'Deleted',
+  }
+  return labels[bucket]
 }
 
 export function toInboxDocument(params: {

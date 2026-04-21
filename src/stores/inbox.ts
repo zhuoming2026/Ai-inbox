@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { InboxDocument } from '../shared/inbox-document'
-import { getDocumentBucket, getDocumentTags, getPreviewText } from '../shared/inbox-document'
+import {
+  getDocumentBucket,
+  getDocumentTags,
+  getDocumentTitle,
+  getPreviewText,
+  type DocumentBucket,
+} from '../shared/inbox-document'
 
 export interface InboxCard {
   slug: string
@@ -10,7 +16,7 @@ export interface InboxCard {
   preview: string
   tags: string[]
   enrichStatus: string
-  bucket: string
+  bucket: DocumentBucket
   created: string
   raw?: string
 }
@@ -24,11 +30,10 @@ export const useInboxStore = defineStore('inbox', () => {
     try {
       const files = await window.electronAPI?.listInbox()
       cards.value = (files || [])
-        .filter((f: InboxDocument) => getDocumentBucket(f.frontmatter) !== 'deleted')
         .map((f: InboxDocument) => ({
           slug: f.slug,
           type: f.type,
-          title: typeof f.frontmatter?.title === 'string' ? f.frontmatter.title : f.slug,
+          title: getDocumentTitle(f),
           preview: getPreviewText(f.body).slice(0, 180),
           tags: getDocumentTags(f.frontmatter),
           enrichStatus: typeof f.frontmatter?.enrichStatus === 'string' ? f.frontmatter.enrichStatus : 'none',
@@ -59,15 +64,34 @@ export const useInboxStore = defineStore('inbox', () => {
     await loadCards()
   }
 
-  async function toggleCollected(slug: string, collected: boolean) {
-    await window.electronAPI?.setBucket(slug, collected ? 'collected' : 'inbox')
+  async function setCardBucket(slug: string, bucket: DocumentBucket) {
+    await window.electronAPI?.setBucket(slug, bucket)
     await loadCards()
+  }
+
+  async function toggleCollected(slug: string, collected: boolean) {
+    await setCardBucket(slug, collected ? 'collected' : 'inbox')
+  }
+
+  async function restoreCard(slug: string) {
+    await setCardBucket(slug, 'inbox')
   }
 
   async function deleteCard(slug: string) {
-    await window.electronAPI?.deleteFile(slug)
-    await loadCards()
+    await setCardBucket(slug, 'deleted')
   }
 
-  return { cards, loading, loadCards, readCard, updateCard, archiveCard, enrichCard, toggleCollected, deleteCard }
+  return {
+    cards,
+    loading,
+    loadCards,
+    readCard,
+    updateCard,
+    archiveCard,
+    enrichCard,
+    setCardBucket,
+    toggleCollected,
+    restoreCard,
+    deleteCard,
+  }
 })

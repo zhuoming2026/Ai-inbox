@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 import Store from 'electron-store'
 import chokidar from 'chokidar'
-import { buildFrontmatter, getDocumentBucket, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
+import { buildFrontmatter, parseFrontmatter, syncFrontmatterBucket, toInboxDocument } from '../src/shared/inbox-document'
 import { processInputPipeline } from '../src/shared/input-pipeline'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from '../src/shared/ai-enrichment'
 
@@ -185,11 +185,10 @@ function setDocumentBucket(slug: string, bucket: 'inbox' | 'collected' | 'delete
   fs.writeFileSync(
     filepath,
     buildFrontmatter(
-      {
+      syncFrontmatterBucket({
         ...frontmatter,
         updated: new Date().toISOString().split('T')[0],
-        bucket,
-      },
+      }, bucket),
       body
     ),
     'utf-8'

@@ -2,7 +2,7 @@
   <div class="month-calendar">
     <div class="calendar-toolbar">
       <button class="icon-btn" @click="goToPreviousMonth" aria-label="Previous month">‹</button>
-      <div class="calendar-month">{{ formattedMonth }}</div>
+      <div v-if="!hideMonthLabel" class="calendar-month">{{ formattedMonth }}</div>
       <button class="icon-btn" @click="goToNextMonth" aria-label="Next month">›</button>
       <div class="toolbar-spacer"></div>
       <button v-if="showTodayButton" class="text-btn today-btn" @click="goToToday">Today</button>
@@ -38,6 +38,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps<{
   selectedDate?: number
   markedDates?: string[]
+  hideMonthLabel?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -149,8 +150,8 @@ watch(
 .calendar-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .calendar-month {
@@ -186,6 +187,7 @@ watch(
   padding: 0 10px;
   height: 28px;
   flex-shrink: 0;
+  font-size: 12px;
 }
 
 .icon-btn:hover,
@@ -209,7 +211,7 @@ watch(
 }
 
 .calendar-weekdays {
-  margin-bottom: var(--space-2);
+  margin-bottom: 6px;
 }
 
 .weekday {
@@ -257,9 +259,5 @@ watch(
   height: 5px;
   border-radius: 50%;
   background: var(--color-primary);
-}
-
-.cell-number {
-  font-size: var(--text-base);
 }
 </style>
