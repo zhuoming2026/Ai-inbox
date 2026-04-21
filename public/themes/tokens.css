@@ -395,6 +395,22 @@
   /* 链接 */
   --link-color: var(--color-primary);
   --link-hover: var(--color-primary-hover);
+
+  /* Homepage UI */
+  --text-reading: #333639;
+  --surface-capture: rgba(255, 251, 242, 0.58);
+  --surface-sidebar-card: rgba(255, 255, 255, 0.8);
+  --surface-tool-button: rgba(255, 255, 255, 0.76);
+  --surface-tool-button-hover: rgba(255, 255, 255, 0.96);
+  --surface-primary-soft: rgba(250, 187, 24, 0.82);
+  --surface-primary-soft-hover: rgba(250, 187, 24, 0.72);
+  --text-primary-soft: #5a3b00;
+  --border-soft-strong: rgba(232, 230, 220, 0.92);
+  --border-tool-button: rgba(64, 72, 87, 0.1);
+  --border-tool-button-hover: rgba(64, 72, 87, 0.16);
+  --border-primary-soft: rgba(250, 187, 24, 0.24);
+  --shadow-soft-panel: 0 8px 22px rgba(40, 32, 16, 0.03);
+  --shadow-primary-soft-hover: 0 4px 14px rgba(250, 187, 24, 0.18);
 }
 
 [data-theme="claude"], .theme-claude {
@@ -416,6 +432,20 @@
   --divider: var(--border-default);
   --link-color: var(--color-primary);
   --link-hover: var(--color-primary-hover);
+  --text-reading: #3b3732;
+  --surface-capture: rgba(255, 249, 244, 0.74);
+  --surface-sidebar-card: rgba(255, 255, 255, 0.82);
+  --surface-tool-button: rgba(255, 255, 255, 0.78);
+  --surface-tool-button-hover: rgba(255, 255, 255, 0.96);
+  --surface-primary-soft: rgba(201, 100, 66, 0.2);
+  --surface-primary-soft-hover: rgba(201, 100, 66, 0.28);
+  --text-primary-soft: #7b462f;
+  --border-soft-strong: rgba(240, 238, 230, 0.96);
+  --border-tool-button: rgba(93, 80, 66, 0.14);
+  --border-tool-button-hover: rgba(93, 80, 66, 0.22);
+  --border-primary-soft: rgba(201, 100, 66, 0.2);
+  --shadow-soft-panel: 0 8px 22px rgba(194, 109, 71, 0.06);
+  --shadow-primary-soft-hover: 0 4px 14px rgba(201, 100, 66, 0.12);
 }
 
 [data-theme="dark"], .theme-dark {
@@ -437,4 +467,18 @@
   --divider: var(--border-default);
   --link-color: var(--color-primary);
   --link-hover: var(--color-primary-hover);
+  --text-reading: rgba(245, 244, 237, 0.86);
+  --surface-capture: rgba(45, 45, 45, 0.72);
+  --surface-sidebar-card: rgba(36, 36, 36, 0.82);
+  --surface-tool-button: rgba(45, 45, 45, 0.76);
+  --surface-tool-button-hover: rgba(56, 56, 56, 0.94);
+  --surface-primary-soft: rgba(232, 156, 106, 0.82);
+  --surface-primary-soft-hover: rgba(232, 156, 106, 0.72);
+  --text-primary-soft: #2f1d12;
+  --border-soft-strong: rgba(245, 244, 237, 0.08);
+  --border-tool-button: rgba(245, 244, 237, 0.12);
+  --border-tool-button-hover: rgba(245, 244, 237, 0.22);
+  --border-primary-soft: rgba(232, 156, 106, 0.26);
+  --shadow-soft-panel: 0 8px 22px rgba(0, 0, 0, 0.18);
+  --shadow-primary-soft-hover: 0 4px 14px rgba(232, 156, 106, 0.16);
 }

@@ -18,8 +18,8 @@
           </div>
           <PillButton
             :icon="SettingsOutline"
-            bg-color="rgba(255, 255, 255, 0.76)"
-            text-color="#333639"
+            bg-color="var(--surface-tool-button)"
+            text-color="var(--text-reading)"
             icon-only
             class="toolbar-tool-button"
             @click="$router.push('/settings')"
@@ -38,15 +38,15 @@
             />
             <div class="input-actions">
               <div class="attach-btns">
-                <PillButton :icon="Image" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Link" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Document" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Image" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Link" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Document" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
               </div>
               <PillButton
                 text="Inbox"
                 :icon="ArrowForwardOutline"
-                bg-color="rgba(250, 187, 24, 0.82)"
-                text-color="#5a3b00"
+                bg-color="var(--surface-primary-soft)"
+                text-color="var(--text-primary-soft)"
                 class="submit-button"
                 @click="submitInput"
               />
@@ -556,24 +556,13 @@ watch(scratchpadContent, (value) => {
 
 <style scoped>
 .home-page {
-  --ui-space-1: 4px;
-  --ui-space-2: 8px;
-  --ui-space-3: 12px;
-  --ui-space-4: 16px;
-  --ui-space-5: 24px;
-  --ui-space-6: 32px;
-  --ui-text-xs: 12px;
-  --ui-text-sm: 14px;
-  --ui-text-md: 16px;
-  --ui-text-lg: 20px;
-  --ui-text-xl: 28px;
   width: 100%;
   min-width: 1180px;
   height: 100vh;
-  padding: 16px;
+  padding: var(--space-4);
   background: var(--bg-primary);
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   overflow: hidden;
 }
 
@@ -590,14 +579,14 @@ watch(scratchpadContent, (value) => {
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--ui-space-3);
+  gap: var(--space-3);
   height: var(--nav-height);
-  margin-bottom: var(--ui-space-4);
+  margin-bottom: var(--space-4);
 }
 
 .logo {
   font-family: var(--font-display);
-  font-size: var(--ui-text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.15;
   color: var(--text-primary);
@@ -621,19 +610,19 @@ watch(scratchpadContent, (value) => {
 }
 
 .search-input :deep(.n-input__input-el) {
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
 }
 
 .input-section {
-  margin-bottom: var(--ui-space-4);
+  margin-bottom: var(--space-4);
 }
 
 .input-card {
   width: 100%;
-  border-radius: 24px;
-  box-shadow: 0 8px 22px rgba(40, 32, 16, 0.03);
-  background: rgba(255, 251, 242, 0.58);
-  border: 1px solid rgba(232, 230, 220, 0.92);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft-panel);
+  background: var(--surface-capture);
+  border: 1px solid var(--border-soft-strong);
 }
 
 .input-card :deep(.n-card__content) {
@@ -649,7 +638,7 @@ watch(scratchpadContent, (value) => {
   min-height: 72px;
   resize: none;
   font-family: var(--font-body);
-  font-size: var(--ui-text-md);
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--text-primary);
 }
@@ -658,14 +647,14 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: var(--ui-space-3);
+  margin-top: var(--space-3);
 }
 
 .input-actions :deep(.pill-btn) {
   height: 32px;
   min-height: 32px;
   border-radius: 999px;
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.06);
 }
@@ -677,28 +666,28 @@ watch(scratchpadContent, (value) => {
 }
 
 .toolbar-tool-button :deep(.pill-btn) {
-  box-shadow: 0 0 0 1px rgba(64, 72, 87, 0.1);
+  box-shadow: 0 0 0 1px var(--border-tool-button);
   backdrop-filter: blur(8px);
 }
 
 .toolbar-tool-button :deep(.pill-btn:hover) {
-  background: rgba(255, 255, 255, 0.96) !important;
-  box-shadow: 0 0 0 1px rgba(64, 72, 87, 0.16);
+  background: var(--surface-tool-button-hover) !important;
+  box-shadow: 0 0 0 1px var(--border-tool-button-hover);
 }
 
 .submit-button :deep(.pill-btn) {
   padding: 0 12px !important;
-  box-shadow: 0 0 0 1px rgba(250, 187, 24, 0.24);
+  box-shadow: 0 0 0 1px var(--border-primary-soft);
 }
 
 .submit-button :deep(.pill-btn:hover) {
-  background: rgba(250, 187, 24, 0.72) !important;
-  box-shadow: 0 4px 14px rgba(250, 187, 24, 0.18);
+  background: var(--surface-primary-soft-hover) !important;
+  box-shadow: var(--shadow-primary-soft-hover);
 }
 
 .attach-btns {
   display: flex;
-  gap: var(--ui-space-2);
+  gap: var(--space-2);
 }
 
 .article-list {
@@ -713,7 +702,7 @@ watch(scratchpadContent, (value) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--ui-space-3);
+  gap: var(--space-3);
   margin-bottom: 10px;
   position: sticky;
   top: 0;
@@ -724,7 +713,7 @@ watch(scratchpadContent, (value) => {
 
 .article-filter-state {
   display: flex;
-  gap: var(--ui-space-2);
+  gap: var(--space-2);
   min-width: 0;
   flex-wrap: wrap;
 }
@@ -747,7 +736,7 @@ watch(scratchpadContent, (value) => {
   padding: 0 12px;
   height: 32px;
   font-family: var(--font-body);
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
@@ -778,13 +767,13 @@ watch(scratchpadContent, (value) => {
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-2);
+  gap: var(--space-2);
   max-width: 100%;
   padding: 8px 12px;
   border-radius: 999px;
   background: rgba(250, 187, 24, 0.12);
   color: var(--text-primary);
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
 }
 
 .filter-chip.subtle {
@@ -794,7 +783,7 @@ watch(scratchpadContent, (value) => {
 
 .filter-chip-label {
   color: var(--text-muted);
-  font-size: var(--ui-text-xs);
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -802,7 +791,7 @@ watch(scratchpadContent, (value) => {
 .filter-chip-label.plain {
   text-transform: none;
   letter-spacing: 0;
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -811,7 +800,7 @@ watch(scratchpadContent, (value) => {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 180px;
-  color: #333639;
+  color: var(--text-reading);
   font-weight: 500;
 }
 
@@ -839,7 +828,7 @@ watch(scratchpadContent, (value) => {
 
 .section-title {
   font-family: var(--font-body);
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: 0.08em;
@@ -904,7 +893,7 @@ watch(scratchpadContent, (value) => {
 .card-title {
   margin: 0 0 8px;
   font-family: var(--font-body);
-  font-size: var(--ui-text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.28;
   color: var(--text-primary);
@@ -928,8 +917,8 @@ watch(scratchpadContent, (value) => {
 
 .card-preview {
   margin: 0;
-  color: #333639;
-  font-size: var(--ui-text-md);
+  color: var(--text-reading);
+  font-size: var(--text-base);
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -941,8 +930,8 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-2);
-  margin-top: var(--ui-space-3);
+  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .enrich-tag {
@@ -954,7 +943,7 @@ watch(scratchpadContent, (value) => {
   min-height: 30px;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -967,7 +956,7 @@ watch(scratchpadContent, (value) => {
 
 .card-date {
   color: var(--text-muted);
-  font-size: var(--ui-text-xs);
+  font-size: var(--text-xs);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -982,8 +971,8 @@ watch(scratchpadContent, (value) => {
   height: 32px;
   border-radius: 50%;
   border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.72);
-  color: #333639;
+  background: var(--surface-tool-button);
+  color: var(--text-reading);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1020,7 +1009,7 @@ watch(scratchpadContent, (value) => {
   margin: 0;
   max-width: 320px;
   color: var(--text-muted);
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   line-height: 1.6;
   text-align: center;
 }
@@ -1031,30 +1020,30 @@ watch(scratchpadContent, (value) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   min-height: 0;
 }
 
 .sidebar-card {
-  border-radius: 32px;
-  border: 1px solid rgba(232, 230, 220, 0.92);
-  box-shadow: 0 8px 22px rgba(40, 32, 16, 0.03);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border-soft-strong);
+  box-shadow: var(--shadow-soft-panel);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface-sidebar-card);
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-3);
+  gap: var(--space-3);
   min-height: 32px;
 }
 
 .sidebar-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--ui-text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.15;
   color: var(--text-primary);
@@ -1067,7 +1056,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .sidebar-month {
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-secondary);
 }
@@ -1099,11 +1088,11 @@ watch(scratchpadContent, (value) => {
 
 .scratchpad-modes {
   display: flex;
-  gap: var(--ui-space-2);
+  gap: var(--space-2);
 }
 
 .scratchpad-modes :deep(.n-tag) {
-  font-size: var(--ui-text-sm);
+  font-size: var(--text-sm);
   font-weight: 500;
   padding: 6px 10px;
 }
@@ -1140,7 +1129,7 @@ watch(scratchpadContent, (value) => {
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-editor);
-  font-size: var(--ui-text-md);
+  font-size: var(--text-base);
   line-height: 1.65;
   overflow: auto;
   scrollbar-width: none;
@@ -1154,7 +1143,7 @@ watch(scratchpadContent, (value) => {
 .scratchpad-rendered {
   color: var(--text-primary);
   font-family: var(--font-editor);
-  font-size: var(--ui-text-md);
+  font-size: var(--text-base);
   line-height: 1.65;
 }
 
