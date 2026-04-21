@@ -18,8 +18,10 @@
           </div>
           <PillButton
             :icon="SettingsOutline"
-            bg-color="var(--color-primary)"
+            bg-color="rgba(255, 255, 255, 0.76)"
+            text-color="#333639"
             icon-only
+            class="toolbar-tool-button"
             @click="$router.push('/settings')"
           />
         </nav>
@@ -36,14 +38,16 @@
             />
             <div class="input-actions">
               <div class="attach-btns">
-                <PillButton :icon="Image" bg-color="var(--color-primary)" icon-only />
-                <PillButton :icon="Link" bg-color="var(--color-primary)" icon-only />
-                <PillButton :icon="Document" bg-color="var(--color-primary)" icon-only />
+                <PillButton :icon="Image" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Link" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Document" bg-color="rgba(255, 255, 255, 0.76)" text-color="#333639" icon-only class="toolbar-tool-button" />
               </div>
               <PillButton
                 text="Inbox"
                 :icon="ArrowForwardOutline"
-                bg-color="var(--color-primary)"
+                bg-color="rgba(250, 187, 24, 0.82)"
+                text-color="#5a3b00"
+                class="submit-button"
                 @click="submitInput"
               />
             </div>
@@ -59,7 +63,7 @@
                 <button type="button" class="clear-filter-btn" @click="clearDateSelection">清除</button>
               </div>
               <div v-if="searchQuery.trim()" class="filter-chip subtle">
-                <span class="filter-chip-label">搜索</span>
+                <span class="filter-chip-label plain">搜索</span>
                 <span class="filter-chip-value">{{ searchQuery.trim() }}</span>
                 <button type="button" class="clear-filter-btn" @click="clearSearch">清除</button>
               </div>
@@ -77,13 +81,13 @@
             </div>
           </div>
 
-          <template v-for="(group, dateLabel) in groupedCards" :key="dateLabel">
+          <template v-for="group in groupedCards" :key="group.label">
             <div class="group-header">
-              <h2 class="section-title">{{ dateLabel }}</h2>
+              <h2 class="section-title">{{ group.label }}</h2>
             </div>
             <div class="cards-grid">
               <div
-                v-for="card in group"
+                v-for="card in group.cards"
                 :key="card.slug"
                 class="card"
                 :class="{
@@ -375,16 +379,29 @@ const emptyStateHint = computed(() => {
 })
 
 const groupedCards = computed(() => {
-  const groups: Record<string, typeof filteredCards.value> = {}
-  for (const card of filteredCards.value) {
-    const dateLabel =
-      card.created === todayStr ? '今天' :
-      card.created === yesterdayStr ? '昨天' :
-      formatDateShort(card.created)
-    if (!groups[dateLabel]) groups[dateLabel] = []
-    groups[dateLabel].push(card)
+  if (dateFilterActive.value && selectedDateTs.value) {
+    return filteredCards.value.length ? [{
+      label: selectedDateLabel.value || formatDateShort(new Date(selectedDateTs.value).toISOString().split('T')[0]),
+      cards: filteredCards.value,
+    }] : []
   }
-  return groups
+
+  const groups = [
+    {
+      label: 'Today',
+      cards: filteredCards.value.filter((card) => card.created === todayStr),
+    },
+    {
+      label: 'Yesterday',
+      cards: filteredCards.value.filter((card) => card.created === yesterdayStr),
+    },
+    {
+      label: 'Earlier',
+      cards: filteredCards.value.filter((card) => card.created !== todayStr && card.created !== yesterdayStr),
+    },
+  ]
+
+  return groups.filter((group) => group.cards.length > 0)
 })
 
 function onDateSelect(ts: number) {
@@ -550,7 +567,6 @@ watch(scratchpadContent, (value) => {
   --ui-text-md: 16px;
   --ui-text-lg: 20px;
   --ui-text-xl: 28px;
-  --ui-text-hero: 38px;
   width: 100%;
   min-width: 1180px;
   height: 100vh;
@@ -581,8 +597,9 @@ watch(scratchpadContent, (value) => {
 
 .logo {
   font-family: var(--font-display);
-  font-size: var(--ui-text-xl);
-  line-height: 1.05;
+  font-size: var(--ui-text-lg);
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
@@ -613,14 +630,14 @@ watch(scratchpadContent, (value) => {
 
 .input-card {
   width: 100%;
-  border-radius: 28px;
-  box-shadow: 0 10px 28px rgba(40, 32, 16, 0.04);
-  background: rgba(255, 251, 242, 0.74);
+  border-radius: 24px;
+  box-shadow: 0 8px 22px rgba(40, 32, 16, 0.03);
+  background: rgba(255, 251, 242, 0.58);
   border: 1px solid rgba(232, 230, 220, 0.92);
 }
 
 .input-card :deep(.n-card__content) {
-  padding: 14px 16px 12px;
+  padding: 12px 14px 10px;
 }
 
 .input-field :deep(.n-input-wrapper) {
@@ -629,10 +646,10 @@ watch(scratchpadContent, (value) => {
 }
 
 .input-field :deep(.n-input__textarea-el) {
-  min-height: 88px;
+  min-height: 72px;
   resize: none;
   font-family: var(--font-body);
-  font-size: 17px;
+  font-size: var(--ui-text-md);
   line-height: 1.55;
   color: var(--text-primary);
 }
@@ -642,6 +659,41 @@ watch(scratchpadContent, (value) => {
   align-items: center;
   justify-content: space-between;
   margin-top: var(--ui-space-3);
+}
+
+.input-actions :deep(.pill-btn) {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  font-size: var(--ui-text-sm);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.06);
+}
+
+.attach-btns :deep(.pill-btn) {
+  width: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+}
+
+.toolbar-tool-button :deep(.pill-btn) {
+  box-shadow: 0 0 0 1px rgba(64, 72, 87, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.toolbar-tool-button :deep(.pill-btn:hover) {
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 0 0 1px rgba(64, 72, 87, 0.16);
+}
+
+.submit-button :deep(.pill-btn) {
+  padding: 0 12px !important;
+  box-shadow: 0 0 0 1px rgba(250, 187, 24, 0.24);
+}
+
+.submit-button :deep(.pill-btn:hover) {
+  background: rgba(250, 187, 24, 0.72) !important;
+  box-shadow: 0 4px 14px rgba(250, 187, 24, 0.18);
 }
 
 .attach-btns {
@@ -662,7 +714,7 @@ watch(scratchpadContent, (value) => {
   justify-content: space-between;
   align-items: center;
   gap: var(--ui-space-3);
-  margin-bottom: var(--ui-space-3);
+  margin-bottom: 10px;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -736,7 +788,8 @@ watch(scratchpadContent, (value) => {
 }
 
 .filter-chip.subtle {
-  background: rgba(64, 72, 87, 0.06);
+  background: rgba(64, 72, 87, 0.05);
+  border: 1px solid rgba(64, 72, 87, 0.08);
 }
 
 .filter-chip-label {
@@ -746,11 +799,20 @@ watch(scratchpadContent, (value) => {
   letter-spacing: 0.04em;
 }
 
+.filter-chip-label.plain {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--ui-text-sm);
+  font-weight: 500;
+}
+
 .filter-chip-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 180px;
+  color: #333639;
+  font-weight: 500;
 }
 
 .clear-filter-btn {
@@ -759,16 +821,31 @@ watch(scratchpadContent, (value) => {
   color: var(--color-primary);
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  padding: 0 0 0 10px;
+  margin-left: 2px;
+  position: relative;
+}
+
+.clear-filter-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 14px;
+  background: rgba(64, 72, 87, 0.12);
+  transform: translateY(-50%);
 }
 
 .section-title {
   font-family: var(--font-body);
-  font-size: var(--ui-text-xl);
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--text-primary);
-  margin: 16px 0 10px;
+  font-size: var(--ui-text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 12px 0 8px;
 }
 
 .cards-grid {
@@ -780,9 +857,9 @@ watch(scratchpadContent, (value) => {
   display: inline-block;
   width: 100%;
   position: relative;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   background: var(--bg-card);
-  border-radius: 26px;
+  border-radius: 24px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -821,15 +898,15 @@ watch(scratchpadContent, (value) => {
 }
 
 .card-body {
-  padding: 16px 16px 14px;
+  padding: 16px 16px 13px;
 }
 
 .card-title {
   margin: 0 0 8px;
   font-family: var(--font-body);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.22;
+  font-size: var(--ui-text-lg);
+  font-weight: 600;
+  line-height: 1.28;
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -851,9 +928,9 @@ watch(scratchpadContent, (value) => {
 
 .card-preview {
   margin: 0;
-  color: var(--text-secondary);
+  color: #333639;
   font-size: var(--ui-text-md);
-  line-height: 1.62;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -873,6 +950,14 @@ watch(scratchpadContent, (value) => {
   flex-shrink: 0;
 }
 
+.card-footer :deep(.n-tag) {
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--ui-text-sm);
+  font-weight: 500;
+}
+
 .card-actions-wrap {
   display: flex;
   align-items: center;
@@ -883,6 +968,7 @@ watch(scratchpadContent, (value) => {
 .card-date {
   color: var(--text-muted);
   font-size: var(--ui-text-xs);
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -892,12 +978,12 @@ watch(scratchpadContent, (value) => {
 }
 
 .icon-action {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.72);
+  color: #333639;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -952,9 +1038,9 @@ watch(scratchpadContent, (value) => {
 .sidebar-card {
   border-radius: 32px;
   border: 1px solid rgba(232, 230, 220, 0.92);
-  box-shadow: 0 10px 28px rgba(40, 32, 16, 0.04);
+  box-shadow: 0 8px 22px rgba(40, 32, 16, 0.03);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.84);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .sidebar-header {
@@ -969,6 +1055,7 @@ watch(scratchpadContent, (value) => {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--ui-text-lg);
+  font-weight: 600;
   line-height: 1.15;
   color: var(--text-primary);
 }
@@ -981,12 +1068,13 @@ watch(scratchpadContent, (value) => {
 
 .sidebar-month {
   font-size: var(--ui-text-sm);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .calendar-card {
   flex: 0 0 auto;
+  opacity: 0.94;
 }
 
 .scratchpad-card {
@@ -1016,6 +1104,7 @@ watch(scratchpadContent, (value) => {
 
 .scratchpad-modes :deep(.n-tag) {
   font-size: var(--ui-text-sm);
+  font-weight: 500;
   padding: 6px 10px;
 }
 
