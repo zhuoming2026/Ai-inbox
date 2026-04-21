@@ -131,7 +131,7 @@ const message = useMessage()
 const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#fabb18',
-    fontFamily: 'Source Sans 3, Nunito Sans, system-ui, sans-serif',
+    fontFamily: 'PingFang SC, SF Pro Text, Helvetica Neue, Noto Sans SC, system-ui, -apple-system, sans-serif',
   },
 }
 

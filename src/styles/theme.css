@@ -53,11 +53,11 @@
   --shadow-button: 0px 0px 0px 1px rgba(26, 26, 26, 0.1);
 
   /* ==================== Font Families ==================== */
-  --font-display: 'Acme', 'Georgia', serif;
-  --font-body: 'Source Sans 3', 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
-  --font-editor: 'Newsreader', 'Georgia', serif;
-  --font-heading-alt: 'Newsreader', 'Georgia', serif;
+  --font-editor: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-heading-alt: 'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
 
   /* ==================== Font Sizes (Based on Claude Design) ==================== */
   --text-xs: 0.75rem;

@@ -252,7 +252,7 @@ const themeOverrides: GlobalThemeOverrides = {
     primaryColorHover: '#f9c84a',
     primaryColorPressed: '#d9a015',
     borderRadius: '12px',
-    fontFamily: 'Source Sans 3, Nunito Sans, system-ui, sans-serif',
+    fontFamily: 'PingFang SC, SF Pro Text, Helvetica Neue, Noto Sans SC, system-ui, -apple-system, sans-serif',
   },
   Card: {
     color: '#ffffff',
@@ -539,13 +539,25 @@ watch(scratchpadContent, (value) => {
 
 <style scoped>
 .home-page {
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+  --ui-text-xs: 12px;
+  --ui-text-sm: 14px;
+  --ui-text-md: 16px;
+  --ui-text-lg: 20px;
+  --ui-text-xl: 28px;
+  --ui-text-hero: 38px;
   width: 100%;
   min-width: 1180px;
   height: 100vh;
-  padding: 18px;
+  padding: 16px;
   background: var(--bg-primary);
   display: flex;
-  gap: 18px;
+  gap: 16px;
   overflow: hidden;
 }
 
@@ -554,7 +566,7 @@ watch(scratchpadContent, (value) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 4px 6px 6px;
+  padding: 6px 8px 8px;
   min-width: 0;
   overflow: hidden;
 }
@@ -562,14 +574,15 @@ watch(scratchpadContent, (value) => {
 .nav {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--ui-space-3);
   height: var(--nav-height);
-  margin-bottom: 18px;
+  margin-bottom: var(--ui-space-4);
 }
 
 .logo {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: var(--ui-text-xl);
+  line-height: 1.05;
   color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
@@ -585,8 +598,17 @@ watch(scratchpadContent, (value) => {
   height: var(--input-height);
 }
 
+.search-input :deep(.n-input-wrapper) {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.search-input :deep(.n-input__input-el) {
+  font-size: var(--ui-text-sm);
+}
+
 .input-section {
-  margin-bottom: 18px;
+  margin-bottom: var(--ui-space-4);
 }
 
 .input-card {
@@ -598,7 +620,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .input-card :deep(.n-card__content) {
-  padding: 16px 18px 14px;
+  padding: 14px 16px 12px;
 }
 
 .input-field :deep(.n-input-wrapper) {
@@ -610,7 +632,8 @@ watch(scratchpadContent, (value) => {
   min-height: 88px;
   resize: none;
   font-family: var(--font-body);
-  font-size: var(--text-xl);
+  font-size: 17px;
+  line-height: 1.55;
   color: var(--text-primary);
 }
 
@@ -618,12 +641,12 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
+  margin-top: var(--ui-space-3);
 }
 
 .attach-btns {
   display: flex;
-  gap: 8px;
+  gap: var(--ui-space-2);
 }
 
 .article-list {
@@ -638,18 +661,18 @@ watch(scratchpadContent, (value) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-3);
   position: sticky;
   top: 0;
   z-index: 5;
-  padding: 4px 0 10px;
+  padding: 2px 0 10px;
   background: linear-gradient(180deg, var(--bg-primary) 78%, rgba(245, 243, 237, 0));
 }
 
 .article-filter-state {
   display: flex;
-  gap: 8px;
+  gap: var(--ui-space-2);
   min-width: 0;
   flex-wrap: wrap;
 }
@@ -672,7 +695,7 @@ watch(scratchpadContent, (value) => {
   padding: 0 12px;
   height: 32px;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: var(--ui-text-sm);
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
@@ -703,13 +726,13 @@ watch(scratchpadContent, (value) => {
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ui-space-2);
   max-width: 100%;
   padding: 8px 12px;
   border-radius: 999px;
   background: rgba(250, 187, 24, 0.12);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: var(--ui-text-sm);
 }
 
 .filter-chip.subtle {
@@ -718,7 +741,7 @@ watch(scratchpadContent, (value) => {
 
 .filter-chip-label {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--ui-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -740,22 +763,24 @@ watch(scratchpadContent, (value) => {
 }
 
 .section-title {
-  font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-family: var(--font-body);
+  font-size: var(--ui-text-xl);
+  font-weight: 700;
+  line-height: 1.1;
   color: var(--text-primary);
-  margin: 18px 0 12px;
+  margin: 16px 0 10px;
 }
 
 .cards-grid {
   column-width: 280px;
-  column-gap: 18px;
+  column-gap: 16px;
 }
 
 .card {
   display: inline-block;
   width: 100%;
   position: relative;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   background: var(--bg-card);
   border-radius: 26px;
   border: 1px solid var(--border-color);
@@ -796,13 +821,15 @@ watch(scratchpadContent, (value) => {
 }
 
 .card-body {
-  padding: 18px 18px 16px;
+  padding: 16px 16px 14px;
 }
 
 .card-title {
-  margin: 0 0 10px;
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.22;
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -813,7 +840,7 @@ watch(scratchpadContent, (value) => {
 .card-tags {
   display: flex;
   gap: var(--space-2);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   overflow: hidden;
   flex-wrap: wrap;
 }
@@ -825,7 +852,8 @@ watch(scratchpadContent, (value) => {
 .card-preview {
   margin: 0;
   color: var(--text-secondary);
-  line-height: 1.6;
+  font-size: var(--ui-text-md);
+  line-height: 1.62;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -836,8 +864,8 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 14px;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-3);
 }
 
 .enrich-tag {
@@ -854,7 +882,7 @@ watch(scratchpadContent, (value) => {
 
 .card-date {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--ui-text-xs);
   white-space: nowrap;
 }
 
@@ -896,7 +924,7 @@ watch(scratchpadContent, (value) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 320px;
+  min-height: 300px;
   border: 1px dashed rgba(93, 89, 82, 0.14);
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.42);
@@ -906,6 +934,7 @@ watch(scratchpadContent, (value) => {
   margin: 0;
   max-width: 320px;
   color: var(--text-muted);
+  font-size: var(--ui-text-sm);
   line-height: 1.6;
   text-align: center;
 }
@@ -916,7 +945,7 @@ watch(scratchpadContent, (value) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-height: 0;
 }
 
@@ -932,13 +961,15 @@ watch(scratchpadContent, (value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--ui-space-3);
+  min-height: 32px;
 }
 
 .sidebar-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: var(--ui-text-lg);
+  line-height: 1.15;
   color: var(--text-primary);
 }
 
@@ -949,7 +980,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .sidebar-month {
-  font-size: 14px;
+  font-size: var(--ui-text-sm);
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -967,7 +998,7 @@ watch(scratchpadContent, (value) => {
 
 .scratchpad-card :deep(.n-card__header) {
   flex-shrink: 0;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 
 .scratchpad-card :deep(.n-card__content) {
@@ -980,7 +1011,12 @@ watch(scratchpadContent, (value) => {
 
 .scratchpad-modes {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--ui-space-2);
+}
+
+.scratchpad-modes :deep(.n-tag) {
+  font-size: var(--ui-text-sm);
+  padding: 6px 10px;
 }
 
 .scratchpad-body {
@@ -1015,7 +1051,8 @@ watch(scratchpadContent, (value) => {
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-editor);
-  line-height: 1.7;
+  font-size: var(--ui-text-md);
+  line-height: 1.65;
   overflow: auto;
   scrollbar-width: none;
 }
@@ -1028,14 +1065,16 @@ watch(scratchpadContent, (value) => {
 .scratchpad-rendered {
   color: var(--text-primary);
   font-family: var(--font-editor);
-  line-height: 1.7;
+  font-size: var(--ui-text-md);
+  line-height: 1.65;
 }
 
 .scratchpad-rendered :deep(h1),
 .scratchpad-rendered :deep(h2),
 .scratchpad-rendered :deep(h3) {
   margin-top: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-weight: 700;
 }
 
 .scratchpad-rendered :deep(p) {

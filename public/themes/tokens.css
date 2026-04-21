@@ -42,8 +42,8 @@
   --shadow-lg: 0px 16px 31px rgba(0, 0, 0, 0.01);
 
   /* 字体 */
-  --font-display: 'Acme', sans-serif;
-  --font-body: 'Newsreader', serif;
+  --font-display: 'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', monospace;
 
   /* 字号 */
@@ -121,8 +121,8 @@
   --shadow-lg: 0px 16px 40px rgba(194, 109, 71, 0.06);
 
   /* 字体 */
-  --font-display: 'Acme', sans-serif;
-  --font-body: 'Newsreader', serif;
+  --font-display: 'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', monospace;
 
   /* 字号 */
@@ -319,8 +319,8 @@
   --shadow-lg: 0px 16px 40px rgba(0, 0, 0, 0.4);
 
   /* 字体 */
-  --font-display: 'Acme', sans-serif;
-  --font-body: 'Newsreader', serif;
+  --font-display: 'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', monospace;
 
   /* 字号 */
