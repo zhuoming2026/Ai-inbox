@@ -7,6 +7,7 @@ import chokidar from 'chokidar'
 import { buildFrontmatter, parseFrontmatter, syncFrontmatterBucket, toInboxDocument } from '../src/shared/inbox-document'
 import { processInputPipeline } from '../src/shared/input-pipeline'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from '../src/shared/ai-enrichment'
+import { defaultThemeConfigs } from '../src/styles/theme-presets'
 
 let win: BrowserWindow | null = null
 
@@ -23,7 +24,8 @@ const store = new Store({
     aiConnectionVerified: false,
     themeMode: 'system',
     lightTheme: 'light',
-    darkTheme: 'dark'
+    darkTheme: 'dark',
+    customThemes: defaultThemeConfigs,
   }
 })
 

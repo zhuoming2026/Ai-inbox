@@ -1,11 +1,10 @@
 <template>
   <div class="settings-page">
     <header class="header">
-      <button class="back-btn" @click="$router.back()">← 返回</button>
-      <div class="header-copy">
-        <h1 class="title">设置</h1>
-        <p class="subtitle">把应用配置拆成清晰的几个工作区，后面继续扩展也不会乱。</p>
-      </div>
+      <button class="back-btn" type="button" aria-label="返回" @click="$router.back()">
+        <n-icon><ChevronBackOutline /></n-icon>
+      </button>
+      <h1 class="title">设置</h1>
       <button class="save-btn" @click="handleSaveClick">保存更改</button>
     </header>
 
@@ -20,7 +19,6 @@
           @click="activeSection = section.key"
         >
           <span class="sidebar-label">{{ section.label }}</span>
-          <span class="sidebar-hint">{{ section.hint }}</span>
         </button>
       </aside>
 
@@ -28,7 +26,6 @@
         <section v-if="activeSection === 'general'" class="panel">
           <div class="panel-header">
             <h2 class="panel-title">常规</h2>
-            <p class="panel-description">先放应用最基础的行为和路径设置，避免它们混进 AI 或主题里。</p>
           </div>
 
           <div class="setting-group">
@@ -49,57 +46,89 @@
         <section v-else-if="activeSection === 'appearance'" class="panel">
           <div class="panel-header">
             <h2 class="panel-title">外观</h2>
-            <p class="panel-description">把主题内容和切换逻辑拆开，后面做主题系统时会更稳。</p>
           </div>
 
           <div class="setting-group">
-            <h3 class="group-title">切换逻辑</h3>
-            <div class="segmented-row">
-              <button
-                v-for="mode in themeModes"
-                :key="mode.value"
-                type="button"
-                class="segment-btn"
-                :class="{ active: settings.themeMode === mode.value }"
-                @click="settings.themeMode = mode.value"
-              >
-                {{ mode.label }}
-              </button>
+            <div class="theme-routing-card">
+              <div class="theme-routing-header">
+                <h3 class="appearance-config-title">主题</h3>
+                <div class="segmented-row">
+                  <button
+                    v-for="mode in themeModes"
+                    :key="mode.value"
+                    type="button"
+                    class="segment-btn"
+                    :class="{ active: settings.themeMode === mode.value }"
+                    @click="updateAppearance({ themeMode: mode.value })"
+                  >
+                    {{ mode.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="scene-list">
+                <div class="scene-row">
+                  <span class="scene-label">浅色场景</span>
+                  <select class="form-input scene-select" :value="settings.lightTheme" @change="updateAppearance({ lightTheme: (($event.target as HTMLSelectElement).value as ThemePresetId) })">
+                    <option v-for="preset in editablePresets" :key="`light-${preset.id}`" :value="preset.id">{{ preset.label }}</option>
+                  </select>
+                </div>
+                <div class="scene-row">
+                  <span class="scene-label">深色场景</span>
+                  <select class="form-input scene-select" :value="settings.darkTheme" @change="updateAppearance({ darkTheme: (($event.target as HTMLSelectElement).value as ThemePresetId) })">
+                    <option v-for="preset in editablePresets" :key="`dark-${preset.id}`" :value="preset.id">{{ preset.label }}</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <p class="field-hint">当前生效：{{ activeThemeSummary }}</p>
           </div>
 
-          <div class="setting-group">
-            <h3 class="group-title">浅色主题</h3>
-            <div class="theme-grid">
-              <button
-                v-for="option in lightThemeOptions"
-                :key="option.value"
-                type="button"
-                class="theme-card"
-                :class="{ active: settings.lightTheme === option.value }"
-                @click="settings.lightTheme = option.value"
-              >
-                <span class="theme-card-name">{{ option.label }}</span>
-                <span class="theme-card-hint">{{ option.hint }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <h3 class="group-title">深色主题</h3>
-            <div class="theme-grid compact">
-              <button
-                v-for="option in darkThemeOptions"
-                :key="option.value"
-                type="button"
-                class="theme-card"
-                :class="{ active: settings.darkTheme === option.value }"
-                @click="settings.darkTheme = option.value"
-              >
-                <span class="theme-card-name">{{ option.label }}</span>
-                <span class="theme-card-hint">{{ option.hint }}</span>
-              </button>
+          <div class="appearance-config-card">
+            <div class="appearance-list">
+              <div class="appearance-row appearance-row-actions">
+                <span class="appearance-label">预设主题</span>
+                <div class="appearance-config-actions appearance-input">
+                  <select class="form-input preset-header-select" v-model="selectedPreset">
+                    <option v-for="preset in editablePresets" :key="`header-${preset.id}`" :value="preset.id">{{ preset.label }}</option>
+                  </select>
+                  <button class="btn-copy" type="button" @click="triggerAppearanceImport">导入</button>
+                  <button class="btn-copy" type="button" @click="copyAppearanceTheme">导出</button>
+                  <button class="btn-copy" type="button" @click="resetAppearancePreset">重置</button>
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">代码主题</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.codeThemeId" @change="persistAppearanceSettings(false)" />
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">强调色</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.accent" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.accent" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.surface" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.surface" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">前景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.ink" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.ink" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">界面字体</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)" />
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">代码字体</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)" />
+              </div>
             </div>
           </div>
         </section>
@@ -107,7 +136,6 @@
         <section v-else-if="activeSection === 'ai'" class="panel">
           <div class="panel-header">
             <h2 class="panel-title">AI</h2>
-            <p class="panel-description">这块只管理模型连接和 Enrich 行为，不再混进别的配置。</p>
           </div>
 
           <div class="setting-group">
@@ -162,7 +190,6 @@
         <section v-else class="panel">
           <div class="panel-header">
             <h2 class="panel-title">MCP</h2>
-            <p class="panel-description">集中管理对外接口和给其他客户端的接入配置。</p>
           </div>
 
           <div class="setting-group">
@@ -198,17 +225,39 @@
         </section>
       </main>
     </div>
+
+    <div v-if="showAppearanceImport" class="modal-mask" @click.self="closeAppearanceImport">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">导入主题</h3>
+          <button class="modal-close" type="button" @click="closeAppearanceImport">×</button>
+        </div>
+        <textarea
+          v-model="appearanceImportText"
+          class="modal-textarea"
+          placeholder='codex-theme-v1:{"codeThemeId":"absolutely","theme":{"accent":"#cc7d5e"}}'
+          rows="3"
+        ></textarea>
+        <div class="modal-actions">
+          <button class="btn-secondary" type="button" @click="closeAppearanceImport">取消</button>
+          <button class="save-btn" type="button" @click="applyAppearanceImport">导入主题</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useMessage } from 'naive-ui'
+import { NIcon, useMessage } from 'naive-ui'
+import { ChevronBackOutline } from '@vicons/ionicons5'
+import { useTheme } from '../composables/useTheme'
+import { defaultThemeConfigs, normalizeThemeConfigs, themePresetMeta, type ThemePresetConfig, type ThemePresetId } from '../styles/theme-presets'
 
 type SettingsSection = 'general' | 'appearance' | 'ai' | 'mcp'
 type ThemeMode = 'light' | 'dark' | 'system'
-type LightThemePreset = 'light'
-type DarkThemePreset = 'dark'
+type LightThemePreset = ThemePresetId
+type DarkThemePreset = ThemePresetId
 
 interface AppSettings {
   inboxPath: string
@@ -223,13 +272,14 @@ interface AppSettings {
   themeMode: ThemeMode
   lightTheme: LightThemePreset
   darkTheme: DarkThemePreset
+  customThemes: Record<ThemePresetId, ThemePresetConfig>
 }
 
 const settingSections = [
-  { key: 'general' as const, label: '常规', hint: '目录与基础行为' },
-  { key: 'appearance' as const, label: '外观', hint: '主题与切换逻辑' },
-  { key: 'ai' as const, label: 'AI', hint: '模型与 Enrich' },
-  { key: 'mcp' as const, label: 'MCP', hint: '服务与接入配置' },
+  { key: 'general' as const, label: '常规' },
+  { key: 'appearance' as const, label: '外观' },
+  { key: 'ai' as const, label: 'AI' },
+  { key: 'mcp' as const, label: 'MCP' },
 ]
 
 const themeModes = [
@@ -238,23 +288,20 @@ const themeModes = [
   { label: '跟随系统', value: 'system' as const },
 ]
 
-const lightThemeOptions = [
-  { label: 'Default Light', value: 'light' as const, hint: '标准黑白基线，后面所有浅色预设都从这套派生' },
-]
-
-const darkThemeOptions = [
-  { label: 'Default Dark', value: 'dark' as const, hint: '先保留一套稳定暗色，后面再扩展' },
-]
-
 const settings = ref<AppSettings | null>(null)
 const activeSection = ref<SettingsSection>('appearance')
+const selectedPreset = ref<ThemePresetId>('light')
 const mcpRunning = ref(false)
 const mcpError = ref<string | null>(null)
+const showAppearanceImport = ref(false)
+const appearanceImportText = ref('')
 const message = useMessage()
+const { applyThemeFromSettings } = useTheme()
 
 onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
   settings.value = normalizeSettings(loaded || {})
+  selectedPreset.value = settings.value.themeMode === 'dark' ? settings.value.darkTheme : settings.value.lightTheme
   await refreshMcpStatus()
 })
 
@@ -283,14 +330,21 @@ const mcpConfig = computed(() => JSON.stringify({
   }
 }, null, 2))
 
-const activeThemeSummary = computed(() => {
-  if (!settings.value) return ''
-  if (settings.value.themeMode === 'system') {
-    return `跟随系统，在浅色时使用 ${labelForLightTheme(settings.value.lightTheme)}，在深色时使用 ${labelForDarkTheme(settings.value.darkTheme)}`
+const editablePresets = themePresetMeta
+
+const selectedPresetConfig = computed(() => {
+  if (!settings.value) {
+    return defaultThemeConfigs[selectedPreset.value]
   }
-  return settings.value.themeMode === 'light'
-    ? `固定使用 ${labelForLightTheme(settings.value.lightTheme)}`
-    : `固定使用 ${labelForDarkTheme(settings.value.darkTheme)}`
+  return settings.value.customThemes[selectedPreset.value]
+})
+
+const selectedPresetLabel = computed(() => {
+  return editablePresets.find((preset) => preset.id === selectedPreset.value)?.label || selectedPreset.value
+})
+
+const selectedPresetExportText = computed(() => {
+  return `codex-theme-v1:${JSON.stringify(selectedPresetConfig.value)}`
 })
 
 function normalizeSettings(raw: Record<string, unknown>): AppSettings {
@@ -302,11 +356,11 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     themeMode = raw.themeMode
   }
 
-  if (raw.lightTheme === 'light') {
+  if (raw.lightTheme === 'light' || raw.lightTheme === 'notion' || raw.lightTheme === 'claude') {
     lightTheme = raw.lightTheme
   }
 
-  if (raw.darkTheme === 'dark') {
+  if (raw.darkTheme === 'light' || raw.darkTheme === 'dark' || raw.darkTheme === 'notion' || raw.darkTheme === 'claude') {
     darkTheme = raw.darkTheme
   }
 
@@ -323,6 +377,7 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     themeMode,
     lightTheme,
     darkTheme,
+    customThemes: normalizeThemeConfigs(raw.customThemes),
   }
 }
 
@@ -330,12 +385,65 @@ function serializeSettings(current: AppSettings) {
   return { ...current }
 }
 
-function labelForLightTheme(theme: LightThemePreset) {
-  return lightThemeOptions.find((option) => option.value === theme)?.label || theme
+async function updateAppearance(patch: Partial<Pick<AppSettings, 'themeMode' | 'lightTheme' | 'darkTheme'>>) {
+  if (!settings.value) return
+  Object.assign(settings.value, patch)
+  if (patch.themeMode === 'dark') {
+    selectedPreset.value = settings.value.darkTheme
+  } else if (patch.themeMode === 'light') {
+    selectedPreset.value = settings.value.lightTheme
+  }
+  if (patch.lightTheme) {
+    selectedPreset.value = patch.lightTheme
+  }
+  if (patch.darkTheme) {
+    selectedPreset.value = patch.darkTheme
+  }
+  await persistAppearanceSettings(false)
 }
 
-function labelForDarkTheme(theme: DarkThemePreset) {
-  return darkThemeOptions.find((option) => option.value === theme)?.label || theme
+async function persistAppearanceSettings(showMessage = false) {
+  if (!settings.value) return
+  await applyThemeFromSettings(settings.value)
+  await saveSettings(showMessage)
+}
+
+function triggerAppearanceImport() {
+  appearanceImportText.value = ''
+  showAppearanceImport.value = true
+}
+
+function closeAppearanceImport() {
+  showAppearanceImport.value = false
+  appearanceImportText.value = ''
+}
+
+async function applyAppearanceImport() {
+  if (!settings.value || !appearanceImportText.value.trim()) return
+  try {
+    const raw = appearanceImportText.value.trim()
+    const jsonText = raw.includes(':') ? raw.slice(raw.indexOf(':') + 1) : raw
+    const parsed = JSON.parse(jsonText)
+    const normalized = normalizeThemeConfigs({ [selectedPreset.value]: parsed })
+    settings.value.customThemes[selectedPreset.value] = normalized[selectedPreset.value]
+    await persistAppearanceSettings(false)
+    message.success(`${selectedPresetLabel.value} 已导入`)
+    closeAppearanceImport()
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '导入外观配置失败')
+  }
+}
+
+async function copyAppearanceTheme() {
+  await navigator.clipboard.writeText(selectedPresetExportText.value)
+  message.success(`${selectedPresetLabel.value} 已复制`)
+}
+
+async function resetAppearancePreset() {
+  if (!settings.value) return
+  settings.value.customThemes[selectedPreset.value] = JSON.parse(JSON.stringify(defaultThemeConfigs[selectedPreset.value]))
+  await persistAppearanceSettings(false)
+  message.success(`${selectedPresetLabel.value} 已重置`)
 }
 
 async function testConnection() {
@@ -414,8 +522,8 @@ async function stopMcp() {
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-8);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-8) var(--space-3);
   border-bottom: 1px solid var(--border-color-light);
   flex-shrink: 0;
 }
@@ -429,35 +537,28 @@ async function stopMcp() {
 }
 
 .back-btn {
-  border: none;
-  background: none;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-control);
+  background: var(--surface-control);
   cursor: pointer;
-  font-size: 16px;
-  color: var(--text-secondary);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  font-size: 18px;
+  color: var(--text-body);
+  border-radius: 999px;
 }
 
 .back-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.header-copy {
-  min-width: 0;
+  background: var(--surface-control-hover);
+  border-color: var(--border-control-hover);
 }
 
 .title {
   font-size: 20px;
   font-weight: 600;
   line-height: 1.15;
-}
-
-.subtitle {
-  margin-top: 6px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
 }
 
 .save-btn {
@@ -480,30 +581,36 @@ async function stopMcp() {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: var(--space-8);
-  padding: var(--space-8);
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: var(--space-6);
+  padding: 0 var(--space-8) var(--space-8);
+  overflow: hidden;
 }
 
 .settings-sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding-top: var(--space-2);
+  position: sticky;
+  top: 0;
+  align-self: stretch;
+  height: 100%;
+  padding: var(--space-5) var(--space-3) 0 0;
+  border-right: 1px solid var(--border-strong);
 }
 
 .sidebar-item {
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 14px;
   background: transparent;
-  padding: 14px 16px;
+  padding: 10px 12px;
   text-align: left;
   cursor: pointer;
 }
 
 .sidebar-item:hover {
-  background: var(--surface-panel-soft);
-  border-color: var(--border-default);
+  background: var(--surface-control);
+  border-color: var(--border-control);
 }
 
 .sidebar-item.active {
@@ -516,21 +623,19 @@ async function stopMcp() {
   display: block;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary);
-}
-
-.sidebar-hint {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-body);
 }
 
 .settings-content {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding-right: var(--space-2);
+  scrollbar-width: none;
+  padding: var(--space-5) var(--space-2) 0 var(--space-3);
+}
+
+.settings-content::-webkit-scrollbar {
+  display: none;
 }
 
 .panel {
@@ -538,26 +643,18 @@ async function stopMcp() {
 }
 
 .panel-header {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .panel-title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.1;
 }
 
-.panel-description {
-  margin-top: 10px;
-  max-width: 560px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
 .setting-group + .setting-group {
-  margin-top: var(--space-8);
+  margin-top: var(--space-5);
 }
 
 .group-title {
@@ -567,6 +664,156 @@ async function stopMcp() {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.theme-routing-card {
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.theme-routing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.scene-list,
+.appearance-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-row,
+.appearance-row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  padding: 11px var(--space-4);
+}
+
+.scene-row + .scene-row,
+.appearance-row + .appearance-row {
+  border-top: 1px solid var(--border-strong);
+}
+
+.scene-label,
+.appearance-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-body);
+}
+
+.scene-select,
+.appearance-input {
+  justify-self: end;
+  width: min(100%, 360px);
+}
+
+.appearance-config-card {
+  margin-top: var(--space-6);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.appearance-config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.appearance-config-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.appearance-config-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.appearance-config-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.preset-header-select {
+  width: 188px;
+  flex: 0 0 188px;
+  background: var(--surface-neutral-soft);
+  border-color: var(--border-control);
+}
+
+.appearance-row-actions .appearance-input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  max-width: 100%;
+}
+
+.color-input {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.color-swatch {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-control);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.color-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.color-swatch::-moz-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.toggle-row,
+.range-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  color: var(--text-body);
+}
+
+.range-row input[type='range'] {
+  flex: 1;
 }
 
 .form-grid {
@@ -594,10 +841,10 @@ async function stopMcp() {
 
 .form-input {
   width: 100%;
-  padding: 11px 14px;
+  padding: 9px 18px 9px 12px;
   border: 1px solid var(--border-color-light);
-  border-radius: 16px;
-  background: var(--surface-control);
+  border-radius: 12px;
+  background: var(--surface-neutral-faint);
   color: var(--text-primary);
   font-size: 14px;
   transition: border-color var(--transition-base), background var(--transition-base);
@@ -617,7 +864,7 @@ async function stopMcp() {
   display: inline-flex;
   padding: 3px;
   border-radius: 999px;
-  background: var(--surface-panel);
+  background: var(--surface-neutral-faint);
   border: 1px solid var(--border-default);
 }
 
@@ -635,59 +882,7 @@ async function stopMcp() {
 
 .segment-btn.active {
   background: var(--surface-accent-soft-hover);
-  color: var(--color-primary);
-}
-
-.field-hint {
-  margin-top: 12px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
-}
-
-.theme-grid.compact {
-  grid-template-columns: minmax(0, 280px);
-}
-
-.theme-card {
-  border: 1px solid var(--border-default);
-  border-radius: 24px;
-  background: var(--surface-panel);
-  padding: 18px 16px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.theme-card:hover {
-  border-color: var(--border-accent-soft);
-  transform: translateY(-1px);
-}
-
-.theme-card.active {
-  border-color: var(--border-accent-soft);
-  box-shadow: var(--shadow-panel);
-  background: var(--surface-panel-soft);
-}
-
-.theme-card-name {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.theme-card-hint {
-  display: block;
-  margin-top: 8px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.6;
+  color: var(--text-accent);
 }
 
 .status-block {
@@ -771,16 +966,17 @@ async function stopMcp() {
 }
 
 .btn-copy {
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: var(--surface-control-hover);
-  color: var(--text-primary);
+  background: transparent;
+  color: var(--text-body);
   font-size: 12px;
+  border: 1px solid var(--border-control);
 }
 
 .btn-copy:hover {
-  background: var(--color-link);
-  color: white;
+  background: var(--surface-control-hover);
+  color: var(--text-body);
 }
 
 .btn-primary {
@@ -808,15 +1004,88 @@ async function stopMcp() {
   color: white;
 }
 
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  z-index: 20;
+}
+
+.modal-card {
+  width: min(100%, 560px);
+  border-radius: 24px;
+  background: var(--surface-panel);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  padding: var(--space-5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-textarea {
+  width: 100%;
+  margin-top: var(--space-4);
+  padding: 12px 14px;
+  border: 1px solid var(--border-accent-soft);
+  border-radius: 16px;
+  background: var(--surface-control-hover);
+  color: var(--text-body);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.modal-actions {
+  margin-top: var(--space-4);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
 @media (max-width: 1080px) {
   .body {
     grid-template-columns: 1fr;
     gap: var(--space-5);
+    overflow: auto;
+    padding-top: var(--space-5);
   }
 
   .settings-sidebar {
+    position: static;
     flex-direction: row;
+    height: auto;
     overflow: auto;
+    padding: 0 0 var(--space-2);
+    border-right: none;
+    border-bottom: 1px solid var(--border-strong);
     padding-bottom: var(--space-2);
   }
 
@@ -824,9 +1093,36 @@ async function stopMcp() {
     min-width: 168px;
   }
 
-  .theme-grid,
-  .form-grid {
+  .form-grid,
+  .scene-row,
+  .appearance-row {
     grid-template-columns: 1fr;
+  }
+
+  .settings-content {
+    padding: 0;
+  }
+
+  .theme-routing-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scene-select,
+  .appearance-input {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .preset-header-select {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .appearance-row-actions .appearance-input,
+  .appearance-config-actions {
+    width: 100%;
+    justify-content: stretch;
   }
 }
 </style>
