@@ -1,11 +1,12 @@
 <template>
   <div class="month-calendar">
-    <div class="calendar-toolbar">
-      <button class="icon-btn" @click="goToPreviousMonth" aria-label="Previous month">‹</button>
-      <div v-if="!hideMonthLabel" class="calendar-month">{{ formattedMonth }}</div>
-      <button class="icon-btn" @click="goToNextMonth" aria-label="Next month">›</button>
-      <div class="toolbar-spacer"></div>
+    <div v-if="!hideToolbar" class="calendar-toolbar">
       <button v-if="showTodayButton" class="text-btn today-btn" @click="goToToday">Today</button>
+      <div class="month-switcher">
+        <button class="icon-btn" @click="goToPreviousMonth" aria-label="Previous month">‹</button>
+        <div v-if="!hideMonthLabel" class="calendar-month">{{ formattedMonth }}</div>
+        <button class="icon-btn" @click="goToNextMonth" aria-label="Next month">›</button>
+      </div>
     </div>
 
     <div class="calendar-weekdays">
@@ -39,6 +40,7 @@ const props = defineProps<{
   selectedDate?: number
   markedDates?: string[]
   hideMonthLabel?: boolean
+  hideToolbar?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -67,14 +69,7 @@ function formatDateKey(date: Date) {
 }
 
 const markedDateSet = computed(() => new Set(props.markedDates || []))
-const showTodayButton = computed(() => {
-  if (!props.selectedDate) return false
-  const selected = new Date(props.selectedDate)
-  const today = new Date()
-  selected.setHours(0, 0, 0, 0)
-  today.setHours(0, 0, 0, 0)
-  return selected.getTime() !== today.getTime()
-})
+const showTodayButton = computed(() => true)
 
 const cells = computed(() => {
   const start = getCalendarStart(visibleMonth.value)
@@ -126,6 +121,12 @@ function selectDate(timestamp: number) {
   emit('select', timestamp)
 }
 
+defineExpose({
+  goToPreviousMonth,
+  goToNextMonth,
+  goToToday,
+})
+
 watch(
   () => props.selectedDate,
   (selectedDate) => {
@@ -151,24 +152,31 @@ watch(
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  justify-content: space-between;
+}
+
+.month-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .calendar-month {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
+  min-width: 78px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 600;
   color: var(--text-primary);
-}
-
-.toolbar-spacer {
-  flex: 1;
 }
 
 .icon-btn,
 .text-btn {
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-primary);
+  border: 1px solid var(--border-tool-button, var(--border-color));
+  background: var(--surface-tool-button, transparent);
+  color: var(--text-reading, var(--text-primary));
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -185,21 +193,22 @@ watch(
 .text-btn {
   border-radius: 999px;
   padding: 0 10px;
-  height: 28px;
+  height: 30px;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
 }
 
 .icon-btn:hover,
 .text-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--border-tool-button-hover, var(--color-primary));
+  background: var(--surface-tool-button-hover, rgba(250, 187, 24, 0.08));
 }
 
 .today-btn {
-  color: var(--color-primary);
-  border-color: rgba(250, 187, 24, 0.3);
-  background: rgba(250, 187, 24, 0.08);
+  color: var(--text-primary-soft, var(--color-primary));
+  border-color: var(--border-primary-soft, rgba(250, 187, 24, 0.3));
+  background: var(--surface-primary-soft-hover, rgba(250, 187, 24, 0.08));
 }
 
 .calendar-weekdays,

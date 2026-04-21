@@ -161,15 +161,19 @@
           <template #header>
             <div class="sidebar-header">
               <h3 class="sidebar-title">Calendar</h3>
-              <div class="sidebar-meta">
-                <span class="sidebar-month">{{ visibleMonthLabel }}</span>
+              <div class="calendar-controls">
+                <button type="button" class="calendar-inline-btn calendar-inline-today" @click="calendarRef?.goToToday()">Today</button>
+                <button type="button" class="calendar-inline-btn" aria-label="Previous month" @click="calendarRef?.goToPreviousMonth()">‹</button>
+                <span class="calendar-inline-month">{{ visibleMonthLabel }}</span>
+                <button type="button" class="calendar-inline-btn" aria-label="Next month" @click="calendarRef?.goToNextMonth()">›</button>
               </div>
             </div>
           </template>
           <MonthCalendar
+            ref="calendarRef"
             :selected-date="selectedDateTs"
             :marked-dates="markedDates"
-            :hide-month-label="true"
+            :hide-toolbar="true"
             @select="onDateSelect"
             @month-change="onMonthChange"
           />
@@ -288,6 +292,7 @@ const activeBucket = ref<DocumentBucket | 'all'>('all')
 const scratchpadMode = ref<'edit' | 'preview'>('edit')
 const scratchpadContent = ref('')
 const articleListRef = ref<HTMLElement | null>(null)
+const calendarRef = ref<InstanceType<typeof MonthCalendar> | null>(null)
 const visibleMonthTs = ref(new Date().setDate(1))
 let scratchpadSaveTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -310,7 +315,6 @@ const visibleMonthLabel = computed(() => {
   const date = new Date(visibleMonthTs.value)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 })
-
 const selectedDateLabel = computed(() => {
   if (!dateFilterActive.value || !selectedDateTs.value) return ''
   return new Intl.DateTimeFormat('zh-CN', {
@@ -1015,7 +1019,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .right-content {
-  width: 344px;
+  width: 376px;
   flex-shrink: 0;
   height: 100%;
   display: flex;
@@ -1025,11 +1029,17 @@ watch(scratchpadContent, (value) => {
 }
 
 .sidebar-card {
-  border-radius: var(--radius-2xl);
+  border-radius: 38px;
   border: 1px solid var(--border-soft-strong);
   box-shadow: var(--shadow-soft-panel);
   overflow: hidden;
   background: var(--surface-sidebar-card);
+}
+
+.sidebar-card :deep(.n-card__content),
+.sidebar-card :deep(.n-card__header) {
+  padding-left: 22px;
+  padding-right: 22px;
 }
 
 .sidebar-header {
@@ -1049,21 +1059,53 @@ watch(scratchpadContent, (value) => {
   color: var(--text-primary);
 }
 
-.sidebar-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar-month {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
 .calendar-card {
   flex: 0 0 auto;
   opacity: 0.94;
+}
+
+.calendar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.calendar-inline-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--border-tool-button);
+  background: var(--surface-tool-button);
+  color: var(--text-reading);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.calendar-inline-btn:hover {
+  border-color: var(--border-tool-button-hover);
+  background: var(--surface-tool-button-hover);
+}
+
+.calendar-inline-today {
+  width: auto;
+  padding: 0 10px;
+  color: var(--text-primary-soft);
+  border-color: var(--border-primary-soft);
+  background: var(--surface-primary-soft-hover);
+}
+
+.calendar-inline-month {
+  min-width: 78px;
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .scratchpad-card {
