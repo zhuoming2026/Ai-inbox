@@ -13,6 +13,14 @@ export interface InboxDocument {
   raw: string
 }
 
+export interface RawDocumentParts {
+  body: string
+  frontmatter: InboxFrontmatter
+  frontmatterText: string
+  hasFrontmatter: boolean
+  parseError: boolean
+}
+
 function normalizeFrontmatter(frontmatter: InboxFrontmatter): InboxFrontmatter {
   const nextFrontmatter = { ...frontmatter }
 
@@ -97,6 +105,52 @@ export function parseFrontmatter(content: string): { frontmatter: InboxFrontmatt
 export function buildFrontmatter(frontmatter: InboxFrontmatter, body: string) {
   const lines = Object.entries(frontmatter).map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
   return `---\n${lines.join('\n')}\n---\n\n${body}`
+}
+
+export function splitRawDocument(raw: string): RawDocumentParts {
+  const normalized = raw.replace(/\r\n/g, '\n')
+
+  if (!normalized.startsWith('---\n')) {
+    const { frontmatter } = parseFrontmatter(normalized)
+    return {
+      body: normalized,
+      frontmatter,
+      frontmatterText: '',
+      hasFrontmatter: false,
+      parseError: false,
+    }
+  }
+
+  const match = normalized.match(/^---\n([\s\S]*?)\n---(?:\n([\s\S]*))?$/)
+  if (!match) {
+    return {
+      body: '',
+      frontmatter: {},
+      frontmatterText: normalized.slice(4),
+      hasFrontmatter: true,
+      parseError: true,
+    }
+  }
+
+  const { frontmatter } = parseFrontmatter(normalized)
+  return {
+    body: match[2] ?? '',
+    frontmatter,
+    frontmatterText: match[1],
+    hasFrontmatter: true,
+    parseError: false,
+  }
+}
+
+export function buildRawDocument(frontmatterText: string, body: string) {
+  const normalizedFrontmatter = frontmatterText.replace(/\r\n/g, '\n').trim()
+  const normalizedBody = body.replace(/\r\n/g, '\n')
+
+  if (!normalizedFrontmatter) {
+    return normalizedBody
+  }
+
+  return `---\n${normalizedFrontmatter}\n---\n\n${normalizedBody}`
 }
 
 export function detectDocumentType(slug: string): InboxDocumentType {

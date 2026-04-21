@@ -367,6 +367,12 @@ function setupIPC() {
     })
   })
 
+  ipcMain.handle('inbox:read-raw', (_, slug: string) => {
+    const filepath = getInboxFilePath(slug)
+    if (!fs.existsSync(filepath)) return null
+    return fs.readFileSync(filepath, 'utf-8')
+  })
+
   ipcMain.handle('inbox:write', (_, slug: string, data: { frontmatter?: Record<string, unknown>; body?: string }) => {
     const inboxPath = getInboxPath()
     const filepath = join(inboxPath, `${slug}.md`)
@@ -376,6 +382,12 @@ function setupIPC() {
     const nextFrontmatter = { ...frontmatter, ...(data.frontmatter || {}) }
     const nextBody = data.body ?? body
     fs.writeFileSync(filepath, buildFrontmatter(nextFrontmatter, nextBody), 'utf-8')
+  })
+
+  ipcMain.handle('inbox:write-raw', (_, slug: string, raw: string) => {
+    const filepath = getInboxFilePath(slug)
+    if (!fs.existsSync(filepath)) return
+    fs.writeFileSync(filepath, raw, 'utf-8')
   })
 
   ipcMain.handle('inbox:set-bucket', (_, slug: string, bucket: 'inbox' | 'collected' | 'deleted') => {

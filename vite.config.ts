@@ -135,6 +135,12 @@ function readInboxFile(slug: string) {
   })
 }
 
+function readInboxRawFile(slug: string) {
+  const filepath = join(getInboxPath(), slug.endsWith('.md') ? slug : `${slug}.md`)
+  if (!fs.existsSync(filepath)) return null
+  return fs.readFileSync(filepath, 'utf-8')
+}
+
 function getInboxFilePath(slug: string) {
   return join(getInboxPath(), `${slug}.md`)
 }
@@ -215,6 +221,14 @@ function updateInboxFile(slug: string, data: { frontmatter?: Record<string, unkn
     buildFrontmatter({ ...frontmatter, ...(data.frontmatter || {}) }, data.body ?? body),
     'utf-8'
   )
+  return true
+}
+
+function writeInboxRawFile(slug: string, raw: string) {
+  const filepath = join(getInboxPath(), `${slug}.md`)
+  if (!fs.existsSync(filepath)) return false
+
+  fs.writeFileSync(filepath, raw, 'utf-8')
   return true
 }
 
@@ -404,6 +418,20 @@ function devInboxPlugin(): Plugin {
         if (fileMatch && req.method === 'GET') {
           const content = readInboxFile(decodeURIComponent(fileMatch[1]))
           sendJson(res, content === null ? 404 : 200, content === null ? { error: 'File not found' } : content)
+          return
+        }
+
+        const rawFileMatch = url.match(/^\/__dev_api\/inbox\/([^/]+)\/raw$/)
+        if (rawFileMatch && req.method === 'GET') {
+          const raw = readInboxRawFile(decodeURIComponent(rawFileMatch[1]))
+          sendJson(res, raw === null ? 404 : 200, raw === null ? { error: 'File not found' } : { raw })
+          return
+        }
+
+        if (rawFileMatch && req.method === 'POST') {
+          const body = (await readJsonBody(req)) as { raw: string }
+          const ok = writeInboxRawFile(decodeURIComponent(rawFileMatch[1]), body.raw || '')
+          sendJson(res, ok ? 200 : 404, ok ? { ok: true } : { error: 'File not found' })
           return
         }
 

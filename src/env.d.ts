@@ -14,7 +14,9 @@ interface ElectronAPI {
   writeScratchpad(content: string): Promise<void>
   listInbox(): Promise<InboxDocument[]>
   readFile(slug: string): Promise<InboxDocument | null>
+  readRawFile(slug: string): Promise<string | null>
   updateFile(slug: string, data: any): Promise<void>
+  writeRawFile(slug: string, raw: string): Promise<void>
   deleteFile(slug: string): Promise<void>
   archiveFile(slug: string): Promise<void>
   setBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted'): Promise<void>

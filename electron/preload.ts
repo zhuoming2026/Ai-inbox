@@ -4,8 +4,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 文件操作
   listInbox: () => ipcRenderer.invoke('inbox:list'),
   readFile: (slug: string) => ipcRenderer.invoke('inbox:read', slug),
+  readRawFile: (slug: string) => ipcRenderer.invoke('inbox:read-raw', slug),
   writeFile: (slug: string, data: any) => ipcRenderer.invoke('inbox:write', slug, data),
   updateFile: (slug: string, data: any) => ipcRenderer.invoke('inbox:write', slug, data),
+  writeRawFile: (slug: string, raw: string) => ipcRenderer.invoke('inbox:write-raw', slug, raw),
   archiveFile: (slug: string) => ipcRenderer.invoke('inbox:archive', slug),
   deleteFile: (slug: string) => ipcRenderer.invoke('inbox:delete', slug),
   setBucket: (slug: string, bucket: 'inbox' | 'collected' | 'deleted') => ipcRenderer.invoke('inbox:set-bucket', slug, bucket),
@@ -29,8 +31,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // 事件监听
   onInboxUpdate: (callback: () => void) => {
-    ipcRenderer.on('inbox:updated', callback)
-    return () => ipcRenderer.removeListener('inbox:updated', callback)
+    const listener = () => callback()
+    ipcRenderer.on('inbox:updated', listener)
+    return () => ipcRenderer.removeListener('inbox:updated', listener)
   },
 
   // 文件夹选择

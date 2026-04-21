@@ -52,10 +52,19 @@ function createBrowserElectronApi(): BrowserElectronApi {
       }),
     listInbox: () => request('/__dev_api/inbox'),
     readFile: (slug: string) => request(`/__dev_api/inbox/${encodeURIComponent(slug)}`),
+    readRawFile: async (slug: string) => {
+      const data = await request<{ raw: string | null }>(`/__dev_api/inbox/${encodeURIComponent(slug)}/raw`)
+      return data.raw
+    },
     updateFile: (slug: string, data: any) =>
       request(`/__dev_api/inbox/${encodeURIComponent(slug)}`, {
         method: 'POST',
         body: JSON.stringify(data),
+      }),
+    writeRawFile: (slug: string, raw: string) =>
+      request(`/__dev_api/inbox/${encodeURIComponent(slug)}/raw`, {
+        method: 'POST',
+        body: JSON.stringify({ raw }),
       }),
     deleteFile: (slug: string) =>
       request(`/__dev_api/inbox/${encodeURIComponent(slug)}`, {
