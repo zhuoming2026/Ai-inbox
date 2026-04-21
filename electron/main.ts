@@ -21,7 +21,9 @@ const store = new Store({
     baseUrl: '',
     aiProcessingMode: 'off',
     aiConnectionVerified: false,
-    theme: 'system'
+    themeMode: 'system',
+    lightTheme: 'light',
+    darkTheme: 'dark'
   }
 })
 

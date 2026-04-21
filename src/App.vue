@@ -12,7 +12,7 @@ import { useTheme } from './composables/useTheme'
 let unsub: (() => void) | null | undefined = null
 let settings: any = null
 
-const { setTheme, initTheme } = useTheme()
+const { initTheme, applyThemeFromSettings } = useTheme()
 
 onMounted(async () => {
   settings = await window.electronAPI?.getSettings()
@@ -22,8 +22,8 @@ onMounted(async () => {
   // Listen for system theme changes
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   mediaQuery.addEventListener('change', () => {
-    if (settings?.theme === 'system') {
-      setTheme('system')
+    if (settings?.themeMode === 'system') {
+      applyThemeFromSettings(settings)
     }
   })
 
@@ -36,7 +36,7 @@ onMounted(async () => {
   window.addEventListener('settings-changed', ((e: CustomEvent) => {
     console.log('[App] settings-changed event received:', e.detail)
     settings = e.detail
-    setTheme(settings?.theme || 'light')
+    applyThemeFromSettings(settings)
   }) as EventListener)
   
   console.log('[App] Event listeners registered')

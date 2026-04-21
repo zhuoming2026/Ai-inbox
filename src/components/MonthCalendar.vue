@@ -174,9 +174,9 @@ watch(
 
 .icon-btn,
 .text-btn {
-  border: 1px solid var(--border-tool-button, var(--border-color));
-  background: var(--surface-tool-button, transparent);
-  color: var(--text-reading, var(--text-primary));
+  border: 1px solid var(--border-control, var(--border-color));
+  background: var(--surface-control, transparent);
+  color: var(--text-body, var(--text-primary));
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -201,14 +201,14 @@ watch(
 
 .icon-btn:hover,
 .text-btn:hover {
-  border-color: var(--border-tool-button-hover, var(--color-primary));
-  background: var(--surface-tool-button-hover, rgba(250, 187, 24, 0.08));
+  border-color: var(--border-control-hover);
+  background: var(--surface-control-hover);
 }
 
 .today-btn {
-  color: var(--text-primary-soft, var(--color-primary));
-  border-color: var(--border-primary-soft, rgba(250, 187, 24, 0.3));
-  background: var(--surface-primary-soft-hover, rgba(250, 187, 24, 0.08));
+  color: var(--text-accent);
+  border-color: var(--border-accent-soft);
+  background: var(--surface-accent-soft-hover);
 }
 
 .calendar-weekdays,
@@ -246,7 +246,7 @@ watch(
 }
 
 .calendar-cell:hover {
-  background: rgba(250, 187, 24, 0.12);
+  background: var(--surface-accent-subtle);
 }
 
 .calendar-cell.is-other-month {
@@ -254,8 +254,8 @@ watch(
 }
 
 .calendar-cell.is-selected {
-  background: rgba(250, 187, 24, 0.16);
-  border-color: rgba(250, 187, 24, 0.35);
+  background: var(--surface-accent-soft);
+  border-color: var(--border-accent-soft);
 }
 
 .calendar-cell.is-today .cell-number {

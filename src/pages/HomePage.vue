@@ -18,8 +18,8 @@
           </div>
           <PillButton
             :icon="SettingsOutline"
-            bg-color="var(--surface-tool-button)"
-            text-color="var(--text-reading)"
+            bg-color="var(--surface-control)"
+            text-color="var(--text-body)"
             icon-only
             class="toolbar-tool-button"
             @click="$router.push('/settings')"
@@ -38,15 +38,15 @@
             />
             <div class="input-actions">
               <div class="attach-btns">
-                <PillButton :icon="Image" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Link" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Document" bg-color="var(--surface-tool-button)" text-color="var(--text-reading)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Image" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Link" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Document" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
               </div>
               <PillButton
                 text="Inbox"
                 :icon="ArrowForwardOutline"
-                bg-color="var(--surface-primary-soft)"
-                text-color="var(--text-primary-soft)"
+                bg-color="var(--surface-accent-soft)"
+                text-color="var(--text-accent)"
                 class="submit-button"
                 @click="submitInput"
               />
@@ -254,21 +254,31 @@ const message = useMessage()
 
 const SearchIcon = () => h(NIcon, null, () => h(SearchOutline))
 
-const themeOverrides: GlobalThemeOverrides = {
+const resolvedThemeTokens = ref({
+  primaryColor: '#fabb18',
+  primaryColorHover: '#f9c84a',
+  primaryColorPressed: '#d9a015',
+  cardColor: '#ffffff',
+  cardShadow: '0px 4px 20px rgba(0, 0, 0, 0.03)',
+  inputColor: 'rgba(239, 239, 239, 0.47)',
+  inputColorFocus: 'rgba(239, 239, 239, 0.7)',
+})
+
+const themeOverrides = computed<GlobalThemeOverrides>(() => ({
   common: {
-    primaryColor: '#fabb18',
-    primaryColorHover: '#f9c84a',
-    primaryColorPressed: '#d9a015',
+    primaryColor: resolvedThemeTokens.value.primaryColor,
+    primaryColorHover: resolvedThemeTokens.value.primaryColorHover,
+    primaryColorPressed: resolvedThemeTokens.value.primaryColorPressed,
     borderRadius: '12px',
     fontFamily: 'PingFang SC, SF Pro Text, Helvetica Neue, Noto Sans SC, system-ui, -apple-system, sans-serif',
   },
   Card: {
-    color: '#ffffff',
-    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.03)',
+    color: resolvedThemeTokens.value.cardColor,
+    boxShadow: resolvedThemeTokens.value.cardShadow,
   },
   Input: {
-    color: 'rgba(239, 239, 239, 0.47)',
-    colorFocus: 'rgba(239, 239, 239, 0.7)',
+    color: resolvedThemeTokens.value.inputColor,
+    colorFocus: resolvedThemeTokens.value.inputColorFocus,
     borderRadius: '12px',
     boxShadowFocus: 'none',
   },
@@ -282,6 +292,20 @@ const themeOverrides: GlobalThemeOverrides = {
     borderRadiusSmall: '9999px',
     borderRadiusTiny: '9999px',
   },
+}))
+
+function refreshResolvedThemeTokens() {
+  if (typeof window === 'undefined') return
+  const styles = getComputedStyle(document.documentElement)
+  resolvedThemeTokens.value = {
+    primaryColor: styles.getPropertyValue('--color-primary').trim() || '#fabb18',
+    primaryColorHover: styles.getPropertyValue('--color-primary-hover').trim() || '#f9c84a',
+    primaryColorPressed: styles.getPropertyValue('--color-primary-pressed').trim() || '#d9a015',
+    cardColor: styles.getPropertyValue('--bg-card').trim() || '#ffffff',
+    cardShadow: styles.getPropertyValue('--shadow-card').trim() || '0px 4px 20px rgba(0, 0, 0, 0.03)',
+    inputColor: styles.getPropertyValue('--bg-input').trim() || 'rgba(239, 239, 239, 0.47)',
+    inputColorFocus: styles.getPropertyValue('--bg-input-focus').trim() || 'rgba(239, 239, 239, 0.7)',
+  }
 }
 
 const searchQuery = ref('')
@@ -519,11 +543,13 @@ async function deleteCard(slug: string) {
 }
 
 onMounted(() => {
+  refreshResolvedThemeTokens()
   void inboxStore.loadCards()
   window.electronAPI?.readScratchpad().then((content) => {
     scratchpadContent.value = content || ''
   })
   window.addEventListener('inbox-updated', handleInboxUpdated)
+  window.addEventListener('settings-changed', refreshResolvedThemeTokens as EventListener)
 })
 
 onBeforeUnmount(() => {
@@ -533,6 +559,7 @@ onBeforeUnmount(() => {
     window.electronAPI?.writeScratchpad(scratchpadContent.value).catch(() => undefined)
   }
   window.removeEventListener('inbox-updated', handleInboxUpdated)
+  window.removeEventListener('settings-changed', refreshResolvedThemeTokens as EventListener)
 })
 
 function handleInboxUpdated() {
@@ -624,9 +651,9 @@ watch(scratchpadContent, (value) => {
 .input-card {
   width: 100%;
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-soft-panel);
-  background: var(--surface-capture);
-  border: 1px solid var(--border-soft-strong);
+  box-shadow: var(--shadow-panel);
+  background: var(--surface-panel-soft);
+  border: 1px solid var(--border-strong);
 }
 
 .input-card :deep(.n-card__content) {
@@ -660,7 +687,7 @@ watch(scratchpadContent, (value) => {
   border-radius: 999px;
   font-size: var(--text-sm);
   font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.06);
+  box-shadow: var(--shadow-button);
 }
 
 .attach-btns :deep(.pill-btn) {
@@ -670,23 +697,23 @@ watch(scratchpadContent, (value) => {
 }
 
 .toolbar-tool-button :deep(.pill-btn) {
-  box-shadow: 0 0 0 1px var(--border-tool-button);
+  box-shadow: 0 0 0 1px var(--border-control);
   backdrop-filter: blur(8px);
 }
 
 .toolbar-tool-button :deep(.pill-btn:hover) {
-  background: var(--surface-tool-button-hover) !important;
-  box-shadow: 0 0 0 1px var(--border-tool-button-hover);
+  background: var(--surface-control-hover) !important;
+  box-shadow: 0 0 0 1px var(--border-control-hover);
 }
 
 .submit-button :deep(.pill-btn) {
   padding: 0 12px !important;
-  box-shadow: 0 0 0 1px var(--border-primary-soft);
+  box-shadow: 0 0 0 1px var(--border-accent-soft);
 }
 
 .submit-button :deep(.pill-btn:hover) {
-  background: var(--surface-primary-soft-hover) !important;
-  box-shadow: var(--shadow-primary-soft-hover);
+  background: var(--surface-accent-soft-hover) !important;
+  box-shadow: var(--shadow-accent-soft-hover);
 }
 
 .attach-btns {
@@ -712,7 +739,7 @@ watch(scratchpadContent, (value) => {
   top: 0;
   z-index: 5;
   padding: 2px 0 10px;
-  background: linear-gradient(180deg, var(--bg-primary) 78%, rgba(245, 243, 237, 0));
+  background: var(--overlay-page-fade);
 }
 
 .article-filter-state {
@@ -728,9 +755,9 @@ watch(scratchpadContent, (value) => {
   gap: 0;
   padding: 0 2px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(77, 76, 72, 0.08);
-  box-shadow: 0 0 0 1px rgba(232, 230, 220, 0.28);
+  background: var(--surface-segmented);
+  border: 1px solid var(--border-segmented);
+  box-shadow: var(--shadow-segmented);
   flex-shrink: 0;
 }
 
@@ -754,7 +781,7 @@ watch(scratchpadContent, (value) => {
   right: -3px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(93, 89, 82, 0.26);
+  color: var(--separator-soft);
   pointer-events: none;
 }
 
@@ -764,7 +791,7 @@ watch(scratchpadContent, (value) => {
 
 .filter-button.active {
   color: var(--color-primary);
-  background: rgba(250, 187, 24, 0.08);
+  background: var(--surface-accent-faint);
   border-radius: 999px;
 }
 
@@ -775,14 +802,14 @@ watch(scratchpadContent, (value) => {
   max-width: 100%;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(250, 187, 24, 0.12);
+  background: var(--surface-accent-subtle);
   color: var(--text-primary);
   font-size: var(--text-sm);
 }
 
 .filter-chip.subtle {
-  background: rgba(64, 72, 87, 0.05);
-  border: 1px solid rgba(64, 72, 87, 0.08);
+  background: var(--surface-neutral-soft);
+  border: 1px solid var(--border-neutral-soft);
 }
 
 .filter-chip-label {
@@ -804,7 +831,7 @@ watch(scratchpadContent, (value) => {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 180px;
-  color: var(--text-reading);
+  color: var(--text-body);
   font-weight: 500;
 }
 
@@ -826,7 +853,7 @@ watch(scratchpadContent, (value) => {
   top: 50%;
   width: 1px;
   height: 14px;
-  background: rgba(64, 72, 87, 0.12);
+  background: var(--border-neutral-strong);
   transform: translateY(-50%);
 }
 
@@ -863,31 +890,29 @@ watch(scratchpadContent, (value) => {
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 34px rgba(68, 49, 6, 0.08);
+  box-shadow: var(--shadow-card-hover-soft);
 }
 
 .card.collected {
-  background:
-    radial-gradient(circle at top right, rgba(250, 187, 24, 0.18), transparent 28%),
-    linear-gradient(180deg, rgba(255, 248, 224, 0.92), rgba(255, 255, 255, 0.98));
-  border-color: rgba(250, 187, 24, 0.4);
-  box-shadow: 0 16px 30px rgba(250, 187, 24, 0.14);
+  background: var(--surface-collected);
+  border-color: var(--border-collected);
+  box-shadow: var(--shadow-collected);
 }
 
 .card.deleted {
-  background: linear-gradient(180deg, rgba(120, 125, 137, 0.05), rgba(255, 255, 255, 0.96));
+  background: var(--surface-deleted);
   border-style: dashed;
-  border-color: rgba(120, 125, 137, 0.28);
+  border-color: var(--border-deleted);
   box-shadow: none;
 }
 
 .card.deleted:hover {
-  box-shadow: 0 14px 24px rgba(33, 37, 41, 0.06);
+  box-shadow: var(--shadow-deleted-hover);
 }
 
 .card-image {
   height: 140px;
-  background: linear-gradient(135deg, rgba(250, 187, 24, 0.18), rgba(250, 187, 24, 0.04));
+  background: var(--surface-image);
 }
 
 .card-body {
@@ -921,7 +946,7 @@ watch(scratchpadContent, (value) => {
 
 .card-preview {
   margin: 0;
-  color: var(--text-reading);
+  color: var(--text-body);
   font-size: var(--text-base);
   line-height: 1.6;
   display: -webkit-box;
@@ -975,8 +1000,8 @@ watch(scratchpadContent, (value) => {
   height: 32px;
   border-radius: 50%;
   border: 1px solid var(--border-color);
-  background: var(--surface-tool-button);
-  color: var(--text-reading);
+  background: var(--surface-control);
+  color: var(--text-body);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -985,14 +1010,14 @@ watch(scratchpadContent, (value) => {
 }
 
 .icon-action:hover {
-  border-color: rgba(64, 72, 87, 0.26);
-  background: rgba(64, 72, 87, 0.04);
+  border-color: var(--border-control-strong);
+  background: var(--surface-neutral-faint);
 }
 
 .icon-action.active {
   color: var(--color-primary);
-  border-color: rgba(250, 187, 24, 0.5);
-  background: rgba(250, 187, 24, 0.12);
+  border-color: var(--border-icon-active);
+  background: var(--surface-icon-active);
 }
 
 .icon-action.danger {
@@ -1004,9 +1029,9 @@ watch(scratchpadContent, (value) => {
   justify-content: center;
   align-items: center;
   min-height: 300px;
-  border: 1px dashed rgba(93, 89, 82, 0.14);
+  border: 1px dashed var(--border-empty);
   border-radius: 26px;
-  background: rgba(255, 255, 255, 0.42);
+  background: var(--surface-empty);
 }
 
 .empty-hint {
@@ -1030,10 +1055,10 @@ watch(scratchpadContent, (value) => {
 
 .sidebar-card {
   border-radius: 38px;
-  border: 1px solid var(--border-soft-strong);
-  box-shadow: var(--shadow-soft-panel);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-panel);
   overflow: hidden;
-  background: var(--surface-sidebar-card);
+  background: var(--surface-panel);
 }
 
 .sidebar-card :deep(.n-card__content),
@@ -1075,9 +1100,9 @@ watch(scratchpadContent, (value) => {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid var(--border-tool-button);
-  background: var(--surface-tool-button);
-  color: var(--text-reading);
+  border: 1px solid var(--border-control);
+  background: var(--surface-control);
+  color: var(--text-body);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1088,16 +1113,16 @@ watch(scratchpadContent, (value) => {
 }
 
 .calendar-inline-btn:hover {
-  border-color: var(--border-tool-button-hover);
-  background: var(--surface-tool-button-hover);
+  border-color: var(--border-control-hover);
+  background: var(--surface-control-hover);
 }
 
 .calendar-inline-today {
   width: auto;
   padding: 0 10px;
-  color: var(--text-primary-soft);
-  border-color: var(--border-primary-soft);
-  background: var(--surface-primary-soft-hover);
+  color: var(--text-accent);
+  border-color: var(--border-accent-soft);
+  background: var(--surface-accent-soft-hover);
 }
 
 .calendar-inline-month {
@@ -1203,7 +1228,7 @@ watch(scratchpadContent, (value) => {
 
 .scratchpad-rendered :deep(pre) {
   white-space: pre-wrap;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--surface-code-block);
   padding: var(--space-3);
   border-radius: var(--radius-md);
 }
