@@ -430,30 +430,35 @@ function devInboxPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [
-    vue(),
-    devInboxPlugin(),
-    electron([
-      {
-        entry: 'electron/main.ts',
-        onstart(options) {
-          options.startup()
-        },
-        vite: {
-          build: {
-            rollupOptions: {
-              external: ['chokidar', 'electron-store', 'fsevents'],
+export default defineConfig(async () => {
+  const { default: ui } = await import('@nuxt/ui/vite')
+
+  return {
+    plugins: [
+      vue(),
+      ui(),
+      devInboxPlugin(),
+      electron([
+        {
+          entry: 'electron/main.ts',
+          onstart(options) {
+            options.startup()
+          },
+          vite: {
+            build: {
+              rollupOptions: {
+                external: ['chokidar', 'electron-store', 'fsevents'],
+              },
             },
           },
         },
-      },
-      { entry: 'electron/preload.ts' },
-    ]),
-    renderer(),
-  ],
-  resolve: {
-    alias: { '@': resolve(__dirname, 'src') },
-  },
-  base: './',
+        { entry: 'electron/preload.ts' },
+      ]),
+      renderer(),
+    ],
+    resolve: {
+      alias: { '@': resolve(__dirname, 'src') },
+    },
+    base: './',
+  }
 })
