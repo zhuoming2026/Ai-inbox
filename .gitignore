@@ -35,3 +35,6 @@ coverage/
 # Misc
 *.local
 *.log
+auto-imports.d.ts
+components.d.ts
+Awesome DESIGN/
