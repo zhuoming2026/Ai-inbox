@@ -1,0 +1,324 @@
+/* ─── Editor Shell ─────────────────────────────────────────────────────────── */
+
+.rich-editor {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--editor-border, #e5e7eb);
+  background: var(--editor-bg, #ffffff);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rich-editor__overlay {
+  position: absolute;
+  z-index: 30;
+}
+
+.rich-editor:focus-within {
+  border-color: var(--editor-focus-border, #6366f1);
+  box-shadow: 0 0 0 3px var(--editor-focus-ring, rgba(99, 102, 241, 0.15));
+}
+
+.rich-editor--readonly {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* ─── Toolbar ──────────────────────────────────────────────────────────────── */
+
+.rich-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--editor-border, #e5e7eb);
+  background: var(--editor-toolbar-bg, #f9fafb);
+}
+
+.rich-editor__toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.rich-editor__toolbar-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--editor-border, #e5e7eb);
+  margin: 0 0.25rem;
+}
+
+.rich-editor__toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--editor-toolbar-icon, #6b7280);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  font-size: 0.875rem;
+}
+
+.rich-editor__toolbar-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.rich-editor__toolbar-btn:hover {
+  background: var(--editor-toolbar-hover-bg, #f3f4f6);
+  color: var(--editor-toolbar-icon-hover, #374151);
+}
+
+.rich-editor__toolbar-btn.is-active {
+  background: var(--editor-toolbar-active-bg, #e0e7ff);
+  color: var(--editor-toolbar-active-icon, #4f46e5);
+}
+
+.rich-editor__toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ─── Bubble Menu ──────────────────────────────────────────────────────────── */
+
+.rich-editor__bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.375rem;
+  background: var(--editor-bubble-bg, #1f2937);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.rich-editor__bubble-menu .rich-editor__toolbar-btn {
+  color: #e5e7eb;
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.rich-editor__bubble-menu .rich-editor__toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.rich-editor__bubble-menu .rich-editor__toolbar-btn.is-active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* ─── Floating Menu ────────────────────────────────────────────────────────── */
+
+.rich-editor__floating-menu {
+  z-index: 20;
+  padding: 0.25rem;
+  background: var(--editor-bubble-bg, #1f2937);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Drag Handle ──────────────────────────────────────────────────────────── */
+
+.rich-editor__drag-handle {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.rich-editor__drag-handle.is-visible {
+  opacity: 1;
+}
+
+.rich-editor__drag-handle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--editor-toolbar-icon, #9ca3af);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.rich-editor__drag-handle-btn:hover {
+  background: var(--editor-toolbar-hover-bg, #f3f4f6);
+  color: var(--editor-toolbar-icon-hover, #6b7280);
+}
+
+/* ─── Link Popover ─────────────────────────────────────────────────────────── */
+
+.rich-editor__link-popover {
+  position: absolute;
+  z-index: 32;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--editor-bubble-bg, #1f2937);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.rich-editor__link-popover input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e5e7eb;
+  font-size: 0.8125rem;
+  min-width: 160px;
+  padding: 0.125rem 0;
+}
+
+.rich-editor__link-popover input::placeholder {
+  color: #9ca3af;
+}
+
+.rich-editor__link-popover button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.rich-editor__link-popover button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ─── Suggestion Menu ──────────────────────────────────────────────────────── */
+
+.rich-editor__suggestion-menu {
+  position: absolute;
+  z-index: 30;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--editor-bubble-bg, #1f2937);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  padding: 0.25rem;
+}
+
+.rich-editor__suggestion-group {
+  margin-bottom: 0.25rem;
+}
+
+.rich-editor__suggestion-group-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 0.375rem 0.5rem 0.25rem;
+}
+
+.rich-editor__suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.rich-editor__suggestion-item:hover,
+.rich-editor__suggestion-item.is-selected {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.rich-editor__suggestion-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  width: 1.25rem;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.rich-editor__suggestion-item.is-selected .rich-editor__suggestion-item-icon {
+  color: #e5e7eb;
+}
+
+.rich-editor__suggestion-item-text {
+  flex: 1;
+}
+
+.rich-editor__suggestion-item-description {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  margin-top: 0.125rem;
+}
+
+/* ─── Dropdown block menu (drag handle) ─────────────────────────────────── */
+
+.rich-editor__block-menu {
+  width: 180px;
+  background: var(--editor-bubble-bg, #1f2937);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 0.25rem;
+  z-index: 40;
+}
+
+.rich-editor__block-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.rich-editor__block-menu-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ─── Dark mode override ──────────────────────────────────────────────────── */
+
+.dark .rich-editor {
+  --editor-border: #374151;
+  --editor-bg: #111827;
+  --editor-toolbar-bg: #1f2937;
+  --editor-toolbar-hover-bg: #374151;
+  --editor-focus-border: #818cf8;
+  --editor-focus-ring: rgba(129, 140, 248, 0.2);
+}

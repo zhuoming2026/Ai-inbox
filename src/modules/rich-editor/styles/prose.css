@@ -1,0 +1,306 @@
+/* ─── Prose Content ───────────────────────────────────────────────────────── */
+
+/* These styles target TipTap's editor content area */
+
+.rich-editor__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+  outline: none;
+}
+
+/* ─── Placeholder ─────────────────────────────────────────────────────────── */
+
+.rich-editor__content.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--editor-placeholder, #9ca3af);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ─── Headings ────────────────────────────────────────────────────────────── */
+
+.rich-editor__content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--editor-heading, #111827);
+}
+
+.rich-editor__content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.25rem;
+  margin-bottom: 0.375rem;
+  color: var(--editor-heading, #111827);
+}
+
+.rich-editor__content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--editor-heading, #111827);
+}
+
+.rich-editor__content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--editor-heading, #111827);
+}
+
+/* ─── Paragraphs & Text ───────────────────────────────────────────────────── */
+
+.rich-editor__content p {
+  font-size: 1rem;
+  line-height: 1.75;
+  margin-bottom: 0.75rem;
+  color: var(--editor-text, #374151);
+}
+
+.rich-editor__content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Marks ───────────────────────────────────────────────────────────────── */
+
+.rich-editor__content strong {
+  font-weight: 600;
+}
+
+.rich-editor__content em {
+  font-style: italic;
+}
+
+.rich-editor__content u {
+  text-decoration: underline;
+}
+
+.rich-editor__content s {
+  text-decoration: line-through;
+}
+
+.rich-editor__content code {
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 0.875em;
+  background: var(--editor-inline-code-bg, #f3f4f6);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  color: var(--editor-inline-code-color, #dc2626);
+}
+
+/* ─── Blockquote ──────────────────────────────────────────────────────────── */
+
+.rich-editor__content blockquote {
+  border-left: 3px solid var(--editor-blockquote-border, #6366f1);
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--editor-blockquote-text, #6b7280);
+  font-style: italic;
+}
+
+.rich-editor__content blockquote p {
+  margin-bottom: 0;
+}
+
+/* ─── Horizontal Rule ─────────────────────────────────────────────────────── */
+
+.rich-editor__content hr {
+  border: none;
+  border-top: 1px solid var(--editor-hr-border, #e5e7eb);
+  margin: 1.5rem 0;
+}
+
+/* ─── Lists ───────────────────────────────────────────────────────────────── */
+
+.rich-editor__content ul,
+.rich-editor__content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.rich-editor__content li {
+  line-height: 1.75;
+  margin-bottom: 0.25rem;
+}
+
+.rich-editor__content li p {
+  margin-bottom: 0;
+}
+
+.rich-editor__content ul {
+  list-style-type: disc;
+}
+
+.rich-editor__content ol {
+  list-style-type: decimal;
+}
+
+/* Task list */
+.rich-editor__content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.rich-editor__content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.rich-editor__content ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.rich-editor__content ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.rich-editor__content ul[data-type="taskList"] input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+/* ─── Code Block ──────────────────────────────────────────────────────────── */
+
+.rich-editor__content pre {
+  background: var(--editor-code-bg, #1e293b);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.rich-editor__content pre code {
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  background: none;
+  padding: 0;
+  color: #e2e8f0;
+  border-radius: 0;
+}
+
+/* ─── Table ───────────────────────────────────────────────────────────────── */
+
+.rich-editor__content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--editor-table-border, #e5e7eb);
+}
+
+.rich-editor__content th,
+.rich-editor__content td {
+  border: 1px solid var(--editor-table-border, #e5e7eb);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.rich-editor__content th {
+  background: var(--editor-table-header-bg, #f9fafb);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--editor-heading, #374151);
+}
+
+.rich-editor__content td {
+  background: var(--editor-table-cell-bg, #ffffff);
+}
+
+.dark .rich-editor__content th {
+  background: var(--editor-table-header-bg, #1f2937);
+}
+
+.dark .rich-editor__content td {
+  background: var(--editor-table-cell-bg, #111827);
+}
+
+/* Cell selection via CellSelection */
+.rich-editor__content .selectedCell {
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* ─── Link ─────────────────────────────────────────────────────────────────── */
+
+.rich-editor__content a {
+  color: var(--editor-link-color, #6366f1);
+  text-decoration: underline;
+  text-decoration-color: rgba(99, 102, 241, 0.4);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.rich-editor__content a:hover {
+  text-decoration-color: var(--editor-link-color, #6366f1);
+}
+
+/* ─── Images ───────────────────────────────────────────────────────────────── */
+
+.rich-editor__content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.75rem 0;
+  display: block;
+}
+
+.rich-editor__content img.ProseMirror-selectednode {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* ─── Dark mode ────────────────────────────────────────────────────────────── */
+
+.dark .rich-editor__content h1,
+.dark .rich-editor__content h2,
+.dark .rich-editor__content h3,
+.dark .rich-editor__content h4 {
+  color: #f9fafb;
+}
+
+.dark .rich-editor__content p {
+  color: #d1d5db;
+}
+
+.dark .rich-editor__content code {
+  background: #374151;
+  color: #f87171;
+}
+
+.dark .rich-editor__content blockquote {
+  color: #9ca3af;
+}
+
+.dark .rich-editor__content hr {
+  border-color: #374151;
+}
+
+.dark .rich-editor__content th {
+  color: #e5e7eb;
+}
+
+.dark .rich-editor__content a {
+  color: #818cf8;
+  text-decoration-color: rgba(129, 140, 248, 0.4);
+}
+
+.dark .rich-editor__content a:hover {
+  text-decoration-color: #818cf8;
+}

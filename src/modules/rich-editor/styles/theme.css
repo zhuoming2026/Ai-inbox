@@ -1,0 +1,63 @@
+/* ─── Design Tokens (CSS Custom Properties) ───────────────────────────────── */
+/* Override these in your app to theme the editor without touching the CSS */
+
+:root {
+  /* Borders */
+  --editor-border: #e5e7eb;
+  --editor-focus-border: #6366f1;
+  --editor-focus-ring: rgba(99, 102, 241, 0.15);
+
+  /* Backgrounds */
+  --editor-bg: #ffffff;
+  --editor-toolbar-bg: #f9fafb;
+  --editor-toolbar-hover-bg: #f3f4f6;
+  --editor-toolbar-active-bg: #e0e7ff;
+  --editor-bubble-bg: #1f2937;
+  --editor-table-header-bg: #f9fafb;
+  --editor-table-cell-bg: #ffffff;
+
+  /* Text */
+  --editor-heading: #111827;
+  --editor-text: #374151;
+  --editor-placeholder: #9ca3af;
+  --editor-link-color: #6366f1;
+
+  /* Specific */
+  --editor-blockquote-border: #6366f1;
+  --editor-blockquote-text: #6b7280;
+  --editor-hr-border: #e5e7eb;
+  --editor-code-bg: #1e293b;
+  --editor-inline-code-bg: #f3f4f6;
+  --editor-inline-code-color: #dc2626;
+  --editor-table-border: #e5e7eb;
+  --editor-toolbar-icon: #6b7280;
+  --editor-toolbar-icon-hover: #374151;
+  --editor-toolbar-active-icon: #4f46e5;
+}
+
+/* Dark mode tokens (apply .dark class or use your theme system) */
+.dark {
+  --editor-border: #374151;
+  --editor-bg: #111827;
+  --editor-toolbar-bg: #1f2937;
+  --editor-toolbar-hover-bg: #374151;
+  --editor-toolbar-active-bg: rgba(99, 102, 241, 0.2);
+  --editor-focus-border: #818cf8;
+  --editor-focus-ring: rgba(129, 140, 248, 0.2);
+  --editor-heading: #f9fafb;
+  --editor-text: #d1d5db;
+  --editor-placeholder: #6b7280;
+  --editor-link-color: #818cf8;
+  --editor-blockquote-border: #818cf8;
+  --editor-blockquote-text: #9ca3af;
+  --editor-hr-border: #374151;
+  --editor-code-bg: #0f172a;
+  --editor-inline-code-bg: #374151;
+  --editor-inline-code-color: #f87171;
+  --editor-table-border: #374151;
+  --editor-table-header-bg: #1f2937;
+  --editor-table-cell-bg: #111827;
+  --editor-toolbar-icon: #9ca3af;
+  --editor-toolbar-icon-hover: #e5e7eb;
+  --editor-toolbar-active-icon: #a5b4fc;
+}
