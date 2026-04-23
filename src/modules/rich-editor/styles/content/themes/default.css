@@ -1,0 +1,67 @@
+/* ─── Content Theme: Default ─────────────────────────────────────────────── */
+/* CSS variables for the article content area.
+   Switch themes by changing the .content-theme class on the editor root
+   or by overriding these variables at the app/theme level.
+
+   Naming convention: --content-*
+   (prefixed 'content-' to distinguish from editor chrome variables) */
+
+/* ─── Text ───────────────────────────────────────────────────────────────── */
+
+:root {
+  --content-text: #374151;
+  --content-heading: #111827;
+  --content-placeholder: #9ca3af;
+  --content-muted: #6b7280;
+  --content-link: #6366f1;
+
+  /* ─── Inline ─────────────────────────────────────────────────────────── */
+
+  --content-code-bg: #f3f4f6;
+  --content-code-color: #dc2626;
+  --content-inline-code-bg: #f3f4f6;
+  --content-inline-code-color: #dc2626;
+
+  /* ─── Blocks ─────────────────────────────────────────────────────────── */
+
+  --content-blockquote-border: #6366f1;
+  --content-blockquote-text: #6b7280;
+  --content-hr-border: #e5e7eb;
+
+  /* ─── Code Block ─────────────────────────────────────────────────────── */
+
+  --content-code-block-bg: #1e293b;
+  --content-code-block-color: #e2e8f0;
+
+  /* ─── Table ──────────────────────────────────────────────────────────── */
+
+  --content-table-border: #e5e7eb;
+  --content-table-header-bg: #f9fafb;
+  --content-table-cell-bg: #ffffff;
+}
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+
+.dark {
+  --content-text: #d1d5db;
+  --content-heading: #f9fafb;
+  --content-placeholder: #6b7280;
+  --content-muted: #9ca3af;
+  --content-link: #818cf8;
+
+  --content-code-bg: #374151;
+  --content-code-color: #f87171;
+  --content-inline-code-bg: #374151;
+  --content-inline-code-color: #f87171;
+
+  --content-blockquote-border: #818cf8;
+  --content-blockquote-text: #9ca3af;
+  --content-hr-border: #374151;
+
+  --content-code-block-bg: #0f172a;
+  --content-code-block-color: #e2e8f0;
+
+  --content-table-border: #374151;
+  --content-table-header-bg: #1f2937;
+  --content-table-cell-bg: #111827;
+}

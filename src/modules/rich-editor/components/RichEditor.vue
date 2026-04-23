@@ -23,7 +23,8 @@ import RichEditorSuggestionMenu from './RichEditorSuggestionMenu.vue'
 import RichEditorLinkPopover from './RichEditorLinkPopover.vue'
 
 import '../styles/editor.css'
-import '../styles/prose.css'
+import '../styles/content/base.css'
+import '../styles/content/themes/default.css'
 import '../styles/theme.css'
 
 const props = withDefaults(defineProps<RichEditorProps>(), {
@@ -229,7 +230,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: 'rich-editor__content',
+      class: 'tiptap rich-editor__content',
       style: `max-width: ${props.maxWidth};`,
     },
     handlePaste(view, event) {
