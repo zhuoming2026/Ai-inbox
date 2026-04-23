@@ -33,6 +33,20 @@
   --editor-toolbar-icon: #6b7280;
   --editor-toolbar-icon-hover: #374151;
   --editor-toolbar-active-icon: #4f46e5;
+
+  /* ─── Popover (Bubble / Link / Slash) ─────────────────────────────────── */
+
+  --editor-popover-bg: #ffffff;
+  --editor-popover-border: rgba(26, 26, 26, 0.06);
+  --editor-popover-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  --editor-popover-radius: 0.375rem;
+  --editor-popover-item-hover: rgba(0, 0, 0, 0.06);
+  --editor-popover-item-active: rgba(99, 102, 241, 0.1);
+  --editor-popover-icon: #374151;
+  --editor-popover-icon-hover: #111827;
+  --editor-popover-icon-active: #4f46e5;
+  --editor-popover-input-color: #374151;
+  --editor-popover-input-placeholder: #9ca3af;
 }
 
 /* Dark mode tokens (apply .dark class or use your theme system) */
@@ -60,4 +74,16 @@
   --editor-toolbar-icon: #9ca3af;
   --editor-toolbar-icon-hover: #e5e7eb;
   --editor-toolbar-active-icon: #a5b4fc;
+
+  /* ─── Popover (Bubble / Link / Slash) — same white in dark mode ─────────── */
+
+  --editor-popover-bg: #ffffff;
+  --editor-popover-border: rgba(255, 255, 255, 0.08);
+  --editor-popover-item-hover: rgba(0, 0, 0, 0.06);
+  --editor-popover-item-active: rgba(99, 102, 241, 0.15);
+  --editor-popover-icon: #374151;
+  --editor-popover-icon-hover: #111827;
+  --editor-popover-icon-active: #6366f1;
+  --editor-popover-input-color: #374151;
+  --editor-popover-input-placeholder: #9ca3af;
 }

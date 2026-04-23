@@ -96,6 +96,8 @@ export interface ContentTypeOption {
 
 // ─── RichEditor Props ────────────────────────────────────────────────────────
 
+export type ContentTheme = 'default' | 'serif'
+
 export interface RichEditorProps {
   modelValue?: string
   contentType?: ContentType
@@ -106,6 +108,8 @@ export interface RichEditorProps {
   floating?: boolean
   minHeight?: string
   maxWidth?: string
+  /** Content theme for the article area */
+  contentTheme?: ContentTheme
   /** Starter kit options */
   starterKit?: {
     undoRedo?: boolean

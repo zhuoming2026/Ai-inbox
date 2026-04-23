@@ -20,6 +20,8 @@ const props = defineProps<{
 
 const layout = computed(() => props.layout ?? 'fixed')
 
+const flatItems = computed(() => props.items.flat())
+
 const emit = defineEmits<{
   openLinkEditor: []
 }>()
@@ -34,10 +36,31 @@ function handleItemClick(item: EditorToolbarItem) {
 </script>
 
 <template>
+  <!-- bubble layout: independent floating toolbar, no fixed toolbar chrome -->
+  <div v-if="layout === 'bubble'" class="rich-editor__bubble-toolbar">
+    <button
+      v-for="item in flatItems"
+      :key="item.kind"
+      type="button"
+      class="rich-editor__bubble-btn"
+      :class="{ 'is-active': item.active }"
+      :disabled="item.disabled"
+      :title="item.tooltip ?? item.label"
+      @mousedown.prevent
+      @click.stop="handleItemClick(item)"
+    >
+      <n-icon v-if="resolveEditorIcon(item)" size="15">
+        <component :is="resolveEditorIcon(item)" />
+      </n-icon>
+      <span v-else class="rich-editor__toolbar-text">{{ resolveEditorTextFallback(item) }}</span>
+    </button>
+  </div>
+
+  <!-- fixed / floating: original chrome -->
   <div
+    v-else
     class="rich-editor__toolbar"
     :class="{
-      'rich-editor__bubble-menu': layout === 'bubble',
       'rich-editor__floating-menu': layout === 'floating',
     }"
   >

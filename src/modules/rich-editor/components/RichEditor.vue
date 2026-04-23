@@ -25,6 +25,7 @@ import RichEditorLinkPopover from './RichEditorLinkPopover.vue'
 import '../styles/editor.css'
 import '../styles/content/base.css'
 import '../styles/content/themes/default.css'
+import '../styles/content/themes/serif.css'
 import '../styles/theme.css'
 
 const props = withDefaults(defineProps<RichEditorProps>(), {
@@ -37,6 +38,7 @@ const props = withDefaults(defineProps<RichEditorProps>(), {
   floating: true,
   minHeight: '300px',
   maxWidth: '100%',
+  contentTheme: 'default',
   starterKit: () => ({ undoRedo: true }),
 })
 
@@ -332,6 +334,7 @@ defineExpose({ editor })
     ref="rootRef"
     class="rich-editor"
     :class="{ 'rich-editor--readonly': !editable }"
+    :data-content-theme="contentTheme"
   >
     <!-- Fixed Toolbar -->
     <RichEditorToolbar

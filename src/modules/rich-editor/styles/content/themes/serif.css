@@ -1,55 +1,55 @@
-/* ─── Content Theme: Default ─────────────────────────────────────────────── */
-/* Light mode: activated by [data-content-theme='default'] on .rich-editor */
+/* ─── Content Theme: Serif ───────────────────────────────────────────────── */
+/* Alternative serif theme — same structure as default, different typography */
 
-[data-content-theme='default'] {
-  --content-text: #374151;
-  --content-heading: #111827;
+[data-content-theme='serif'] {
+  --content-text: #3d3d3d;
+  --content-heading: #1a1a1a;
   --content-placeholder: #9ca3af;
   --content-muted: #6b7280;
-  --content-link: #6366f1;
+  --content-link: #4f46e5;
 
   /* ─── Inline ─────────────────────────────────────────────────────────── */
 
-  --content-code-bg: #f3f4f6;
-  --content-code-color: #dc2626;
+  --content-code-bg: #f0f0f0;
+  --content-code-color: #b91c1c;
 
   /* ─── Blocks ─────────────────────────────────────────────────────────── */
 
-  --content-blockquote-border: #6366f1;
+  --content-blockquote-border: #4f46e5;
   --content-blockquote-text: #6b7280;
-  --content-hr-border: #e5e7eb;
+  --content-hr-border: #d1d5db;
 
   /* ─── Code Block ─────────────────────────────────────────────────────── */
 
-  --content-code-block-bg: #1e293b;
-  --content-code-block-color: #e2e8f0;
+  --content-code-block-bg: #1e1e2e;
+  --content-code-block-color: #cdd6f4;
 
   /* ─── Table ──────────────────────────────────────────────────────────── */
 
-  --content-table-border: #e5e7eb;
+  --content-table-border: #d1d5db;
   --content-table-header-bg: #f9fafb;
   --content-table-cell-bg: #ffffff;
 }
 
-/* Dark mode override — .dark on ancestor + theme attribute */
-.dark [data-content-theme='default'] {
-  --content-text: #d1d5db;
-  --content-heading: #f9fafb;
+/* Dark mode override */
+.dark [data-content-theme='serif'] {
+  --content-text: #cdd6f4;
+  --content-heading: #cdd6f4;
   --content-placeholder: #6b7280;
   --content-muted: #9ca3af;
   --content-link: #818cf8;
 
-  --content-code-bg: #374151;
-  --content-code-color: #f87171;
+  --content-code-bg: #313244;
+  --content-code-color: #f38ba8;
 
   --content-blockquote-border: #818cf8;
   --content-blockquote-text: #9ca3af;
-  --content-hr-border: #374151;
+  --content-hr-border: #45475a;
 
-  --content-code-block-bg: #0f172a;
-  --content-code-block-color: #e2e8f0;
+  --content-code-block-bg: #1e1e2e;
+  --content-code-block-color: #cdd6f4;
 
-  --content-table-border: #374151;
-  --content-table-header-bg: #1f2937;
-  --content-table-cell-bg: #111827;
+  --content-table-border: #45475a;
+  --content-table-header-bg: #313244;
+  --content-table-cell-bg: #1e1e2e;
 }
