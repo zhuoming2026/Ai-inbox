@@ -2,7 +2,6 @@ import { ref, computed, type Ref, type ComputedRef } from 'vue'
 import type { Editor } from '@tiptap/core'
 import type { SuggestionMenuItem } from '../types/editor'
 import { suggestionMenuItems } from '../config/suggestion-menu'
-import { runEditorAction } from './useEditorAction'
 
 export interface SlashCommandState {
   showSuggestionMenu: Ref<boolean>
@@ -16,21 +15,22 @@ export interface SlashCommandState {
   updateSlashQuery: (query: string) => void
   /** Key handler for the suggestion menu. Call from the menu's @keydown. */
   onSlashKeyDown: (event: KeyboardEvent) => boolean
+  /** Execute the currently selected item (used by mouse click and Enter/Tab). */
+  executeSelectedItem: (item?: SuggestionMenuItem) => void
 }
 
 /**
- * Manages slash command UI state and keyboard navigation.
+ * Manages slash command UI state, keyboard navigation, and execution.
  *
- * The slash extension itself (createSlashCommand) is added to the editor's
- * extensions array and fires triggerSlash / updateSlashQuery callbacks.
- * This composable holds the reactive state consumed by RichEditorSuggestionMenu.
+ * Single execution chain:
+ *   Mouse click / Enter / Tab
+ *     → executeSelectedItem()
+ *     → deleteRange + runEditorAction
+ *     → closeMenu()
+ *   Keyboard navigation (ArrowUp/Down, Escape)
+ *     → onSlashKeyDown()
  *
- * Execution chain for Enter:
- *   onSlashKeyDown(Enter)
- *     → executeSelectedItem()      ← deletes slash text, runs action, closes menu
- *     → return true                ← event consumed
- * Mouse click:
- *   RichEditorSuggestionMenu @execute → executeItem() (same logic, in RichEditor)
+ * RichEditorSuggestionMenu handles display + hover highlight.
  */
 export function useSlashCommand(
   editorGetter: () => Editor | undefined,
@@ -52,7 +52,7 @@ export function useSlashCommand(
     })
   })
 
-  // ─── Menu control (called by slash extension callbacks) ─────────────────────
+  // ─── Menu control ────────────────────────────────────────────────────────────
 
   function triggerSlash(range: { from: number; to: number }) {
     slashRange.value = range
@@ -72,27 +72,36 @@ export function useSlashCommand(
     slashQuery.value = ''
   }
 
-  // ─── Execute selected item (shared between Enter and mouse click) ────────────
+  // ─── Execution (single path for mouse + keyboard) ────────────────────────────
 
-  function executeSelectedItem() {
+  /**
+   * Execute a slash command item.
+   * - Mouse click: called with the clicked item
+   * - Enter/Tab: called with no argument (uses selectedIndex)
+   */
+  function executeSelectedItem(item?: SuggestionMenuItem) {
     const ed = editorGetter()
     if (!ed) return
     const items = filteredItems.value
     if (!items.length) return
-    const item = items[selectedIndex.value]
-    if (!item) return
+
+    // Use the provided item, or fall back to the currently selected item
+    const targetItem = item ?? items[selectedIndex.value]
+    if (!targetItem) return
 
     // Delete the slash trigger text
     if (slashRange.value) {
       ed.chain().focus().deleteRange(slashRange.value).run()
     }
-    // Dispatch the editor action
-    runEditorAction(ed, item.kind as any)
+    // Dispatch the editor action (dynamic import to avoid circular dep)
+    import('./useEditorAction').then(({ runEditorAction }) => {
+      runEditorAction(ed, targetItem.kind as any)
+    })
     // Close the menu
     closeMenu()
   }
 
-  // ─── Keyboard navigation ────────────────────────────────────────────────────
+  // ─── Keyboard navigation + execution ─────────────────────────────────────────
 
   function onSlashKeyDown(event: KeyboardEvent): boolean {
     if (!showSuggestionMenu.value) return false
@@ -112,9 +121,9 @@ export function useSlashCommand(
         }
         event.preventDefault()
         return true
+      case 'Tab':
       case 'Enter':
-        // Execute the currently selected item and close the menu.
-        // This is the ONLY execution path for keyboard Enter.
+        // Execute the currently selected item.
         executeSelectedItem()
         event.preventDefault()
         return true
@@ -135,5 +144,6 @@ export function useSlashCommand(
     triggerSlash,
     updateSlashQuery,
     onSlashKeyDown,
+    executeSelectedItem,
   }
 }

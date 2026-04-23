@@ -9,15 +9,6 @@ export const suggestionMenuGroups: { label: string; items: EditorSuggestionItem[
     label: 'Basic',
     items: [
       {
-        id: 'paragraph',
-        label: 'Text',
-        description: 'Plain text paragraph',
-        icon: 'i-lucide-type',
-        kind: 'paragraph',
-        group: 'block-format',
-        keywords: ['p', 'text', 'paragraph'],
-      },
-      {
         id: 'heading-1',
         label: 'Heading 1',
         description: 'Large section heading',
@@ -107,20 +98,6 @@ export const suggestionMenuGroups: { label: string; items: EditorSuggestionItem[
         kind: 'horizontal-rule',
         group: 'insert',
         keywords: ['hr', 'divider', 'rule', 'separator'],
-      },
-    ],
-  },
-  {
-    label: 'Insert',
-    items: [
-      {
-        id: 'table',
-        label: 'Table',
-        description: '3×3 table with header row',
-        icon: 'i-lucide-table',
-        kind: 'table',
-        group: 'insert',
-        keywords: ['table', 'grid'],
       },
     ],
   },

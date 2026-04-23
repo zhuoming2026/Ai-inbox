@@ -4,7 +4,6 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import type { EditorView } from '@tiptap/pm/view'
 import type { RichEditorProps, RichEditorEmits } from '../types/editor'
-import type { SuggestionMenuItem } from '../types/editor'
 import { createStarterKit } from '../extensions/starter'
 import { LinkExtension } from '../extensions/link'
 import { ImageExtension } from '../extensions/image'
@@ -17,7 +16,6 @@ import TaskItem from '@tiptap/extension-task-item'
 import { Markdown } from '@tiptap/markdown'
 import { useFixedToolbarItems, useBubbleToolbarItems, useFloatingToolbarItems } from '../composables/useToolbarItems'
 import { useSlashCommand } from '../composables/useSlashCommand'
-import { runEditorAction } from '../composables/useEditorAction'
 import RichEditorToolbar from './RichEditorToolbar.vue'
 import RichEditorBubbleMenu from './RichEditorBubbleMenu.vue'
 import RichEditorFloatingMenu from './RichEditorFloatingMenu.vue'
@@ -85,7 +83,7 @@ function looksLikeMarkdown(text: string) {
     /^>\s/m,
     /^[-*+]\s/m,
     /^\d+\.\s/m,
-    /^-\s\[[ xX]\]\s/m,
+    /^[-*+]\s\[[ xX]\]\s/m,   // task list: "- [ ]", "* [x]", "+ [X]"
     /^```/m,
     /\[.+?\]\(.+?\)/,
     /!\[.*?\]\(.+?\)/,
@@ -188,36 +186,8 @@ const {
   triggerSlash,
   updateSlashQuery,
   onSlashKeyDown,
+  executeSelectedItem,
 } = useSlashCommand(() => editor.value)
-
-// ─── Slash item execution ─────────────────────────────────────────────────────
-
-function executeItem(item: SuggestionMenuItem) {
-  const ed = editor.value
-  if (!ed || !item.kind) return
-  // Delete the slash trigger text
-  if (slashRange.value) {
-    ed.chain().focus().deleteRange(slashRange.value).run()
-  }
-  // Dispatch the editor action
-  runEditorAction(ed, item.kind as any)
-  showSuggestionMenu.value = false
-}
-
-// Called from RichEditorSuggestionMenu @key-down when Enter is pressed.
-// Keyboard Enter → execute selected item (same as mouse click).
-function handleSlashEnter() {
-  if (!showSuggestionMenu.value || !editor.value) return
-  const items = filteredItems.value
-  if (!items.length) return
-  const item = items[selectedIndex.value]
-  if (!item) return
-  if (slashRange.value) {
-    editor.value.chain().focus().deleteRange(slashRange.value).run()
-  }
-  runEditorAction(editor.value, item.kind as any)
-  showSuggestionMenu.value = false
-}
 
 // ─── Editor ───────────────────────────────────────────────────────────────────
 
@@ -252,12 +222,6 @@ const editor = useEditor({
       onClose: () => {
         showSuggestionMenu.value = false
       },
-      onExecute: (item: any) => {
-        const ed = editor.value
-        if (!ed || !item.kind) return
-        runEditorAction(ed, item.kind)
-        showSuggestionMenu.value = false
-      },
       onKeyDown: (props: { event: KeyboardEvent }) => {
         return onSlashKeyDown(props.event)
       },
@@ -270,9 +234,12 @@ const editor = useEditor({
     },
     handlePaste(view, event) {
       const text = event.clipboardData?.getData('text/plain') ?? ''
-      const html = event.clipboardData?.getData('text/html') ?? ''
 
-      if (!text || html || !looksLikeMarkdown(text)) {
+      // Only attempt markdown paste if there's text and it looks like markdown.
+      // Presence of HTML alone should not block markdown detection — many copy
+      // sources include both HTML and plain text; we prefer plain text when
+      // it is valid markdown.
+      if (!text || !looksLikeMarkdown(text)) {
         return false
       }
 
@@ -401,7 +368,7 @@ defineExpose({ editor })
       :position="floatingPosition"
     />
 
-    <!-- Slash Command Suggestion Menu -->
+<!-- Slash Command Suggestion Menu -->
     <RichEditorSuggestionMenu
       v-if="showSuggestionMenu && editor"
       :editor="editor"
@@ -411,8 +378,7 @@ defineExpose({ editor })
       :selected-index="selectedIndex"
       :position="suggestionPosition"
       @close="showSuggestionMenu = false"
-      @execute="executeItem"
-      @enter="handleSlashEnter"
+      @execute="executeSelectedItem"
       @key-down="({ event }) => onSlashKeyDown(event)"
       @update:selected-index="(i) => { selectedIndex = i }"
     />

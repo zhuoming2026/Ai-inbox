@@ -1,13 +1,11 @@
 import { Extension } from '@tiptap/core'
 import { Suggestion as TipTapSuggestion } from '@tiptap/suggestion'
-import type { SuggestionMenuItem } from '../types/editor'
 import { suggestionMenuItems } from '../config/suggestion-menu'
 
 export interface SlashCommandOptions {
   onTrigger?: (range: { from: number; to: number }, query: string) => void
   onQueryUpdate?: (query: string) => void
   onClose?: () => void
-  onExecute?: (item: SuggestionMenuItem) => void
   onKeyDown?: (props: { event: KeyboardEvent }) => boolean
 }
 
@@ -15,6 +13,10 @@ export interface SlashCommandOptions {
  * Creates a TipTap Extension that implements `/` slash commands using
  * @tiptap/suggestion.  The `editor` instance is accessed via `this.editor`
  * (set by TipTap's ExtensionManager when calling addProseMirrorPlugins).
+ *
+ * This extension ONLY handles slash detection and UI state callbacks.
+ * All execution (mouse click, Enter, Tab) is handled by useSlashCommand.ts
+ * via the executeSelectedItem() function — single execution path.
  */
 export function createSlashCommand(options: SlashCommandOptions) {
   return Extension.create({
@@ -24,10 +26,7 @@ export function createSlashCommand(options: SlashCommandOptions) {
     },
 
     addProseMirrorPlugins() {
-      const { onTrigger, onQueryUpdate, onClose, onExecute, onKeyDown } = this.options
-      // `this.editor` is available here — TipTap's ExtensionManager binds
-      // `this` to { editor, name, options, storage, type, parent } when
-      // calling addProseMirrorPlugins().
+      const { onTrigger, onQueryUpdate, onClose, onKeyDown } = this.options
       const editor = this.editor
 
       return [
@@ -36,6 +35,9 @@ export function createSlashCommand(options: SlashCommandOptions) {
           char: '/',
           allowSpaces: false,
           startOfLine: false,
+
+          // NOTE: No `command` here. Execution is handled by useSlashCommand.ts
+          // via RichEditorSuggestionMenu @execute and onSlashKeyDown Enter/Tab.
 
           items: ({ query }) => {
             const q = query.toLowerCase().trim()
@@ -61,13 +63,6 @@ export function createSlashCommand(options: SlashCommandOptions) {
               onExit: () => {
                 onClose?.()
               },
-            }
-          },
-
-          command: ({ editor: ed, range, props }) => {
-            ed.chain().focus().deleteRange(range).run()
-            if (onExecute) {
-              onExecute(props as SuggestionMenuItem)
             }
           },
         }),

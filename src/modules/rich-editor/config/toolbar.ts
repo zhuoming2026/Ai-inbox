@@ -12,13 +12,6 @@ export const fixedToolbarItems: EditorToolbarItem[][] = [
   // Block format
   [
     {
-      kind: 'paragraph',
-      label: 'Paragraph',
-      icon: 'i-lucide-type',
-      tooltip: 'Paragraph',
-      group: 'block-format',
-    },
-    {
       kind: 'heading-1',
       label: 'Heading 1',
       icon: 'i-lucide-heading-1',
@@ -65,7 +58,6 @@ export const fixedToolbarItems: EditorToolbarItem[][] = [
   ],
   // Insert
   [
-    { kind: 'table', label: 'Table', icon: 'i-lucide-table', tooltip: 'Insert Table', group: 'insert' },
     { kind: 'link', label: 'Link', icon: 'i-lucide-link', tooltip: 'Link', group: 'insert', slot: 'link' },
     { kind: 'image', label: 'Image', icon: 'i-lucide-image', tooltip: 'Image', group: 'insert' },
   ],
@@ -98,7 +90,6 @@ export const floatingToolbarItems: EditorToolbarItem[][] = [
     { kind: 'task-list', label: 'Task List', icon: 'i-lucide-list-check', tooltip: 'Task List', group: 'list' },
     { kind: 'blockquote', label: 'Blockquote', icon: 'i-lucide-text-quote', tooltip: 'Blockquote', group: 'block-format' },
     { kind: 'code-block', label: 'Code Block', icon: 'i-lucide-square-code', tooltip: 'Code Block', group: 'block-format' },
-    { kind: 'table', label: 'Table', icon: 'i-lucide-table', tooltip: 'Insert Table', group: 'insert' },
     { kind: 'horizontal-rule', label: 'Divider', icon: 'i-lucide-minus', tooltip: 'Divider', group: 'insert' },
   ],
 ]

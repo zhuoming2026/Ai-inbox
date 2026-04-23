@@ -104,9 +104,9 @@ export function isActionActive(editor: Editor, kind: EditorActionKind): boolean 
 export function isActionDisabled(editor: Editor, kind: EditorActionKind): boolean {
   switch (kind) {
     case 'undo':
-      return !(editor.can() as any).chain().focus().undo().run()
+      return !editor.can().undo()
     case 'redo':
-      return !(editor.can() as any).chain().focus().redo().run()
+      return !editor.can().redo()
     default:
       return false
   }
