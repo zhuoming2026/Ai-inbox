@@ -31,7 +31,6 @@ function handleItemClick(item: EditorToolbarItem) {
   }
   executeToolbarItem(props.editor, item, props.options ?? {})
 }
-
 </script>
 
 <template>

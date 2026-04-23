@@ -42,4 +42,6 @@ export { createSlashCommand } from './extensions/slash-command'
 
 export { runEditorAction, isActionActive, isActionDisabled } from './composables/useEditorAction'
 export { useFixedToolbarItems, useBubbleToolbarItems, useFloatingToolbarItems, executeToolbarItem } from './composables/useToolbarItems'
+export { useSuggestionItems } from './composables/useSuggestionItems'
+export { useEditorSelection } from './composables/useEditorSelection'
 export { useSlashCommand } from './composables/useSlashCommand'
