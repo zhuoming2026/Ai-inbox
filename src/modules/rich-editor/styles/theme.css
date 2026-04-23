@@ -2,88 +2,106 @@
 /* Override these in your app to theme the editor without touching the CSS */
 
 :root {
-  /* Borders */
-  --editor-border: #e5e7eb;
-  --editor-focus-border: #6366f1;
-  --editor-focus-ring: rgba(99, 102, 241, 0.15);
-
-  /* Backgrounds */
-  --editor-bg: #ffffff;
-  --editor-toolbar-bg: #f9fafb;
-  --editor-toolbar-hover-bg: #f3f4f6;
-  --editor-toolbar-active-bg: #e0e7ff;
-  --editor-bubble-bg: #1f2937;
+  /* Surface */
+  --editor-border: rgba(98, 74, 26, 0.12);
+  --editor-border-strong: rgba(98, 74, 26, 0.18);
+  --editor-focus-border: oklch(0.71 0.11 83);
+  --editor-focus-ring: color-mix(in oklab, oklch(0.71 0.11 83) 16%, transparent);
+  --editor-shadow: 0 24px 60px rgba(86, 62, 18, 0.08), 0 6px 18px rgba(86, 62, 18, 0.06);
+  --editor-bg:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98) 0%, rgba(255, 255, 255, 1) 16%);
+  --editor-content-bg: rgba(255, 255, 255, 0.78);
+  --editor-toolbar-bg: rgba(251, 248, 241, 0.9);
+  --editor-toolbar-border: rgba(98, 74, 26, 0.08);
+  --editor-toolbar-hover-bg: rgba(132, 101, 35, 0.08);
+  --editor-toolbar-active-bg: rgba(250, 186, 24, 0.16);
+  --editor-toolbar-active-strong-bg: rgba(250, 186, 24, 0.22);
   --editor-table-header-bg: #f9fafb;
   --editor-table-cell-bg: #ffffff;
+  --editor-shell-radius: 1rem;
+  --editor-toolbar-radius: 0.75rem;
+  --editor-control-radius: 0.7rem;
+  --editor-control-height: 2rem;
 
   /* Text */
   --editor-heading: #111827;
-  --editor-text: #374151;
-  --editor-placeholder: #9ca3af;
-  --editor-link-color: #6366f1;
+  --editor-text: #3f3a2d;
+  --editor-text-muted: #8b7e66;
+  --editor-placeholder: #b2a58d;
+  --editor-link-color: oklch(0.58 0.18 255);
 
   /* Specific */
-  --editor-blockquote-border: #6366f1;
-  --editor-blockquote-text: #6b7280;
-  --editor-hr-border: #e5e7eb;
-  --editor-code-bg: #1e293b;
-  --editor-inline-code-bg: #f3f4f6;
-  --editor-inline-code-color: #dc2626;
-  --editor-table-border: #e5e7eb;
-  --editor-toolbar-icon: #6b7280;
-  --editor-toolbar-icon-hover: #374151;
-  --editor-toolbar-active-icon: #4f46e5;
+  --editor-blockquote-border: rgba(214, 163, 55, 0.32);
+  --editor-blockquote-text: #6f6552;
+  --editor-hr-border: rgba(98, 74, 26, 0.11);
+  --editor-code-bg: #1b2433;
+  --editor-inline-code-bg: rgba(160, 124, 51, 0.1);
+  --editor-inline-code-color: #8a4f12;
+  --editor-table-border: rgba(98, 74, 26, 0.12);
+  --editor-toolbar-icon: #736854;
+  --editor-toolbar-icon-hover: #2f2a1f;
+  --editor-toolbar-active-icon: #8e5a11;
 
-  /* ─── Popover (Bubble / Link / Slash) ─────────────────────────────────── */
-
-  --editor-popover-bg: #ffffff;
-  --editor-popover-border: rgba(26, 26, 26, 0.06);
-  --editor-popover-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
-  --editor-popover-radius: 0.375rem;
-  --editor-popover-item-hover: rgba(0, 0, 0, 0.06);
-  --editor-popover-item-active: rgba(99, 102, 241, 0.1);
-  --editor-popover-icon: #374151;
-  --editor-popover-icon-hover: #111827;
-  --editor-popover-icon-active: #4f46e5;
-  --editor-popover-input-color: #374151;
-  --editor-popover-input-placeholder: #9ca3af;
+  /* Popover (Bubble / Link / Slash) */
+  --editor-popover-bg: rgba(255, 255, 255, 0.98);
+  --editor-popover-border: rgba(98, 74, 26, 0.12);
+  --editor-popover-shadow: 0 18px 42px rgba(68, 50, 17, 0.12), 0 4px 14px rgba(68, 50, 17, 0.08);
+  --editor-popover-radius: 0.95rem;
+  --editor-popover-item-hover: rgba(153, 117, 39, 0.08);
+  --editor-popover-item-active: rgba(250, 186, 24, 0.16);
+  --editor-popover-icon: #4b4031;
+  --editor-popover-icon-hover: #231f17;
+  --editor-popover-icon-active: #8e5a11;
+  --editor-popover-input-color: #2f2a1f;
+  --editor-popover-input-placeholder: #aa9a80;
+  --editor-popover-subtle-bg: rgba(247, 241, 230, 0.9);
+  --editor-popover-subtle-border: rgba(98, 74, 26, 0.08);
+  --editor-popover-label: #94856d;
 }
 
 /* Dark mode tokens (apply .dark class or use your theme system) */
 .dark {
-  --editor-border: #374151;
-  --editor-bg: #111827;
-  --editor-toolbar-bg: #1f2937;
-  --editor-toolbar-hover-bg: #374151;
-  --editor-toolbar-active-bg: rgba(99, 102, 241, 0.2);
-  --editor-focus-border: #818cf8;
-  --editor-focus-ring: rgba(129, 140, 248, 0.2);
-  --editor-heading: #f9fafb;
-  --editor-text: #d1d5db;
-  --editor-placeholder: #6b7280;
-  --editor-link-color: #818cf8;
-  --editor-blockquote-border: #818cf8;
-  --editor-blockquote-text: #9ca3af;
-  --editor-hr-border: #374151;
+  --editor-border: rgba(245, 231, 205, 0.11);
+  --editor-border-strong: rgba(245, 231, 205, 0.16);
+  --editor-bg:
+    linear-gradient(180deg, rgba(31, 27, 20, 0.98) 0%, rgba(21, 18, 14, 1) 24%);
+  --editor-content-bg: rgba(36, 30, 22, 0.72);
+  --editor-toolbar-bg: rgba(36, 30, 22, 0.88);
+  --editor-toolbar-border: rgba(245, 231, 205, 0.08);
+  --editor-toolbar-hover-bg: rgba(245, 231, 205, 0.08);
+  --editor-toolbar-active-bg: rgba(250, 186, 24, 0.16);
+  --editor-toolbar-active-strong-bg: rgba(250, 186, 24, 0.22);
+  --editor-focus-border: oklch(0.77 0.1 83);
+  --editor-focus-ring: color-mix(in oklab, oklch(0.77 0.1 83) 20%, transparent);
+  --editor-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), 0 8px 20px rgba(0, 0, 0, 0.2);
+  --editor-heading: #f8f1e3;
+  --editor-text: #ded3bf;
+  --editor-text-muted: #a99a7d;
+  --editor-placeholder: #7f7565;
+  --editor-link-color: oklch(0.76 0.12 249);
+  --editor-blockquote-border: rgba(250, 186, 24, 0.24);
+  --editor-blockquote-text: #c7b89a;
+  --editor-hr-border: rgba(245, 231, 205, 0.12);
   --editor-code-bg: #0f172a;
-  --editor-inline-code-bg: #374151;
-  --editor-inline-code-color: #f87171;
-  --editor-table-border: #374151;
-  --editor-table-header-bg: #1f2937;
-  --editor-table-cell-bg: #111827;
-  --editor-toolbar-icon: #9ca3af;
-  --editor-toolbar-icon-hover: #e5e7eb;
-  --editor-toolbar-active-icon: #a5b4fc;
-
-  /* ─── Popover (Bubble / Link / Slash) — same white in dark mode ─────────── */
-
-  --editor-popover-bg: #ffffff;
-  --editor-popover-border: rgba(255, 255, 255, 0.08);
-  --editor-popover-item-hover: rgba(0, 0, 0, 0.06);
-  --editor-popover-item-active: rgba(99, 102, 241, 0.15);
-  --editor-popover-icon: #374151;
-  --editor-popover-icon-hover: #111827;
-  --editor-popover-icon-active: #6366f1;
-  --editor-popover-input-color: #374151;
-  --editor-popover-input-placeholder: #9ca3af;
+  --editor-inline-code-bg: rgba(250, 186, 24, 0.12);
+  --editor-inline-code-color: #ffd089;
+  --editor-table-border: rgba(245, 231, 205, 0.12);
+  --editor-table-header-bg: rgba(53, 44, 31, 0.98);
+  --editor-table-cell-bg: rgba(28, 24, 18, 0.96);
+  --editor-toolbar-icon: #c4b59a;
+  --editor-toolbar-icon-hover: #fff4df;
+  --editor-toolbar-active-icon: #ffd089;
+  --editor-popover-bg: rgba(38, 31, 22, 0.98);
+  --editor-popover-border: rgba(245, 231, 205, 0.1);
+  --editor-popover-shadow: 0 18px 42px rgba(0, 0, 0, 0.34), 0 4px 14px rgba(0, 0, 0, 0.24);
+  --editor-popover-item-hover: rgba(245, 231, 205, 0.08);
+  --editor-popover-item-active: rgba(250, 186, 24, 0.18);
+  --editor-popover-icon: #e4d8c4;
+  --editor-popover-icon-hover: #fff5e5;
+  --editor-popover-icon-active: #ffd089;
+  --editor-popover-input-color: #f7eddd;
+  --editor-popover-input-placeholder: #93866f;
+  --editor-popover-subtle-bg: rgba(62, 50, 35, 0.9);
+  --editor-popover-subtle-border: rgba(245, 231, 205, 0.08);
+  --editor-popover-label: #a7987a;
 }

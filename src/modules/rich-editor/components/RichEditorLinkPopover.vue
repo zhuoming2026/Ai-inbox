@@ -85,42 +85,56 @@ function handleKeydown(e: KeyboardEvent) {
     :style="position"
     @keydown="handleKeydown"
   >
-    <input
-      v-model="url"
-      type="url"
-      placeholder="Paste a link..."
-      :disabled="disabled"
-      @keydown="handleKeydown"
-    />
-    <button
-      type="button"
-      title="Apply link"
-      :disabled="!url && !active"
-      @click="apply"
-    >
-      <n-icon size="15">
-        <component :is="linkPopoverIcons.apply" />
-      </n-icon>
-    </button>
-    <button
-      type="button"
-      title="Open in new tab"
-      :disabled="!url && !active"
-      @click="openInNewTab"
-    >
-      <n-icon size="15">
-        <component :is="linkPopoverIcons.open" />
-      </n-icon>
-    </button>
-    <button
-      type="button"
-      title="Remove link"
-      :disabled="!url && !active"
-      @click="remove"
-    >
-      <n-icon size="15">
-        <component :is="linkPopoverIcons.remove" />
-      </n-icon>
-    </button>
+    <div class="rich-editor__link-popover-main">
+      <span class="rich-editor__link-popover-label">Edit Link</span>
+      <div class="rich-editor__link-popover-input-wrap">
+        <span class="rich-editor__link-popover-leading" aria-hidden="true">
+          <n-icon size="15">
+            <component :is="linkPopoverIcons.open" />
+          </n-icon>
+        </span>
+        <input
+          v-model="url"
+          type="url"
+          placeholder="Paste a link..."
+          :disabled="disabled"
+          @keydown="handleKeydown"
+        />
+      </div>
+    </div>
+
+    <div class="rich-editor__link-popover-actions">
+      <button
+        type="button"
+        class="is-primary"
+        title="Apply link"
+        :disabled="!url && !active"
+        @click="apply"
+      >
+        <n-icon size="15">
+          <component :is="linkPopoverIcons.apply" />
+        </n-icon>
+      </button>
+      <button
+        type="button"
+        title="Open in new tab"
+        :disabled="!url && !active"
+        @click="openInNewTab"
+      >
+        <n-icon size="15">
+          <component :is="linkPopoverIcons.open" />
+        </n-icon>
+      </button>
+      <button
+        type="button"
+        title="Remove link"
+        :disabled="!url && !active"
+        @click="remove"
+      >
+        <n-icon size="15">
+          <component :is="linkPopoverIcons.remove" />
+        </n-icon>
+      </button>
+    </div>
   </div>
 </template>
