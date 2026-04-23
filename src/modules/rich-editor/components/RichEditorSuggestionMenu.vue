@@ -35,35 +35,26 @@ function onKeydown(event: KeyboardEvent) {
     @keydown="onKeydown"
   >
     <template v-if="items.length > 0">
-      <div class="rich-editor__suggestion-group">
-        <button
-          v-for="(item, index) in items"
-          :key="item.id"
-          type="button"
-          class="rich-editor__suggestion-item"
-          :class="{ 'is-selected': index === selectedIndex }"
-          @click="$emit('execute', item)"
-          @mouseenter="$emit('update:selectedIndex', index)"
-        >
-          <span class="rich-editor__suggestion-item-icon">
-            <n-icon v-if="resolveEditorIcon(item)" size="16">
-              <component :is="resolveEditorIcon(item)" />
-            </n-icon>
-            <span v-else class="rich-editor__toolbar-text">{{ resolveEditorTextFallback(item) }}</span>
-          </span>
-          <div>
-            <div class="rich-editor__suggestion-item-text">{{ item.label }}</div>
-            <div v-if="item.description" class="rich-editor__suggestion-item-description">
-              {{ item.description }}
-            </div>
-          </div>
-        </button>
-      </div>
+      <button
+        v-for="(item, index) in items"
+        :key="item.id"
+        type="button"
+        class="rich-editor__suggestion-item"
+        :class="{ 'is-selected': index === selectedIndex }"
+        @click="$emit('execute', item)"
+        @mouseenter="$emit('update:selectedIndex', index)"
+      >
+        <span class="rich-editor__suggestion-item-icon">
+          <n-icon v-if="resolveEditorIcon(item)" size="16">
+            <component :is="resolveEditorIcon(item)" />
+          </n-icon>
+          <span v-else class="rich-editor__toolbar-text">{{ resolveEditorTextFallback(item) }}</span>
+        </span>
+        <span class="rich-editor__suggestion-item-text">{{ item.label }}</span>
+      </button>
     </template>
-    <div v-else class="rich-editor__suggestion-group">
-      <div class="rich-editor__suggestion-group-label" style="padding: 0.5rem;">
-        No results
-      </div>
+    <div v-else class="rich-editor__suggestion-empty">
+      No results
     </div>
   </div>
 </template>

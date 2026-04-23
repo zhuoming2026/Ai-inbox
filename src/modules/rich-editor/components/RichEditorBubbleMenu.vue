@@ -53,7 +53,7 @@ watch(() => props.shouldShow, updateVisibility)
 <template>
   <div
     v-if="show && position"
-    class="rich-editor__overlay"
+    class="rich-editor__overlay rich-editor__bubble-menu--white"
     :style="position"
   >
     <RichEditorToolbar

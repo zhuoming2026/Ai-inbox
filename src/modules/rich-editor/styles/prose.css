@@ -4,7 +4,7 @@
 
 .rich-editor__content {
   flex: 1;
-  overflow-y: auto;
+  min-height: 100%;
   padding: 1rem 1.5rem;
   outline: none;
 }

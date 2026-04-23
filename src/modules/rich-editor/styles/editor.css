@@ -19,14 +19,19 @@
   z-index: 30;
 }
 
-.rich-editor:focus-within {
-  border-color: var(--editor-focus-border, #6366f1);
-  box-shadow: 0 0 0 3px var(--editor-focus-ring, rgba(99, 102, 241, 0.15));
-}
-
 .rich-editor--readonly {
   opacity: 0.75;
   pointer-events: none;
+}
+
+/* ─── Scroll Wrapper ───────────────────────────────────────────────────────── */
+
+.rich-editor__scroll-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ─── Toolbar ──────────────────────────────────────────────────────────────── */
@@ -93,30 +98,38 @@
 
 /* ─── Bubble Menu ──────────────────────────────────────────────────────────── */
 
+/* White variant (bubble menu wrapper with white background) */
+.rich-editor__bubble-menu--white {
+  background: #ffffff;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 0.25rem 0.375rem;
+}
+
 .rich-editor__bubble-menu {
   display: flex;
   align-items: center;
   gap: 0.125rem;
-  padding: 0.25rem 0.375rem;
-  background: var(--editor-bubble-bg, #1f2937);
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .rich-editor__bubble-menu .rich-editor__toolbar-btn {
-  color: #e5e7eb;
+  color: #374151;
   width: 1.625rem;
   height: 1.625rem;
 }
 
 .rich-editor__bubble-menu .rich-editor__toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: rgba(0, 0, 0, 0.06);
+  color: #111827;
 }
 
 .rich-editor__bubble-menu .rich-editor__toolbar-btn.is-active {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
 }
 
 /* ─── Floating Menu ────────────────────────────────────────────────────────── */
@@ -214,26 +227,13 @@
 .rich-editor__suggestion-menu {
   position: absolute;
   z-index: 30;
-  width: 280px;
+  width: 240px;
   max-height: 320px;
   overflow-y: auto;
-  background: var(--editor-bubble-bg, #1f2937);
+  background: #ffffff;
   border-radius: 0.375rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
   padding: 0.25rem;
-}
-
-.rich-editor__suggestion-group {
-  margin-bottom: 0.25rem;
-}
-
-.rich-editor__suggestion-group-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-  padding: 0.375rem 0.5rem 0.25rem;
 }
 
 .rich-editor__suggestion-item {
@@ -245,7 +245,7 @@
   border: none;
   border-radius: 0.25rem;
   background: transparent;
-  color: #e5e7eb;
+  color: #374151;
   font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
@@ -254,7 +254,7 @@
 
 .rich-editor__suggestion-item:hover,
 .rich-editor__suggestion-item.is-selected {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .rich-editor__suggestion-item-icon {
@@ -265,20 +265,43 @@
   width: 1.25rem;
   text-align: center;
   color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .rich-editor__suggestion-item.is-selected .rich-editor__suggestion-item-icon {
-  color: #e5e7eb;
+  color: #4f46e5;
 }
 
 .rich-editor__suggestion-item-text {
   flex: 1;
 }
 
-.rich-editor__suggestion-item-description {
-  font-size: 0.6875rem;
-  color: #6b7280;
-  margin-top: 0.125rem;
+.rich-editor__suggestion-empty {
+  padding: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+}
+
+/* Dark mode — suggestion menu stays white, items adapt */
+.dark .rich-editor__suggestion-menu {
+  background: #ffffff;
+}
+
+.dark .rich-editor__suggestion-item {
+  color: #374151;
+}
+
+.dark .rich-editor__suggestion-item:hover,
+.dark .rich-editor__suggestion-item.is-selected {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.dark .rich-editor__suggestion-item-icon {
+  color: #9ca3af;
+}
+
+.dark .rich-editor__suggestion-item.is-selected .rich-editor__suggestion-item-icon {
+  color: #4f46e5;
 }
 
 /* ─── Dropdown block menu (drag handle) ─────────────────────────────────── */
@@ -321,4 +344,23 @@
   --editor-toolbar-hover-bg: #374151;
   --editor-focus-border: #818cf8;
   --editor-focus-ring: rgba(129, 140, 248, 0.2);
+}
+
+/* Bubble menu white variant — same in dark mode (always white) */
+.dark .rich-editor__bubble-menu--white {
+  background: #ffffff;
+}
+
+.dark .rich-editor__bubble-menu .rich-editor__toolbar-btn {
+  color: #374151;
+}
+
+.dark .rich-editor__bubble-menu .rich-editor__toolbar-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #111827;
+}
+
+.dark .rich-editor__bubble-menu .rich-editor__toolbar-btn.is-active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
 }

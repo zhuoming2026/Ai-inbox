@@ -230,7 +230,7 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class: 'rich-editor__content',
-      style: `min-height: ${props.minHeight}; max-width: ${props.maxWidth};`,
+      style: `max-width: ${props.maxWidth};`,
     },
     handlePaste(view, event) {
       const text = event.clipboardData?.getData('text/plain') ?? ''
@@ -343,7 +343,9 @@ defineExpose({ editor })
     />
 
     <!-- Editor Content -->
-    <EditorContent :editor="editor" />
+    <div class="rich-editor__scroll-wrapper">
+      <EditorContent :editor="editor" />
+    </div>
 
     <!-- Bubble Menu (selection toolbar) -->
     <RichEditorBubbleMenu

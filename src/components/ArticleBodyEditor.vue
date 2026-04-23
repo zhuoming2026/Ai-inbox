@@ -45,5 +45,6 @@ async function handleInsertImage() {
   min-height: 0;
   display: flex;
   overflow: hidden;
+  height: 100%;
 }
 </style>

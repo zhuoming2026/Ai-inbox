@@ -63,30 +63,29 @@
               文件已在外部更新，你当前保留的是本地未保存编辑。
             </div>
 
-            <div class="editor-workspace" :data-frontmatter-open="frontmatterExpanded">
-              <section class="frontmatter-panel" :data-open="frontmatterExpanded">
-                <button class="frontmatter-toggle" type="button" @click="toggleFrontmatterExpanded">
-                  <span class="frontmatter-toggle-title">文档属性</span>
-                  <span class="frontmatter-toggle-meta">
-                    {{ frontmatterExpanded ? '收起' : frontmatterSummary }}
-                  </span>
-                </button>
+            <!-- frontmatter-panel 提升到 editor-shell 层，作为真浮层 -->
+            <section class="frontmatter-panel" :data-open="frontmatterExpanded">
+              <button class="frontmatter-toggle" type="button" @click="toggleFrontmatterExpanded">
+                <span class="frontmatter-toggle-title">文档属性</span>
+                <span class="frontmatter-toggle-meta">
+                  {{ frontmatterExpanded ? '收起' : frontmatterSummary }}
+                </span>
+              </button>
 
-                <div v-if="frontmatterExpanded" class="frontmatter-body">
-                  <textarea
-                    v-model="frontmatterText"
-                    class="frontmatter-textarea"
-                    placeholder="title: 标题&#10;status: ready&#10;bucket: inbox"
-                    spellcheck="false"
-                  />
-                </div>
-              </section>
-
-              <div class="editor-surface">
-                <section class="editor-canvas">
-                  <ArticleBodyEditor v-model="bodyMarkdown" />
-                </section>
+              <div v-if="frontmatterExpanded" class="frontmatter-body">
+                <textarea
+                  v-model="frontmatterText"
+                  class="frontmatter-textarea"
+                  placeholder="title: 标题&#10;status: ready&#10;bucket: inbox"
+                  spellcheck="false"
+                />
               </div>
+            </section>
+
+            <div class="editor-workspace" :data-frontmatter-open="frontmatterExpanded">
+              <section class="editor-canvas">
+                <ArticleBodyEditor v-model="bodyMarkdown" />
+              </section>
             </div>
           </div>
         </section>
@@ -470,6 +469,7 @@ onUnmounted(() => {
 .article-page {
   width: 100%;
   height: 100vh;
+  overflow: hidden;
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
@@ -567,6 +567,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: flex;
+  height: 100%;
   padding: 18px 22px 22px;
 }
 
@@ -600,13 +601,16 @@ onUnmounted(() => {
   position: relative;
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .frontmatter-panel {
   position: absolute;
   top: 18px;
   right: 18px;
-  z-index: 3;
+  z-index: 40;
   width: min(340px, calc(100% - 36px));
   display: flex;
   flex-direction: column;
@@ -672,11 +676,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  transition: padding-right var(--transition-slow);
-}
-
-.editor-workspace[data-frontmatter-open='true'] .editor-surface {
-  padding-right: min(360px, 32vw);
+  /* No padding挤压 — frontmatter panel floats over the editor */
 }
 
 .editor-canvas {
@@ -718,9 +718,6 @@ onUnmounted(() => {
     width: auto;
   }
 
-  .editor-workspace[data-frontmatter-open='true'] .editor-surface {
-    padding-right: 0;
-    padding-top: 240px;
-  }
+  /* frontmatter panel 移动端同样浮空，不挤压 editor */
 }
 </style>

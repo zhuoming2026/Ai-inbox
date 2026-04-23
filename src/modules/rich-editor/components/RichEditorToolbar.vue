@@ -54,7 +54,7 @@ function handleItemClick(item: EditorToolbarItem) {
           :class="{ 'is-active': item.active }"
           :disabled="item.disabled"
           :title="item.tooltip ?? item.label"
-          @click="handleItemClick(item)"
+          @click.stop="handleItemClick(item)"
         >
           <n-icon v-if="resolveEditorIcon(item)" size="16">
             <component :is="resolveEditorIcon(item)" />
