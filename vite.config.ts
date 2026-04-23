@@ -459,12 +459,9 @@ function devInboxPlugin(): Plugin {
 }
 
 export default defineConfig(async () => {
-  const { default: ui } = await import('@nuxt/ui/vite')
-
   return {
     plugins: [
       vue(),
-      ui(),
       devInboxPlugin(),
       electron([
         {
