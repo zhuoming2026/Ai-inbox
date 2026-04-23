@@ -16,6 +16,8 @@ export type {
   EditorToolbarItem,
   EditorToolbarProps,
   ContentType,
+  TypographyTheme,
+  EditorCodeTheme,
   RichEditorProps,
   RichEditorEmits,
   LinkPopoverRef,

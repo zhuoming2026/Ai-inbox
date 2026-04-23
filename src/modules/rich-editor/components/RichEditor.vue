@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, withDefaults, defineProps, defineEmits, defineExpose, nextTick } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, withDefaults, defineProps, defineEmits, defineExpose, nextTick } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import type { EditorView } from '@tiptap/pm/view'
@@ -23,10 +23,15 @@ import RichEditorSuggestionMenu from './RichEditorSuggestionMenu.vue'
 import RichEditorLinkPopover from './RichEditorLinkPopover.vue'
 
 import '../styles/editor.css'
-import '../styles/content/base.css'
-import '../styles/content/themes/default.css'
-import '../styles/content/themes/serif.css'
 import '../styles/theme.css'
+import '../styles/typography/base.css'
+import '../styles/typography/themes/default.css'
+import '../styles/typography/themes/serif.css'
+import '../styles/typography/themes/typora-github.css'
+import '../styles/code-themes/github.css'
+import '../styles/code-themes/night.css'
+import '../styles/code-themes/paper.css'
+import '../styles/code-themes/maize.css'
 
 const props = withDefaults(defineProps<RichEditorProps>(), {
   modelValue: '',
@@ -41,6 +46,9 @@ const props = withDefaults(defineProps<RichEditorProps>(), {
   contentTheme: 'default',
   starterKit: () => ({ undoRedo: true }),
 })
+
+const resolvedTypographyTheme = computed(() => props.typographyTheme ?? props.contentTheme ?? 'default')
+const resolvedCodeTheme = computed(() => props.codeTheme ?? 'github')
 
 const emit = defineEmits<RichEditorEmits>()
 
@@ -334,7 +342,9 @@ defineExpose({ editor })
     ref="rootRef"
     class="rich-editor"
     :class="{ 'rich-editor--readonly': !editable }"
-    :data-content-theme="contentTheme"
+    :data-content-theme="resolvedTypographyTheme"
+    :data-typography-theme="resolvedTypographyTheme"
+    :data-code-theme="resolvedCodeTheme"
   >
     <!-- Fixed Toolbar -->
     <RichEditorToolbar

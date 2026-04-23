@@ -25,6 +25,8 @@ const store = new Store({
     themeMode: 'system',
     lightTheme: 'light',
     darkTheme: 'dark',
+    editorTypographyTheme: 'typora-github',
+    editorCodeTheme: 'github',
     customThemes: defaultThemeConfigs,
   }
 })

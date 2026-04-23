@@ -1,0 +1,9 @@
+/* ─── Code Theme: Maize ───────────────────────────────────────────────────── */
+
+[data-code-theme='maize'] {
+  --typography-inline-code-bg: rgba(229, 183, 59, 0.18);
+  --typography-inline-code-color: #7f4e00;
+  --typography-code-block-bg: #fff7d8;
+  --typography-code-block-border: rgba(224, 176, 54, 0.28);
+  --typography-code-block-color: #4a3a16;
+}

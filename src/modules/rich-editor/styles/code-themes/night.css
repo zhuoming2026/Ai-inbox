@@ -1,0 +1,9 @@
+/* ─── Code Theme: Night ───────────────────────────────────────────────────── */
+
+[data-code-theme='night'] {
+  --typography-inline-code-bg: rgba(110, 118, 129, 0.18);
+  --typography-inline-code-color: #ffb86b;
+  --typography-code-block-bg: #0d1117;
+  --typography-code-block-border: #30363d;
+  --typography-code-block-color: #c9d1d9;
+}

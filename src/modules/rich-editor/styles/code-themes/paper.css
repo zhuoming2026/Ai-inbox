@@ -1,0 +1,9 @@
+/* ─── Code Theme: Paper ───────────────────────────────────────────────────── */
+
+[data-code-theme='paper'] {
+  --typography-inline-code-bg: rgba(146, 122, 88, 0.12);
+  --typography-inline-code-color: #7d3f16;
+  --typography-code-block-bg: #fbf7ef;
+  --typography-code-block-border: rgba(146, 122, 88, 0.16);
+  --typography-code-block-color: #3b3128;
+}

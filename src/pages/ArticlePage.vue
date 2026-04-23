@@ -13,6 +13,21 @@
         </div>
 
         <div class="header-actions">
+          <div class="editor-appearance-controls">
+            <label class="editor-appearance-field">
+              <span class="editor-appearance-label">正文</span>
+              <select class="editor-appearance-select" :value="editorTypographyTheme" @change="onTypographyThemeChange">
+                <option v-for="theme in typographyThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+              </select>
+            </label>
+            <label class="editor-appearance-field">
+              <span class="editor-appearance-label">代码</span>
+              <select class="editor-appearance-select" :value="editorCodeTheme" @change="onCodeThemeChange">
+                <option v-for="theme in codeThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+              </select>
+            </label>
+          </div>
+
           <span class="save-indicator" :data-state="saveState">{{ saveIndicatorLabel }}</span>
 
           <n-button round tertiary :disabled="!isDirty || saveState === 'saving'" @click="saveNow(false)">
@@ -84,7 +99,11 @@
 
             <div class="editor-workspace" :data-frontmatter-open="frontmatterExpanded">
               <section class="editor-canvas">
-                <ArticleBodyEditor v-model="bodyMarkdown" />
+                <ArticleBodyEditor
+                  v-model="bodyMarkdown"
+                  :typography-theme="editorTypographyTheme"
+                  :code-theme="editorCodeTheme"
+                />
               </section>
             </div>
           </div>
@@ -106,6 +125,7 @@ import {
 } from 'naive-ui'
 import { ArrowBackOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
+import type { EditorCodeTheme, TypographyTheme } from '../modules/rich-editor'
 import {
   buildFrontmatter,
   buildRawDocument,
@@ -134,6 +154,8 @@ const themeOverrides: GlobalThemeOverrides = {
 
 const frontmatterText = ref('')
 const bodyMarkdown = ref('')
+const editorTypographyTheme = ref<TypographyTheme>('typora-github')
+const editorCodeTheme = ref<EditorCodeTheme>('github')
 const lastSavedRawDocument = ref('')
 const frontmatterExpanded = ref(false)
 const saveState = ref<SaveState>('saved')
@@ -147,6 +169,19 @@ let suppressDirtyTracking = false
 let queuedSaveAfterCurrent = false
 let activeSaveSnapshot: string | null = null
 let recentLocalWrite: { raw: string; timestamp: number } | null = null
+
+const typographyThemeOptions: Array<{ label: string; value: TypographyTheme }> = [
+  { label: 'Typora GitHub', value: 'typora-github' },
+  { label: 'Newsprint', value: 'serif' },
+  { label: 'Default', value: 'default' },
+]
+
+const codeThemeOptions: Array<{ label: string; value: EditorCodeTheme }> = [
+  { label: 'GitHub', value: 'github' },
+  { label: 'Night', value: 'night' },
+  { label: 'Paper', value: 'paper' },
+  { label: 'Maize', value: 'maize' },
+]
 
 const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
@@ -280,6 +315,47 @@ async function loadRawDocument() {
     markAsSaved: true,
     autoExpand: true,
   })
+}
+
+async function loadEditorAppearanceSettings() {
+  const settings = await window.electronAPI?.getSettings()
+  const typographyValue = settings?.editorTypographyTheme
+  const codeValue = settings?.editorCodeTheme
+
+  if (typographyValue === 'default' || typographyValue === 'serif' || typographyValue === 'typora-github') {
+    editorTypographyTheme.value = typographyValue
+  }
+
+  if (codeValue === 'github' || codeValue === 'night' || codeValue === 'paper' || codeValue === 'maize') {
+    editorCodeTheme.value = codeValue
+  }
+}
+
+async function persistEditorAppearanceSettings(patch: Partial<{ editorTypographyTheme: TypographyTheme; editorCodeTheme: EditorCodeTheme }>) {
+  const current = await window.electronAPI?.getSettings()
+  if (!current) return
+
+  const next = {
+    ...current,
+    ...patch,
+  }
+
+  await window.electronAPI?.saveSettings(next)
+  window.dispatchEvent(new CustomEvent('settings-changed', { detail: next }))
+}
+
+async function onTypographyThemeChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  if (value !== 'default' && value !== 'serif' && value !== 'typora-github') return
+  editorTypographyTheme.value = value
+  await persistEditorAppearanceSettings({ editorTypographyTheme: value })
+}
+
+async function onCodeThemeChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  if (value !== 'github' && value !== 'night' && value !== 'paper' && value !== 'maize') return
+  editorCodeTheme.value = value
+  await persistEditorAppearanceSettings({ editorCodeTheme: value })
 }
 
 async function saveNow(showSuccessMessage = false): Promise<boolean> {
@@ -447,6 +523,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 onMounted(() => {
   void loadRawDocument()
+  void loadEditorAppearanceSettings()
   inboxUnsubscribe = window.electronAPI?.onInboxUpdate(() => {
     void handleExternalFileUpdate()
   }) || null
@@ -516,6 +593,44 @@ onUnmounted(() => {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.editor-appearance-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-control);
+  background: var(--surface-control);
+}
+
+.editor-appearance-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-appearance-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.editor-appearance-select {
+  min-width: 118px;
+  height: 30px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+}
+
+.editor-appearance-select:focus {
+  border-color: var(--color-primary);
 }
 
 .save-indicator {
@@ -706,6 +821,22 @@ onUnmounted(() => {
   .header-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .editor-appearance-controls {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 18px;
+  }
+
+  .editor-appearance-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .editor-appearance-select {
+    min-width: 0;
+    width: 100%;
   }
 
   .edit-panel {

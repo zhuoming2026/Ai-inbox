@@ -96,7 +96,9 @@ export interface ContentTypeOption {
 
 // ─── RichEditor Props ────────────────────────────────────────────────────────
 
-export type ContentTheme = 'default' | 'serif'
+export type TypographyTheme = 'default' | 'serif' | 'typora-github'
+export type EditorCodeTheme = 'github' | 'night' | 'paper' | 'maize'
+export type ContentTheme = TypographyTheme
 
 export interface RichEditorProps {
   modelValue?: string
@@ -108,7 +110,11 @@ export interface RichEditorProps {
   floating?: boolean
   minHeight?: string
   maxWidth?: string
-  /** Content theme for the article area */
+  /** Typography theme for markdown/article rendering */
+  typographyTheme?: TypographyTheme
+  /** Visual theme for inline code / code block presentation */
+  codeTheme?: EditorCodeTheme
+  /** @deprecated use typographyTheme */
   contentTheme?: ContentTheme
   /** Starter kit options */
   starterKit?: {

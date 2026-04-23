@@ -1,0 +1,9 @@
+/* ─── Code Theme: GitHub ──────────────────────────────────────────────────── */
+
+[data-code-theme='github'] {
+  --typography-inline-code-bg: #f6f8fa;
+  --typography-inline-code-color: #cf222e;
+  --typography-code-block-bg: #f6f8fa;
+  --typography-code-block-border: #d0d7de;
+  --typography-code-block-color: #24292f;
+}

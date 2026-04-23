@@ -97,7 +97,7 @@
                 </div>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">代码主题</span>
+                <span class="appearance-label">应用代码主题</span>
                 <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.codeThemeId" @change="persistAppearanceSettings(false)" />
               </div>
               <div class="appearance-row">
@@ -128,6 +128,18 @@
               <div class="appearance-row">
                 <span class="appearance-label">代码字体</span>
                 <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)" />
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">正文排版</span>
+                <select class="form-input appearance-input" v-model="settings.editorTypographyTheme" @change="persistAppearanceSettings(false)">
+                  <option v-for="theme in editorTypographyThemes" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+                </select>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">正文代码样式</span>
+                <select class="form-input appearance-input" v-model="settings.editorCodeTheme" @change="persistAppearanceSettings(false)">
+                  <option v-for="theme in editorCodeThemes" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+                </select>
               </div>
             </div>
           </div>
@@ -253,6 +265,7 @@ import { NIcon, useMessage } from 'naive-ui'
 import { ChevronBackOutline } from '@vicons/ionicons5'
 import { useTheme } from '../composables/useTheme'
 import { defaultThemeConfigs, normalizeThemeConfigs, themePresetMeta, type ThemePresetConfig, type ThemePresetId } from '../styles/theme-presets'
+import type { EditorCodeTheme, TypographyTheme } from '../modules/rich-editor'
 
 type SettingsSection = 'general' | 'appearance' | 'ai' | 'mcp'
 type ThemeMode = 'light' | 'dark' | 'system'
@@ -272,6 +285,8 @@ interface AppSettings {
   themeMode: ThemeMode
   lightTheme: LightThemePreset
   darkTheme: DarkThemePreset
+  editorTypographyTheme: TypographyTheme
+  editorCodeTheme: EditorCodeTheme
   customThemes: Record<ThemePresetId, ThemePresetConfig>
 }
 
@@ -286,6 +301,19 @@ const themeModes = [
   { label: '浅色', value: 'light' as const },
   { label: '深色', value: 'dark' as const },
   { label: '跟随系统', value: 'system' as const },
+]
+
+const editorTypographyThemes: Array<{ label: string; value: TypographyTheme }> = [
+  { label: 'Typora GitHub', value: 'typora-github' },
+  { label: 'Typora Newsprint', value: 'serif' },
+  { label: '默认正文', value: 'default' },
+]
+
+const editorCodeThemes: Array<{ label: string; value: EditorCodeTheme }> = [
+  { label: 'GitHub', value: 'github' },
+  { label: 'Night', value: 'night' },
+  { label: 'Paper', value: 'paper' },
+  { label: 'Maize', value: 'maize' },
 ]
 
 const settings = ref<AppSettings | null>(null)
@@ -351,6 +379,8 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
   let themeMode: ThemeMode = 'system'
   let lightTheme: LightThemePreset = 'light'
   let darkTheme: DarkThemePreset = 'dark'
+  let editorTypographyTheme: TypographyTheme = 'typora-github'
+  let editorCodeTheme: EditorCodeTheme = 'github'
 
   if (raw.themeMode === 'light' || raw.themeMode === 'dark' || raw.themeMode === 'system') {
     themeMode = raw.themeMode
@@ -362,6 +392,14 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
 
   if (raw.darkTheme === 'light' || raw.darkTheme === 'dark' || raw.darkTheme === 'notion' || raw.darkTheme === 'claude') {
     darkTheme = raw.darkTheme
+  }
+
+  if (raw.editorTypographyTheme === 'default' || raw.editorTypographyTheme === 'serif' || raw.editorTypographyTheme === 'typora-github') {
+    editorTypographyTheme = raw.editorTypographyTheme
+  }
+
+  if (raw.editorCodeTheme === 'github' || raw.editorCodeTheme === 'night' || raw.editorCodeTheme === 'paper' || raw.editorCodeTheme === 'maize') {
+    editorCodeTheme = raw.editorCodeTheme
   }
 
   return {
@@ -377,6 +415,8 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     themeMode,
     lightTheme,
     darkTheme,
+    editorTypographyTheme,
+    editorCodeTheme,
     customThemes: normalizeThemeConfigs(raw.customThemes),
   }
 }
