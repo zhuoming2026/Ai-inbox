@@ -5,7 +5,7 @@
 - **任务来源**：`typora-theme-package-single-theme-task.md`
 - **分支**：`codex/homepage-design-pass`
 - **提交**：`c89952e5`
-- **状态**：主体完成，待 Task 13（内置主题 CSS 入口补全）
+- **状态**：完成（Task 13 已补齐）
 
 ---
 
@@ -24,7 +24,7 @@
 | Task 5 | Electron IPC 拆分为 `preview` + `save` 两步 | ✅ |
 | Task 6-7 | Settings 新增 `activeThemeId` + 统一注入 `useImportedThemes` | ✅ |
 | Task 8-10 | SettingsPage.vue UI 改造（单下拉 + 导入弹窗 + 主题列表） | ✅ |
-| Task 11-13 | ArticlePage toolbar 接入整体主题（Task 13 未完成） | ⚠️ |
+| Task 11-13 | ArticlePage toolbar 接入整体主题，内置主题补齐 `[data-ai-theme]` 入口 | ✅ |
 | Task 14 | 验证脚本更新为 `[data-ai-theme]` 断言 | ✅ |
 | Task 15 | `useImportedThemes` composable 实现 | ✅ |
 | Task 16 | `browser-electron-api.ts` dev-mode stub 更新 | ✅ |
@@ -80,11 +80,11 @@
 
 ---
 
-## 未完成事项
+## 补充完成事项
 
 ### Task 13：内置主题补 `[data-ai-theme]` 入口
 
-内置主题文件（`typora-github` / `default` / `serif`）的 CSS 需要补一条：
+内置主题文件（`typora-github` / `default` / `serif`）的 CSS 已补齐：
 
 ```css
 [data-ai-theme='typora-github'] {
@@ -92,7 +92,7 @@
 }
 ```
 
-这样内置主题也能通过 `[data-ai-theme]` 生效。目前内置主题仍使用旧的 `[data-typography-theme]` 选择器，仅影响内置主题用户。导入主题已全部使用新选择器，不受影响。
+这样内置主题也能通过 `[data-ai-theme]` 生效。`useImportedThemes.activateTheme(id)` 同时支持内置主题：内置主题会移除导入主题 `<style>` 并设置根节点 `data-ai-theme`，导入主题仍读取 `theme.css` 后注入。
 
 ---
 

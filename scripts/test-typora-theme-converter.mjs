@@ -81,6 +81,28 @@ const testCases = [
       "[data-code-theme='" + EXPECTED_ID + "']",
     ],
   },
+  {
+    name: 'Typora 全局正文 selector 映射',
+    css: "h1, h2 { font-family: serif; }\np { font-size: 1rem; }\na { color: #2875d9; }\nbody, #write { font-family: 'Computer Modern'; }\n@media print { h1 { page-break-before: always; } }",
+    mustContain: [
+      "[data-ai-theme='" + EXPECTED_ID + "'] .tiptap h1,",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .rich-editor__content h1",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .tiptap h2,",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .rich-editor__content h2",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .tiptap p,",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .rich-editor__content p",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .tiptap a,",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .rich-editor__content a",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .tiptap,",
+      "[data-ai-theme='" + EXPECTED_ID + "'] .rich-editor__content",
+    ],
+    mustNotContain: [
+      'page-break-before',
+      "[data-typography-theme='" + EXPECTED_ID + "']",
+      "[data-app-theme='" + EXPECTED_ID + "']",
+      "[data-code-theme='" + EXPECTED_ID + "']",
+    ],
+  },
 ]
 
 let allPassed = true

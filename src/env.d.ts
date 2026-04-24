@@ -30,8 +30,9 @@ interface ElectronAPI {
   onInboxUpdate(cb: () => void): () => void
   theme: {
     previewTypora(): Promise<{ ok: boolean; draft: any | null }>
-    saveImported(data: { draft: any; name: string; activate: boolean }): Promise<{ ok: boolean; id?: string; metadata?: any }>
+    saveImported(data: { draft: any; name: string; activate: boolean }): Promise<{ ok: boolean; id?: string; metadata?: any; error?: string }>
     listImported(): Promise<any[]>
+    listFonts(): Promise<string[]>
     read(id: string): Promise<{ metadata: any; css: string } | null>
     delete(id: string): Promise<boolean>
   }

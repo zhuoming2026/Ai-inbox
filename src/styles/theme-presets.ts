@@ -1,7 +1,9 @@
-export type ThemePresetId = 'light' | 'dark' | 'notion' | 'claude'
+export type ThemePresetId = string
 export type ThemeVariant = 'light' | 'dark'
 
 export interface ThemePresetConfig {
+  id?: string
+  name?: string
   codeThemeId: string
   variant: ThemeVariant
   theme: {
@@ -20,9 +22,13 @@ export interface ThemePresetConfig {
     }
     surface: string
   }
+  articleCss?: string
+  codeCss?: string
 }
 
-export const themePresetMeta: Array<{ id: ThemePresetId; label: string; description: string }> = [
+export const BASE_THEME_IDS = ['light', 'dark'] as const
+
+export const themePresetMeta: Array<{ id: ThemePresetId; label: string; description: string; base?: boolean }> = [
   { id: 'light', label: 'Default Light', description: '黑白基线浅色主题' },
   { id: 'dark', label: 'Default Dark', description: '黑白基线深色主题' },
   { id: 'notion', label: 'Notion', description: '更纸感、更克制的浅色派生' },
@@ -31,6 +37,8 @@ export const themePresetMeta: Array<{ id: ThemePresetId; label: string; descript
 
 export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
   light: {
+    id: 'light',
+    name: 'Default Light',
     codeThemeId: 'github-light',
     variant: 'light',
     theme: {
@@ -51,6 +59,8 @@ export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
     },
   },
   dark: {
+    id: 'dark',
+    name: 'Default Dark',
     codeThemeId: 'github-dark',
     variant: 'dark',
     theme: {
@@ -71,6 +81,8 @@ export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
     },
   },
   notion: {
+    id: 'notion',
+    name: 'Notion',
     codeThemeId: 'absolutely',
     variant: 'light',
     theme: {
@@ -91,6 +103,8 @@ export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
     },
   },
   claude: {
+    id: 'claude',
+    name: 'Claude',
     codeThemeId: 'warm-neutral',
     variant: 'light',
     theme: {
@@ -116,45 +130,104 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+export function isBaseThemeId(id: string) {
+  return BASE_THEME_IDS.includes(id as (typeof BASE_THEME_IDS)[number])
+}
+
+export function getThemeName(id: string, config?: ThemePresetConfig) {
+  return config?.name || themePresetMeta.find((preset) => preset.id === id)?.label || id
+}
+
+export function slugifyThemeName(name: string, existingIds: string[] = []) {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'theme'
+
+  let next = base
+  let counter = 2
+  while (existingIds.includes(next)) {
+    next = `${base}-${counter}`
+    counter += 1
+  }
+  return next
+}
+
+export function normalizeThemeConfig(id: string, raw: unknown, fallback: ThemePresetConfig = defaultThemeConfigs.light): ThemePresetConfig {
+  const candidate = isObject(raw) ? raw : {}
+  const theme = isObject(candidate.theme) ? candidate.theme : (isObject(candidate.app) ? candidate.app : {})
+  const fonts = isObject(theme.fonts) ? theme.fonts : {}
+  const semanticColors = isObject(theme.semanticColors) ? theme.semanticColors : {}
+
+  return {
+    id,
+    name: typeof candidate.name === 'string' ? candidate.name : getThemeName(id, fallback),
+    codeThemeId: typeof candidate.codeThemeId === 'string' ? candidate.codeThemeId : fallback.codeThemeId,
+    variant: candidate.variant === 'dark' ? 'dark' : 'light',
+    theme: {
+      accent: typeof theme.accent === 'string' ? theme.accent : fallback.theme.accent,
+      contrast: typeof theme.contrast === 'number' ? theme.contrast : fallback.theme.contrast,
+      fonts: {
+        ui: typeof fonts.ui === 'string' ? fonts.ui : fallback.theme.fonts.ui,
+        code: typeof fonts.code === 'string' ? fonts.code : fallback.theme.fonts.code,
+      },
+      ink: typeof theme.ink === 'string' ? theme.ink : fallback.theme.ink,
+      opaqueWindows: typeof theme.opaqueWindows === 'boolean' ? theme.opaqueWindows : fallback.theme.opaqueWindows,
+      semanticColors: {
+        diffAdded: typeof semanticColors.diffAdded === 'string' ? semanticColors.diffAdded : fallback.theme.semanticColors.diffAdded,
+        diffRemoved: typeof semanticColors.diffRemoved === 'string' ? semanticColors.diffRemoved : fallback.theme.semanticColors.diffRemoved,
+        skill: typeof semanticColors.skill === 'string' ? semanticColors.skill : fallback.theme.semanticColors.skill,
+      },
+      surface: typeof theme.surface === 'string' ? theme.surface : fallback.theme.surface,
+    },
+    articleCss: typeof candidate.articleCss === 'string' ? candidate.articleCss : fallback.articleCss,
+    codeCss: typeof candidate.codeCss === 'string' ? candidate.codeCss : fallback.codeCss,
+  }
+}
+
 export function normalizeThemeConfigs(raw: unknown): Record<ThemePresetId, ThemePresetConfig> {
   const source = isObject(raw) ? raw : {}
-  const next = { ...defaultThemeConfigs }
+  const next: Record<ThemePresetId, ThemePresetConfig> = {}
 
-  for (const preset of themePresetMeta) {
-    const candidate = source[preset.id]
-    if (!isObject(candidate) || !isObject(candidate.theme)) continue
+  for (const [id, config] of Object.entries(defaultThemeConfigs)) {
+    next[id] = normalizeThemeConfig(id, source[id] || config, config)
+  }
 
-    const theme = candidate.theme
-    next[preset.id] = {
-      codeThemeId: typeof candidate.codeThemeId === 'string' ? candidate.codeThemeId : defaultThemeConfigs[preset.id].codeThemeId,
-      variant: candidate.variant === 'dark' ? 'dark' : 'light',
-      theme: {
-        accent: typeof theme.accent === 'string' ? theme.accent : defaultThemeConfigs[preset.id].theme.accent,
-        contrast: typeof theme.contrast === 'number' ? theme.contrast : defaultThemeConfigs[preset.id].theme.contrast,
-        fonts: {
-          ui: isObject(theme.fonts) && typeof theme.fonts.ui === 'string' ? theme.fonts.ui : defaultThemeConfigs[preset.id].theme.fonts.ui,
-          code: isObject(theme.fonts) && typeof theme.fonts.code === 'string' ? theme.fonts.code : defaultThemeConfigs[preset.id].theme.fonts.code,
-        },
-        ink: typeof theme.ink === 'string' ? theme.ink : defaultThemeConfigs[preset.id].theme.ink,
-        opaqueWindows: typeof theme.opaqueWindows === 'boolean' ? theme.opaqueWindows : defaultThemeConfigs[preset.id].theme.opaqueWindows,
-        semanticColors: {
-          diffAdded:
-            isObject(theme.semanticColors) && typeof theme.semanticColors.diffAdded === 'string'
-              ? theme.semanticColors.diffAdded
-              : defaultThemeConfigs[preset.id].theme.semanticColors.diffAdded,
-          diffRemoved:
-            isObject(theme.semanticColors) && typeof theme.semanticColors.diffRemoved === 'string'
-              ? theme.semanticColors.diffRemoved
-              : defaultThemeConfigs[preset.id].theme.semanticColors.diffRemoved,
-          skill:
-            isObject(theme.semanticColors) && typeof theme.semanticColors.skill === 'string'
-              ? theme.semanticColors.skill
-              : defaultThemeConfigs[preset.id].theme.semanticColors.skill,
-        },
-        surface: typeof theme.surface === 'string' ? theme.surface : defaultThemeConfigs[preset.id].theme.surface,
-      },
-    }
+  for (const [id, config] of Object.entries(source)) {
+    if (next[id]) continue
+    next[id] = normalizeThemeConfig(id, config, defaultThemeConfigs.light)
   }
 
   return next
+}
+
+export function listThemeOptions(configs: Record<string, ThemePresetConfig>) {
+  return Object.entries(configs).map(([id, config]) => ({
+    id,
+    label: getThemeName(id, config),
+    base: isBaseThemeId(id),
+    variant: config.variant,
+  }))
+}
+
+export function exportThemeConfig(config: ThemePresetConfig) {
+  const file = {
+    name: config.name,
+    variant: config.variant,
+    codeThemeId: config.codeThemeId,
+    app: config.theme,
+    articleCss: config.articleCss || '',
+    codeCss: config.codeCss || '',
+  }
+
+  return [
+    '/* ai-inbox theme v1',
+    '   app: App 样式',
+    '   articleCss: 文章正文样式',
+    '   codeCss: 代码区样式',
+    '   可以直接修改下面 JSON；缺失字段会按 light 主题补齐，多余字段导入时会提示。',
+    '*/',
+    JSON.stringify(file, null, 2),
+  ].join('\n')
 }

@@ -112,6 +112,7 @@ function createBrowserElectronApi(): BrowserElectronApi {
       previewTypora: async () => ({ ok: false, draft: null }),
       saveImported: async () => ({ ok: false }),
       listImported: async () => [],
+      listFonts: async () => ['PingFang SC', 'SF Pro Display', 'SF Mono', 'JetBrains Mono', 'serif', 'sans-serif', 'monospace'],
       read: async () => null,
       delete: async () => false,
     },

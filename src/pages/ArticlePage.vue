@@ -85,18 +85,7 @@
                   v-model="bodyMarkdown"
                   :typography-theme="activeThemeId"
                   :code-theme="editorCodeTheme"
-                >
-                  <template #toolbar-end>
-                    <div class="editor-appearance-controls">
-                      <label class="editor-appearance-field">
-                        <span class="editor-appearance-label">主题</span>
-                        <select class="editor-appearance-select" :value="activeThemeId" @change="onThemeChange">
-                          <option v-for="theme in themeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
-                        </select>
-                      </label>
-                    </div>
-                  </template>
-                </ArticleBodyEditor>
+                />
               </section>
             </div>
           </div>
@@ -119,8 +108,6 @@ import {
 import { ArrowBackOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
-import { isBuiltInTypographyTheme } from '../modules/rich-editor/types/editor'
-import { useImportedThemes } from '../composables/useImportedThemes'
 import {
   buildFrontmatter,
   buildRawDocument,
@@ -149,14 +136,13 @@ const themeOverrides: GlobalThemeOverrides = {
 
 const frontmatterText = ref('')
 const bodyMarkdown = ref('')
-const activeThemeId = ref<string>('typora-github')
+const activeThemeId = ref<string>('light')
 const editorCodeTheme = ref<EditorCodeTheme>('github')
 const lastSavedRawDocument = ref('')
 const frontmatterExpanded = ref(false)
 const saveState = ref<SaveState>('saved')
 const hasExternalChange = ref(false)
 const pendingExternalRaw = ref<string | null>(null)
-const { importedThemes, activateTheme, deactivateTheme } = useImportedThemes()
 
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 let inboxUnsubscribe: (() => void) | null = null
@@ -165,19 +151,6 @@ let suppressDirtyTracking = false
 let queuedSaveAfterCurrent = false
 let activeSaveSnapshot: string | null = null
 let recentLocalWrite: { raw: string; timestamp: number } | null = null
-
-const themeOptions = computed<Array<{ label: string; value: string }>>(() => {
-  const builtIn: Array<{ label: string; value: string }> = [
-    { label: 'Typora GitHub', value: 'typora-github' },
-    { label: 'Newsprint', value: 'serif' },
-    { label: 'Default', value: 'default' },
-  ]
-  const imported = importedThemes.value.map((t) => ({
-    label: t.isDark ? `导入: ${t.name} · 深色` : `导入: ${t.name}`,
-    value: t.id,
-  }))
-  return [...builtIn, ...imported]
-})
 
 const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
@@ -301,53 +274,20 @@ async function loadRawDocument() {
 
 async function loadEditorAppearanceSettings() {
   const settings = await window.electronAPI?.getSettings()
-  const themeId = settings?.activeThemeId ?? 'typora-github'
-  const codeValue = settings?.editorCodeTheme
+  const themeId = settings?.themeMode === 'dark'
+    ? settings?.darkTheme || 'dark'
+    : settings?.themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? settings?.darkTheme || 'dark'
+      : settings?.lightTheme || 'light'
+  activeThemeId.value = themeId
 
-  if (isBuiltInTypographyTheme(themeId)) {
-    deactivateTheme()
-    activeThemeId.value = themeId
+  const config = settings?.customThemes?.[themeId]
+  const codeValue = config?.codeThemeId || settings?.editorCodeTheme
+  if (codeValue === 'night') {
+    editorCodeTheme.value = 'night'
   } else {
-    const ok = await activateTheme(themeId)
-    activeThemeId.value = ok ? themeId : 'typora-github'
+    editorCodeTheme.value = 'github'
   }
-
-  if (codeValue === 'github' || codeValue === 'night' || codeValue === 'paper' || codeValue === 'maize') {
-    editorCodeTheme.value = codeValue
-  }
-}
-
-async function persistEditorAppearanceSettings(patch: Partial<{ activeThemeId: string; editorCodeTheme: EditorCodeTheme }>) {
-  const current = await window.electronAPI?.getSettings()
-  if (!current) return
-
-  const next = {
-    ...current,
-    ...patch,
-  }
-
-  await window.electronAPI?.saveSettings(next)
-  window.dispatchEvent(new CustomEvent('settings-changed', { detail: next }))
-}
-
-async function onThemeChange(event: Event) {
-  const value = (event.target as HTMLSelectElement).value
-  let nextId = value
-
-  if (isBuiltInTypographyTheme(value)) {
-    deactivateTheme()
-    nextId = value
-  } else {
-    const ok = await activateTheme(value)
-    if (ok) {
-      nextId = value
-    } else {
-      deactivateTheme()
-      nextId = 'typora-github'
-    }
-  }
-  activeThemeId.value = nextId
-  await persistEditorAppearanceSettings({ activeThemeId: nextId })
 }
 
 async function saveNow(showSuccessMessage = false): Promise<boolean> {
@@ -513,6 +453,10 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+function handleSettingsChanged() {
+  void loadEditorAppearanceSettings()
+}
+
 onMounted(() => {
   void loadRawDocument()
   void loadEditorAppearanceSettings()
@@ -520,6 +464,7 @@ onMounted(() => {
     void handleExternalFileUpdate()
   }) || null
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('settings-changed', handleSettingsChanged)
 })
 
 onBeforeRouteLeave(async () => {
@@ -531,6 +476,7 @@ onUnmounted(() => {
   if (autosaveTimer) clearTimeout(autosaveTimer)
   inboxUnsubscribe?.()
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('settings-changed', handleSettingsChanged)
 })
 </script>
 

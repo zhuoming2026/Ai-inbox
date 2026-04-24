@@ -2,7 +2,8 @@
 /* Inspired by Typora's GitHub-style reading surface. */
 
 [data-typography-theme='typora-github'],
-[data-content-theme='typora-github'] {
+[data-content-theme='typora-github'],
+[data-ai-theme='typora-github'] {
   --typography-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --typography-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --typography-font-code: 'SFMono-Regular', 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
@@ -39,8 +40,10 @@
 
 [data-typography-theme='typora-github'] .tiptap h1,
 [data-content-theme='typora-github'] .tiptap h1,
+[data-ai-theme='typora-github'] .tiptap h1,
 [data-typography-theme='typora-github'] .rich-editor__content h1,
-[data-content-theme='typora-github'] .rich-editor__content h1 {
+[data-content-theme='typora-github'] .rich-editor__content h1,
+[data-ai-theme='typora-github'] .rich-editor__content h1 {
   padding-bottom: 0.3em;
   border-bottom: 1px solid #d8dee4;
   margin-top: 1.2rem;
@@ -48,16 +51,20 @@
 
 [data-typography-theme='typora-github'] .tiptap h2,
 [data-content-theme='typora-github'] .tiptap h2,
+[data-ai-theme='typora-github'] .tiptap h2,
 [data-typography-theme='typora-github'] .rich-editor__content h2,
-[data-content-theme='typora-github'] .rich-editor__content h2 {
+[data-content-theme='typora-github'] .rich-editor__content h2,
+[data-ai-theme='typora-github'] .rich-editor__content h2 {
   padding-bottom: 0.25em;
   border-bottom: 1px solid #d8dee4;
 }
 
 [data-typography-theme='typora-github'] .tiptap blockquote,
 [data-content-theme='typora-github'] .tiptap blockquote,
+[data-ai-theme='typora-github'] .tiptap blockquote,
 [data-typography-theme='typora-github'] .rich-editor__content blockquote,
-[data-content-theme='typora-github'] .rich-editor__content blockquote {
+[data-content-theme='typora-github'] .rich-editor__content blockquote,
+[data-ai-theme='typora-github'] .rich-editor__content blockquote {
   padding: 0 1rem;
   border-width: 0 0 0 0.25rem;
   border-style: solid;
@@ -66,8 +73,10 @@
 
 [data-typography-theme='typora-github'] .tiptap pre,
 [data-content-theme='typora-github'] .tiptap pre,
+[data-ai-theme='typora-github'] .tiptap pre,
 [data-typography-theme='typora-github'] .rich-editor__content pre,
-[data-content-theme='typora-github'] .rich-editor__content pre {
+[data-content-theme='typora-github'] .rich-editor__content pre,
+[data-ai-theme='typora-github'] .rich-editor__content pre {
   border-radius: 0.5rem;
   box-shadow: none;
 }

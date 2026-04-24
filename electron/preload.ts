@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveImported: (data: { draft: any; name: string; activate: boolean }) =>
       ipcRenderer.invoke('theme:save-imported', data),
     listImported: () => ipcRenderer.invoke('theme:list-imported'),
+    listFonts: () => ipcRenderer.invoke('theme:list-fonts'),
     read: (id: string) => ipcRenderer.invoke('theme:read', id),
     delete: (id: string) => ipcRenderer.invoke('theme:delete', id),
   },

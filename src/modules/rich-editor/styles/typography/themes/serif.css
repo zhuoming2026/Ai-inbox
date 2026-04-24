@@ -1,7 +1,8 @@
 /* ─── Typography Theme: Serif ─────────────────────────────────────────────── */
 
 [data-typography-theme='serif'],
-[data-content-theme='serif'] {
+[data-content-theme='serif'],
+[data-ai-theme='serif'] {
   --typography-font-body: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
   --typography-font-heading: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
   --typography-font-code: var(--font-mono, 'JetBrains Mono', monospace);

@@ -7,6 +7,7 @@ import { ref, watch } from 'vue'
 import type { ImportedThemeMetadata, TyporaThemeImportDraft } from '../shared/imported-theme'
 
 const IMPORTED_STYLE_ID = 'ai-inbox-imported-theme-style'
+const BUILT_IN_THEME_IDS = new Set(['default', 'serif', 'typora-github'])
 
 let currentInjectedId: string | null = null
 
@@ -62,9 +63,12 @@ export function useImportedThemes() {
 
   async function saveImported(data: { draft: TyporaThemeImportDraft; name: string; activate: boolean }) {
     try {
-      return await window.electronAPI?.theme.saveImported(data) ?? { ok: false }
-    } catch {
-      return { ok: false }
+      const plainData = JSON.parse(JSON.stringify(data))
+      return await window.electronAPI?.theme.saveImported(plainData) ?? { ok: false, error: 'Electron API 不可用' }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : '保存主题失败'
+      console.error('[ai-inbox] save imported theme failed:', e)
+      return { ok: false, error: message }
     }
   }
 
@@ -84,6 +88,14 @@ export function useImportedThemes() {
   }
 
   async function activateTheme(id: string) {
+    if (BUILT_IN_THEME_IDS.has(id)) {
+      const existing = document.getElementById(IMPORTED_STYLE_ID)
+      if (existing) existing.remove()
+      document.documentElement.setAttribute('data-ai-theme', id)
+      currentInjectedId = null
+      return true
+    }
+
     // 直接调用 theme.read(id)，不依赖 importedThemes 是否已加载
     const data = await window.electronAPI?.theme.read(id)
     if (!data?.css || !data.metadata) return false

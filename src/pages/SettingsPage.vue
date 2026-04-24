@@ -88,17 +88,19 @@
               <div class="appearance-row appearance-row-actions">
                 <span class="appearance-label">预设主题</span>
                 <div class="appearance-config-actions appearance-input">
-                  <select class="form-input preset-header-select" v-model="selectedPreset">
+                  <select class="form-input preset-header-select" v-model="selectedPreset" @change="applySelectedTheme">
                     <option v-for="preset in editablePresets" :key="`header-${preset.id}`" :value="preset.id">{{ preset.label }}</option>
                   </select>
                   <button class="btn-copy" type="button" @click="triggerAppearanceImport">导入</button>
-                  <button class="btn-copy" type="button" @click="copyAppearanceTheme">导出</button>
-                  <button class="btn-copy" type="button" @click="resetAppearancePreset">重置</button>
+                  <button class="btn-copy" type="button" @click="copyAppearanceTheme">复制</button>
+                  <button class="btn-copy" type="button" @click="handleImportTypora">Typora 导入</button>
+                  <button v-if="isSelectedBaseTheme" class="btn-copy" type="button" @click="resetAppearancePreset">重置</button>
+                  <button v-else class="btn-copy danger" type="button" @click="deleteSelectedTheme">删除</button>
                 </div>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">应用代码主题</span>
-                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.codeThemeId" @change="persistAppearanceSettings(false)" />
+                <span class="appearance-label">主题名称</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.name" @change="persistAppearanceSettings(false)" />
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">强调色</span>
@@ -123,63 +125,19 @@
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">界面字体</span>
-                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)" />
+                <input class="form-input appearance-input" type="text" list="theme-font-options" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)" />
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码字体</span>
-                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)" />
+                <input class="form-input appearance-input" type="text" list="theme-font-options" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)" />
               </div>
-              <div class="appearance-row">
-                <span class="appearance-label">当前主题</span>
-                <select class="form-input appearance-input" v-model="settings.activeThemeId" @change="onActiveThemeChange">
-                  <option v-for="theme in currentThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
-                </select>
-              </div>
+              <datalist id="theme-font-options">
+                <option v-for="font in fontOptions" :key="font" :value="font" />
+              </datalist>
 
-              <div class="appearance-row appearance-row-actions">
-                <span class="appearance-label">导入主题</span>
-                <div class="appearance-config-actions appearance-input">
-                  <button class="btn-copy" type="button" @click="handleImportTypora">导入 Typora CSS</button>
-                </div>
-              </div>
-
-              <div v-if="importedThemes.length > 0" class="imported-themes-list">
-                <div v-for="theme in importedThemes" :key="theme.id" class="imported-theme-item">
-                  <span class="imported-theme-name">
-                    {{ theme.name }}
-                    <span v-if="theme.isDark" class="dark-badge">深色</span>
-                  </span>
-                  <button class="btn-delete-theme" type="button" @click="handleDeleteTheme(theme.id)">删除</button>
-                </div>
-              </div>
             </div>
           </div>
         </section>
-
-        <div v-if="showImportDialog && importDraft" class="modal-mask" @click.self="cancelImport">
-          <div class="modal-card">
-            <div class="modal-header">
-              <h3 class="modal-title">导入主题</h3>
-              <button class="modal-close" type="button" @click="cancelImport">×</button>
-            </div>
-            <div class="import-dialog-body">
-              <label class="form-label">
-                <span class="label-text">主题名</span>
-                <input class="form-input" type="text" v-model="importNameInput" />
-              </label>
-              <div v-if="importDraft.warnings.length > 0" class="import-warnings">
-                <span class="label-text">注意事项</span>
-                <ul class="warning-list">
-                  <li v-for="(w, i) in importDraft.warnings" :key="i">{{ w }}</li>
-                </ul>
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button class="btn-secondary" type="button" @click="confirmImport(false)" :disabled="importLoading">仅导入</button>
-              <button class="save-btn" type="button" @click="confirmImport(true)" :disabled="importLoading">导入并启用</button>
-            </div>
-          </div>
-        </div>
 
         <section v-else-if="activeSection === 'ai'" class="panel">
           <div class="panel-header">
@@ -274,41 +232,86 @@
       </main>
     </div>
 
-    <div v-if="showAppearanceImport" class="modal-mask" @click.self="closeAppearanceImport">
+    <div v-if="showImportDialog" class="modal-mask" @click.self="cancelImport">
       <div class="modal-card">
         <div class="modal-header">
           <h3 class="modal-title">导入主题</h3>
-          <button class="modal-close" type="button" @click="closeAppearanceImport">×</button>
+          <button class="modal-close" type="button" @click="cancelImport">×</button>
         </div>
-        <textarea
-          v-model="appearanceImportText"
-          class="modal-textarea"
-          placeholder='codex-theme-v1:{"codeThemeId":"absolutely","theme":{"accent":"#cc7d5e"}}'
-          rows="3"
-        ></textarea>
+        <div class="import-dialog-body">
+          <label class="form-label">
+            <span class="label-text">主题名</span>
+            <input class="form-input" type="text" v-model="importNameInput" />
+          </label>
+          <div v-if="importWarnings.length > 0" class="import-warnings">
+            <span class="label-text">注意事项</span>
+            <ul class="warning-list">
+              <li v-for="(w, i) in importWarnings" :key="i">{{ w }}</li>
+            </ul>
+          </div>
+        </div>
         <div class="modal-actions">
-          <button class="btn-secondary" type="button" @click="closeAppearanceImport">取消</button>
-          <button class="save-btn" type="button" @click="applyAppearanceImport">导入主题</button>
+          <button class="btn-secondary" type="button" @click="confirmImport(false)" :disabled="importLoading">仅导入</button>
+          <button class="save-btn" type="button" @click="confirmImport(true)" :disabled="importLoading">导入并启用</button>
         </div>
+      </div>
+    </div>
+
+    <div v-if="showAppearanceImport" class="modal-mask" @click.self="closeAppearanceImport">
+      <div class="modal-card">
+        <div class="modal-header">
+        <h3 class="modal-title">导入主题文件</h3>
+        <button class="modal-close" type="button" @click="closeAppearanceImport">×</button>
+      </div>
+      <label class="form-label modal-name-field">
+        <span class="label-text">主题名</span>
+        <input class="form-input" type="text" v-model="appearanceImportName" />
+      </label>
+      <textarea
+        v-model="appearanceImportText"
+        class="modal-textarea"
+        placeholder="粘贴 ai-inbox theme v1 JSON"
+        rows="8"
+      ></textarea>
+      <div v-if="appearanceImportWarnings.length > 0" class="import-warnings">
+        <span class="label-text">注意事项</span>
+        <ul class="warning-list">
+          <li v-for="(w, i) in appearanceImportWarnings" :key="i">{{ w }}</li>
+        </ul>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" @click="closeAppearanceImport">取消</button>
+        <button class="btn-secondary" type="button" @click="applyAppearanceImport(false)">导入</button>
+        <button class="save-btn" type="button" @click="applyAppearanceImport(true)">导入并应用</button>
+      </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { ChevronBackOutline } from '@vicons/ionicons5'
 import { useTheme } from '../composables/useTheme'
 import { useImportedThemes } from '../composables/useImportedThemes'
-import { defaultThemeConfigs, normalizeThemeConfigs, themePresetMeta, type ThemePresetConfig, type ThemePresetId } from '../styles/theme-presets'
+import {
+  defaultThemeConfigs,
+  isBaseThemeId,
+  listThemeOptions,
+  normalizeThemeConfig,
+  normalizeThemeConfigs,
+  slugifyThemeName,
+  type ThemePresetConfig,
+  type ThemePresetId,
+} from '../styles/theme-presets'
 import type { TyporaThemeImportDraft } from '../shared/imported-theme'
 import type { EditorCodeTheme, TypographyTheme } from '../modules/rich-editor'
 
 type SettingsSection = 'general' | 'appearance' | 'ai' | 'mcp'
 type ThemeMode = 'light' | 'dark' | 'system'
-type LightThemePreset = ThemePresetId
-type DarkThemePreset = ThemePresetId
+type LightThemePreset = string
+type DarkThemePreset = string
 
 interface AppSettings {
   inboxPath: string
@@ -326,14 +329,8 @@ interface AppSettings {
   editorTypographyTheme: TypographyTheme
   editorCodeTheme: EditorCodeTheme
   activeThemeId: string
-  customThemes: Record<ThemePresetId, ThemePresetConfig>
+  customThemes: Record<string, ThemePresetConfig>
 }
-
-const builtInThemes = [
-  { label: 'Typora GitHub', value: 'typora-github' },
-  { label: '默认正文', value: 'default' },
-  { label: 'Newsprint', value: 'serif' },
-]
 
 const settingSections = [
   { key: 'general' as const, label: '常规' },
@@ -355,18 +352,24 @@ const mcpRunning = ref(false)
 const mcpError = ref<string | null>(null)
 const showAppearanceImport = ref(false)
 const appearanceImportText = ref('')
+const appearanceImportName = ref('')
+const appearanceImportWarnings = ref<string[]>([])
 const showImportDialog = ref(false)
-const importDraft = ref<TyporaThemeImportDraft | null>(null)
+const importDraft = shallowRef<TyporaThemeImportDraft | null>(null)
+const pendingImportConfig = shallowRef<ThemePresetConfig | null>(null)
+const importWarnings = ref<string[]>([])
 const importNameInput = ref('')
 const importLoading = ref(false)
+const fontOptions = ref<string[]>([])
 const message = useMessage()
 const { applyThemeFromSettings } = useTheme()
-const { importedThemes, previewTypora, saveImported, activateTheme, deleteTheme, loadThemes } = useImportedThemes()
+const { previewTypora } = useImportedThemes()
 
 onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
   settings.value = normalizeSettings(loaded || {})
-  selectedPreset.value = settings.value.themeMode === 'dark' ? settings.value.darkTheme : settings.value.lightTheme
+  selectedPreset.value = resolveSelectedTheme(settings.value)
+  fontOptions.value = await window.electronAPI?.theme.listFonts() || []
   await refreshMcpStatus()
 })
 
@@ -395,31 +398,26 @@ const mcpConfig = computed(() => JSON.stringify({
   }
 }, null, 2))
 
-const editablePresets = themePresetMeta
+const editablePresets = computed(() => listThemeOptions(settings.value?.customThemes || defaultThemeConfigs))
 
 const selectedPresetConfig = computed(() => {
   if (!settings.value) {
-    return defaultThemeConfigs[selectedPreset.value]
+    return defaultThemeConfigs[selectedPreset.value] || defaultThemeConfigs.light
   }
-  return settings.value.customThemes[selectedPreset.value]
+  return settings.value.customThemes[selectedPreset.value] || defaultThemeConfigs.light
 })
 
 const selectedPresetLabel = computed(() => {
-  return editablePresets.find((preset) => preset.id === selectedPreset.value)?.label || selectedPreset.value
+  return editablePresets.value.find((preset) => preset.id === selectedPreset.value)?.label || selectedPreset.value
 })
 
-const selectedPresetExportText = computed(() => {
-  return `codex-theme-v1:${JSON.stringify(selectedPresetConfig.value)}`
-})
+const isSelectedBaseTheme = computed(() => isBaseThemeId(selectedPreset.value))
 
-const currentThemeOptions = computed(() => {
-  const options = [...builtInThemes]
-  for (const theme of importedThemes.value) {
-    const label = `导入：${theme.name}${theme.isDark ? ' · 深色' : ''}`
-    options.push({ label, value: theme.id })
-  }
-  return options
-})
+function resolveSelectedTheme(current: AppSettings) {
+  if (current.themeMode === 'dark') return current.darkTheme
+  if (current.themeMode === 'light') return current.lightTheme
+  return current.lightTheme
+}
 
 function normalizeSettings(raw: Record<string, unknown>): AppSettings {
   let themeMode: ThemeMode = 'system'
@@ -432,11 +430,14 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     themeMode = raw.themeMode
   }
 
-  if (raw.lightTheme === 'light' || raw.lightTheme === 'notion' || raw.lightTheme === 'claude') {
+  const normalizedThemes = normalizeThemeConfigs(raw.customThemes)
+  const themeIds = Object.keys(normalizedThemes)
+
+  if (typeof raw.lightTheme === 'string' && themeIds.includes(raw.lightTheme)) {
     lightTheme = raw.lightTheme
   }
 
-  if (raw.darkTheme === 'light' || raw.darkTheme === 'dark' || raw.darkTheme === 'notion' || raw.darkTheme === 'claude') {
+  if (typeof raw.darkTheme === 'string' && themeIds.includes(raw.darkTheme)) {
     darkTheme = raw.darkTheme
   }
 
@@ -463,8 +464,8 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     darkTheme,
     editorTypographyTheme,
     editorCodeTheme,
-    activeThemeId: typeof raw.activeThemeId === 'string' ? raw.activeThemeId : 'typora-github',
-    customThemes: normalizeThemeConfigs(raw.customThemes),
+    activeThemeId: typeof raw.activeThemeId === 'string' ? raw.activeThemeId : lightTheme,
+    customThemes: normalizedThemes,
   }
 }
 
@@ -486,6 +487,7 @@ async function updateAppearance(patch: Partial<Pick<AppSettings, 'themeMode' | '
   if (patch.darkTheme) {
     selectedPreset.value = patch.darkTheme
   }
+  settings.value.activeThemeId = resolveSelectedTheme(settings.value)
   await persistAppearanceSettings(false)
 }
 
@@ -495,26 +497,108 @@ async function persistAppearanceSettings(showMessage = false) {
   await saveSettings(showMessage)
 }
 
+async function applySelectedTheme() {
+  if (!settings.value) return
+  const config = selectedPresetConfig.value
+  if (config.variant === 'dark') {
+    settings.value.darkTheme = selectedPreset.value
+    settings.value.themeMode = 'dark'
+  } else {
+    settings.value.lightTheme = selectedPreset.value
+    settings.value.themeMode = 'light'
+  }
+  settings.value.activeThemeId = selectedPreset.value
+  await persistAppearanceSettings(false)
+}
+
 function triggerAppearanceImport() {
   appearanceImportText.value = ''
+  appearanceImportName.value = ''
+  appearanceImportWarnings.value = []
   showAppearanceImport.value = true
 }
 
 function closeAppearanceImport() {
   showAppearanceImport.value = false
   appearanceImportText.value = ''
+  appearanceImportName.value = ''
+  appearanceImportWarnings.value = []
 }
 
-async function applyAppearanceImport() {
+function stripThemeFileComments(raw: string) {
+  return raw.replace(/\/\*[\s\S]*?\*\//g, '').trim()
+}
+
+function collectExtraThemeKeys(value: unknown, prefix = ''): string[] {
+  const allowed: Record<string, string[] | true> = {
+    '': ['id', 'name', 'codeThemeId', 'variant', 'theme', 'app', 'articleCss', 'codeCss'],
+    theme: ['accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface'],
+    app: ['accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface'],
+    'theme.fonts': ['code', 'ui'],
+    'app.fonts': ['code', 'ui'],
+    'theme.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
+    'app.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
+  }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return []
+  const keys = allowed[prefix]
+  if (!Array.isArray(keys)) return []
+
+  const extras: string[] = []
+  for (const [key, nested] of Object.entries(value)) {
+    const path = prefix ? `${prefix}.${key}` : key
+    if (!keys.includes(key)) {
+      extras.push(path)
+      continue
+    }
+    extras.push(...collectExtraThemeKeys(nested, path))
+  }
+  return extras
+}
+
+function parseThemeImport(rawText: string, nameFallback: string) {
+  const jsonText = stripThemeFileComments(rawText).replace(/^codex-theme-v1:\s*/, '')
+  const parsed = JSON.parse(jsonText)
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error('主题文件格式错误：根节点必须是对象')
+  }
+  if ('theme' in parsed && (typeof (parsed as any).theme !== 'object' || (parsed as any).theme === null || Array.isArray((parsed as any).theme))) {
+    throw new Error('主题文件格式错误：theme 必须是对象')
+  }
+
+  const warnings = collectExtraThemeKeys(parsed).map((key) => `未使用的字段: ${key}`)
+  const name = appearanceImportName.value.trim() || (typeof (parsed as any).name === 'string' ? (parsed as any).name : nameFallback)
+  const id = slugifyThemeName(name, Object.keys(settings.value?.customThemes || {}))
+  const config = normalizeThemeConfig(id, { ...parsed, id, name }, defaultThemeConfigs.light)
+  return { id, config, warnings }
+}
+
+function installTheme(id: string, config: ThemePresetConfig, activate: boolean) {
+  if (!settings.value) return
+  settings.value.customThemes[id] = { ...config, id }
+  if (activate) {
+    if (config.variant === 'dark') {
+      settings.value.darkTheme = id
+      settings.value.themeMode = 'dark'
+    } else {
+      settings.value.lightTheme = id
+      settings.value.themeMode = 'light'
+    }
+    settings.value.activeThemeId = id
+    selectedPreset.value = id
+  }
+}
+
+async function applyAppearanceImport(activate: boolean) {
   if (!settings.value || !appearanceImportText.value.trim()) return
   try {
-    const raw = appearanceImportText.value.trim()
-    const jsonText = raw.includes(':') ? raw.slice(raw.indexOf(':') + 1) : raw
-    const parsed = JSON.parse(jsonText)
-    const normalized = normalizeThemeConfigs({ [selectedPreset.value]: parsed })
-    settings.value.customThemes[selectedPreset.value] = normalized[selectedPreset.value]
+    const { id, config, warnings } = parseThemeImport(appearanceImportText.value.trim(), '导入主题')
+    appearanceImportWarnings.value = warnings
+    if (warnings.length > 0) {
+      message.warning(`主题已导入，忽略 ${warnings.length} 个未使用字段`)
+    }
+    installTheme(id, config, activate)
     await persistAppearanceSettings(false)
-    message.success(`${selectedPresetLabel.value} 已导入`)
+    message.success(activate ? '主题已导入并应用' : '主题已导入')
     closeAppearanceImport()
   } catch (error) {
     message.error(error instanceof Error ? error.message : '导入外观配置失败')
@@ -522,26 +606,42 @@ async function applyAppearanceImport() {
 }
 
 async function copyAppearanceTheme() {
-  await navigator.clipboard.writeText(selectedPresetExportText.value)
-  message.success(`${selectedPresetLabel.value} 已复制`)
+  if (!settings.value) return
+  const source = selectedPresetConfig.value
+  const name = `${selectedPresetLabel.value}-复制`
+  const id = slugifyThemeName(name, Object.keys(settings.value.customThemes))
+  settings.value.customThemes[id] = JSON.parse(JSON.stringify({
+    ...source,
+    id,
+    name,
+  }))
+  selectedPreset.value = id
+  await persistAppearanceSettings(false)
+  message.success(`${name} 已创建`)
 }
 
 async function resetAppearancePreset() {
   if (!settings.value) return
-  settings.value.customThemes[selectedPreset.value] = JSON.parse(JSON.stringify(defaultThemeConfigs[selectedPreset.value]))
+  if (!isSelectedBaseTheme.value) return
+  settings.value.customThemes[selectedPreset.value] = JSON.parse(JSON.stringify(defaultThemeConfigs[selectedPreset.value] || defaultThemeConfigs.light))
   await persistAppearanceSettings(false)
   message.success(`${selectedPresetLabel.value} 已重置`)
 }
 
-async function onActiveThemeChange() {
+async function deleteSelectedTheme() {
   if (!settings.value) return
-  const id = settings.value.activeThemeId
-  if (builtInThemes.some((t) => t.value === id)) {
-    activateTheme(id)
-  } else {
-    await activateTheme(id)
+  const id = selectedPreset.value
+  if (isBaseThemeId(id)) {
+    message.error('基础主题不可删除')
+    return
   }
-  await saveSettings(false)
+  delete settings.value.customThemes[id]
+  if (settings.value.lightTheme === id) settings.value.lightTheme = 'light'
+  if (settings.value.darkTheme === id) settings.value.darkTheme = 'dark'
+  if (settings.value.activeThemeId === id) settings.value.activeThemeId = settings.value.lightTheme
+  selectedPreset.value = resolveSelectedTheme(settings.value)
+  await persistAppearanceSettings(false)
+  message.success('主题已删除')
 }
 
 async function handleImportTypora() {
@@ -556,6 +656,15 @@ async function handleImportTypora() {
     }
     importDraft.value = result.draft
     importNameInput.value = result.draft.name
+    importWarnings.value = result.draft.warnings
+    pendingImportConfig.value = normalizeThemeConfig(result.draft.id, {
+      id: result.draft.id,
+      name: result.draft.name,
+      variant: result.draft.metadata.isDark ? 'dark' : 'light',
+      theme: {},
+      articleCss: result.draft.css,
+      codeCss: result.draft.css,
+    }, defaultThemeConfigs.light)
     showImportDialog.value = true
   } finally {
     importLoading.value = false
@@ -563,27 +672,25 @@ async function handleImportTypora() {
 }
 
 async function confirmImport(activate: boolean) {
-  if (!importDraft.value || !settings.value) return
+  if (!pendingImportConfig.value || !settings.value) return
   importLoading.value = true
   try {
-    const result = await saveImported({
-      draft: importDraft.value,
-      name: importNameInput.value.trim() || importDraft.value.name,
-      activate,
-    })
-    if (!result.ok) {
-      message.error('保存主题失败')
-      return
-    }
-    if (activate && result.metadata) {
-      settings.value.activeThemeId = result.metadata.id
-      await activateTheme(result.metadata.id)
-    }
-    await loadThemes()
+    const name = importNameInput.value.trim() || pendingImportConfig.value.name || 'Typora 主题'
+    const id = slugifyThemeName(name, Object.keys(settings.value.customThemes))
+    const oldId = pendingImportConfig.value.id || importDraft.value?.id || id
+    const config = JSON.parse(JSON.stringify({
+      ...pendingImportConfig.value,
+      id,
+      name,
+      articleCss: (pendingImportConfig.value.articleCss || '').split(oldId).join(id),
+      codeCss: (pendingImportConfig.value.codeCss || '').split(oldId).join(id),
+    })) as ThemePresetConfig
+    installTheme(id, config, activate)
     showImportDialog.value = false
     importDraft.value = null
+    pendingImportConfig.value = null
     message.success(activate ? '主题已导入并启用' : '主题已导入')
-    await saveSettings(false)
+    await persistAppearanceSettings(false)
   } finally {
     importLoading.value = false
   }
@@ -592,23 +699,9 @@ async function confirmImport(activate: boolean) {
 function cancelImport() {
   showImportDialog.value = false
   importDraft.value = null
+  pendingImportConfig.value = null
+  importWarnings.value = []
   importNameInput.value = ''
-}
-
-async function handleDeleteTheme(id: string) {
-  if (!settings.value) return
-  const wasActive = settings.value.activeThemeId === id
-  const ok = await deleteTheme(id)
-  if (!ok) {
-    message.error('删除主题失败')
-    return
-  }
-  if (wasActive) {
-    settings.value.activeThemeId = 'typora-github'
-    await activateTheme('typora-github')
-    await saveSettings(false)
-  }
-  await loadThemes()
 }
 
 async function testConnection() {
@@ -1139,6 +1232,10 @@ async function stopMcp() {
   border: 1px solid var(--border-control);
 }
 
+.btn-copy.danger {
+  color: var(--color-danger-text);
+}
+
 .btn-copy:hover {
   background: var(--surface-control-hover);
   color: var(--text-body);
@@ -1182,10 +1279,14 @@ async function stopMcp() {
 
 .modal-card {
   width: min(100%, 560px);
+  max-height: min(720px, calc(100dvh - 48px));
   border-radius: 24px;
   background: var(--surface-panel);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
   padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-header {
@@ -1223,6 +1324,10 @@ async function stopMcp() {
   resize: none;
 }
 
+.modal-name-field {
+  margin-top: var(--space-4);
+}
+
 .modal-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
@@ -1233,6 +1338,7 @@ async function stopMcp() {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 .import-dialog-body {
@@ -1240,6 +1346,9 @@ async function stopMcp() {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .import-warnings {
@@ -1281,21 +1390,39 @@ async function stopMcp() {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
-.dark-badge {
+.dark-badge,
+.active-badge {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 999px;
-  background: var(--surface-accent-soft);
-  color: var(--text-accent);
   font-weight: 600;
 }
 
+.dark-badge {
+  background: var(--surface-accent-soft);
+  color: var(--text-accent);
+}
+
+.active-badge {
+  background: var(--surface-success-soft, rgba(22, 163, 74, 0.1));
+  color: var(--color-success);
+}
+
+.imported-theme-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.btn-theme-action,
 .btn-delete-theme {
   border: none;
   background: transparent;
-  color: var(--color-danger-text);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -1303,6 +1430,15 @@ async function stopMcp() {
   border-radius: 6px;
 }
 
+.btn-theme-action {
+  color: var(--text-accent);
+}
+
+.btn-delete-theme {
+  color: var(--color-danger-text);
+}
+
+.btn-theme-action:hover,
 .btn-delete-theme:hover {
   background: var(--surface-control-hover);
 }

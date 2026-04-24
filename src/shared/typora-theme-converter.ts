@@ -89,9 +89,9 @@ function parseRgbColor(rgb: string): Rgb | null {
   const match = rgb.match(/^rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
   if (match) {
     return {
-      r: Number.parseInt(match[2], 10),
-      g: Number.parseInt(match[3], 10),
-      b: Number.parseInt(match[4], 10),
+      r: Number.parseInt(match[1], 10),
+      g: Number.parseInt(match[2], 10),
+      b: Number.parseInt(match[3], 10),
     }
   }
   return null
@@ -170,7 +170,12 @@ function detectIsDark(background: string | null, warnings: string[]): boolean {
  * .task-list       → [data-ai-theme='<id>'] .tiptap ul[data-type="taskList"]
  */
 function mapSingleSelector(selector: string, themeId: string): string | null {
-  let mapped = selector
+  const trimmed = selector.trim()
+  let mapped = trimmed
+
+  if (isTyporaUiSelector(trimmed)) {
+    return null
+  }
 
   if (/#write\b/.test(mapped)) {
     // #write 后面可能有空格和内容，也可能没有
@@ -179,6 +184,8 @@ function mapSingleSelector(selector: string, themeId: string): string | null {
     mapped = mapped.replace(/\.md-fences\b/, `[data-ai-theme='${themeId}'] .tiptap pre`)
   } else if (/\.task-list\b/.test(mapped)) {
     mapped = mapped.replace(/\.task-list\b/, `[data-ai-theme='${themeId}'] .tiptap ul[data-type="taskList"]`)
+  } else if (isPortableContentSelector(mapped)) {
+    mapped = `[data-ai-theme='${themeId}'] .tiptap ${mapped}`
   } else {
     // 未知前缀，记录 warning 并返回 null
     return null
@@ -267,6 +274,7 @@ function isDeclarationAllowed(prop: string, selector: string): boolean {
 // ─── 规则过滤 ────────────────────────────────────────────────────────────────
 
 const BLOCKED_SELECTORS = new Set([
+  '*',
   'html',
   'body',
   ':root',
@@ -283,19 +291,26 @@ const BLOCKED_SELECTORS = new Set([
   '.md-toc',
 ])
 
-function isSelectorAllowed(selector: string): boolean {
-  const parts = selector.split(/[\s,]+/)
+function isTyporaUiSelector(selector: string): boolean {
+  const parts = selector.split(/[\s>+~]+/)
   for (const part of parts) {
     const normalized = part.trim()
     if (BLOCKED_SELECTORS.has(normalized)) {
-      return false
+      return true
     }
     // 拒绝包含这些关键词的选择器
     if (normalized.includes('.sidebar') || normalized.includes('.typora-export') || normalized.includes('.CodeMirror')) {
-      return false
+      return true
     }
   }
-  return true
+  return false
+}
+
+const PORTABLE_CONTENT_SELECTOR_RE = /^(h[1-6]|p|a|blockquote|ul|ol|li|table|thead|tbody|tr|th|td|pre|code|img|figure|figcaption|mark|hr|strong|em|sup|sub|del|kbd|details|summary|nav)(?=[\s.#:[>+~]|$)/i
+
+function isPortableContentSelector(selector: string): boolean {
+  if (!PORTABLE_CONTENT_SELECTOR_RE.test(selector)) return false
+  return !/\b(html|body|script|style)\b/i.test(selector)
 }
 
 // ─── CSS 变换 ────────────────────────────────────────────────────────────────
@@ -310,9 +325,12 @@ interface CssRule {
 function transformRule(rule: postcss.Rule, themeId: string, warnings: string[]): CssRule | null {
   const selector = rule.selector
 
-  if (!isSelectorAllowed(selector)) {
-    warnings.push(`已忽略选择器: ${selector}（Typora 界面元素）`)
-    return null
+  if (rule.parent?.type === 'atrule') {
+    const atRule = rule.parent as postcss.AtRule
+    if (atRule.name === 'media' || atRule.name === 'page' || atRule.name.includes('keyframes')) {
+      warnings.push(`已忽略 @${atRule.name} 内的选择器: ${selector}`)
+      return null
+    }
   }
 
   const mappedSelector = mapSelector(selector, themeId, warnings)
@@ -488,7 +506,7 @@ export async function convertTyporaTheme(input: ConvertTyporaThemeInput): Promis
     allRules.push(rule as postcss.Rule)
 
     // 收集 #write 的背景色（用于暗色判断）
-    if (rule.selector === '#write' || rule.selector === '#write, body') {
+    if (rule.selector.split(',').map((s) => s.trim()).includes('#write')) {
       const bg = extractBackgroundFromDecls((rule as postcss.Rule).nodes as postcss.Declaration[])
       if (bg && !backgroundColor) {
         backgroundColor = bg

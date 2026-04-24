@@ -27,7 +27,7 @@ const store = new Store({
     darkTheme: 'dark',
     editorTypographyTheme: 'typora-github',
     editorCodeTheme: 'github',
-    activeThemeId: 'typora-github',
+    activeThemeId: 'light',
     customThemes: defaultThemeConfigs,
   }
 })
@@ -469,6 +469,43 @@ function setupIPC() {
       } catch {}
     }
     return metas.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  })
+
+  ipcMain.handle('theme:list-fonts', () => {
+    const commonFonts = [
+      'PingFang SC',
+      'SF Pro Display',
+      'SF Pro Text',
+      'Helvetica Neue',
+      'Noto Sans SC',
+      'Microsoft YaHei',
+      'Songti SC',
+      'Iowan Old Style',
+      'SF Mono',
+      'JetBrains Mono',
+      'Menlo',
+      'Monaco',
+      'ui-monospace',
+      'monospace',
+      'serif',
+      'sans-serif',
+    ]
+
+    const themeFonts: string[] = []
+    const themesDir = getThemesDir()
+    if (fs.existsSync(themesDir)) {
+      for (const entry of fs.readdirSync(themesDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue
+        const fontsDir = join(themesDir, entry.name, 'assets', 'fonts')
+        if (!fs.existsSync(fontsDir)) continue
+        for (const fontFile of fs.readdirSync(fontsDir)) {
+          if (!/\.(ttf|otf|woff2?|ttc)$/i.test(fontFile)) continue
+          themeFonts.push(fontFile.replace(/\.(ttf|otf|woff2?|ttc)$/i, '').replace(/[-_]+/g, ' '))
+        }
+      }
+    }
+
+    return Array.from(new Set([...commonFonts, ...themeFonts]))
   })
 
 ipcMain.handle('theme:preview-typora', async () => {

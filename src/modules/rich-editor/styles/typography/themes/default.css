@@ -1,7 +1,8 @@
 /* ─── Typography Theme: Default ───────────────────────────────────────────── */
 
 [data-typography-theme='default'],
-[data-content-theme='default'] {
+[data-content-theme='default'],
+[data-ai-theme='default'] {
   --typography-font-body: var(--font-editor, var(--font-body, 'PingFang SC', sans-serif));
   --typography-font-heading: var(--font-display, var(--font-editor, 'PingFang SC', sans-serif));
   --typography-font-code: var(--font-mono, 'JetBrains Mono', monospace);

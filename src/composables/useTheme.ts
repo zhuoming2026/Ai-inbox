@@ -3,6 +3,7 @@ import type { Ref } from 'vue'
 import { defaultThemeConfigs, normalizeThemeConfigs, type ThemePresetConfig, type ThemePresetId } from '../styles/theme-presets'
 
 const currentTheme: Ref<string> = ref('light')
+const ACTIVE_THEME_STYLE_ID = 'ai-inbox-active-theme-style'
 
 const overrideKeys = [
   '--bg-primary',
@@ -163,14 +164,35 @@ function applyPresetOverrides(config: ThemePresetConfig) {
   root.style.setProperty('--color-error', config.theme.semanticColors.diffRemoved)
 }
 
+function injectThemeCss(themeId: string, config: ThemePresetConfig) {
+  const existing = document.getElementById(ACTIVE_THEME_STYLE_ID)
+  if (existing) existing.remove()
+
+  const css = [
+    config.articleCss ? `/* 文章正文样式 */\n${config.articleCss}` : '',
+    config.codeCss ? `/* 代码区样式 */\n${config.codeCss}` : '',
+  ].filter(Boolean).join('\n\n')
+
+  if (!css.trim()) return
+
+  const style = document.createElement('style')
+  style.id = ACTIVE_THEME_STYLE_ID
+  style.setAttribute('data-theme-id', themeId)
+  style.textContent = css
+  document.head.appendChild(style)
+}
+
 export function useTheme() {
   const setTheme = async (theme: string, settings?: Record<string, any> | null) => {
     currentTheme.value = theme
     document.documentElement.setAttribute('data-theme', theme)
+    document.documentElement.setAttribute('data-ai-theme', theme)
 
     const configs = normalizeThemeConfigs(settings?.customThemes)
     const preset = (theme in configs ? theme : 'light') as ThemePresetId
-    applyPresetOverrides(configs[preset] || defaultThemeConfigs.light)
+    const config = configs[preset] || defaultThemeConfigs.light
+    applyPresetOverrides(config)
+    injectThemeCss(preset, config)
   }
 
   const applyThemeFromSettings = async (settings: Record<string, any> | undefined | null) => {
