@@ -1,0 +1,33 @@
+/* ─── Typography Theme: Serif ─────────────────────────────────────────────── */
+
+[data-typography-theme='serif'],
+[data-content-theme='serif'] {
+  --typography-font-body: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
+  --typography-font-heading: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
+  --typography-font-code: var(--font-mono, 'JetBrains Mono', monospace);
+  --typography-font-size: 1.03rem;
+  --typography-line-height: 1.92;
+  --typography-letter-spacing: 0.002em;
+  --typography-measure: 68ch;
+
+  --typography-text: #433d33;
+  --typography-heading: #1c1812;
+  --typography-placeholder: rgba(68, 61, 48, 0.38);
+  --typography-link: color-mix(in srgb, var(--color-primary, #fabb18) 62%, #3d5afe);
+  --typography-inline-code-bg: rgba(126, 84, 36, 0.1);
+  --typography-inline-code-color: #7f4315;
+  --typography-blockquote-border: rgba(126, 84, 36, 0.16);
+  --typography-blockquote-bg: rgba(250, 247, 240, 0.92);
+  --typography-blockquote-text: #6f6555;
+  --typography-hr: rgba(116, 95, 65, 0.18);
+  --typography-code-block-bg: #1f2230;
+  --typography-code-block-border: rgba(255, 255, 255, 0.05);
+  --typography-code-block-color: #e8ebf2;
+  --typography-table-border: rgba(116, 95, 65, 0.16);
+  --typography-table-header-bg: rgba(247, 243, 234, 0.96);
+  --typography-table-cell-bg: rgba(255, 255, 255, 0.94);
+  --typography-image-radius: 0.8rem;
+  --typography-h1-size: 2.5rem;
+  --typography-h2-size: 1.92rem;
+  --typography-h3-size: 1.42rem;
+}

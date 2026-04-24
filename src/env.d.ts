@@ -34,6 +34,10 @@ declare global {
   interface Window {
     electronAPI?: ElectronAPI
   }
+
+  interface WindowEventMap {
+    'settings-changed': CustomEvent<Record<string, unknown>>
+  }
 }
 
 export {}

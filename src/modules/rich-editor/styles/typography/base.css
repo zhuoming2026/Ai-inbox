@@ -1,0 +1,315 @@
+/* ─── Rich Editor Typography Base ─────────────────────────────────────────── */
+/* This layer handles markdown/article rendering only. Chrome styling lives
+   in ../theme.css so the writing surface can evolve independently. */
+
+.tiptap,
+.rich-editor__content {
+  flex: 1;
+  min-height: 100%;
+  padding: 1.5rem 2rem 3rem;
+  outline: none;
+  color: var(--typography-text, var(--text-body, #333639));
+  font-family: var(--typography-font-body, var(--font-editor, var(--font-body, sans-serif)));
+  font-size: var(--typography-font-size, 1rem);
+  line-height: var(--typography-line-height, 1.85);
+  letter-spacing: var(--typography-letter-spacing, 0.003em);
+  caret-color: var(--typography-link, var(--color-link, #097FE8));
+}
+
+.tiptap.is-editor-empty:first-child::before,
+.rich-editor__content.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--typography-placeholder, var(--text-placeholder, rgba(26, 26, 26, 0.3)));
+  pointer-events: none;
+  height: 0;
+  font-size: 0.98rem;
+}
+
+.tiptap h1,
+.rich-editor__content h1 {
+  font-family: var(--typography-font-heading, var(--font-display, sans-serif));
+  font-size: var(--typography-h1-size, 2.35rem);
+  font-weight: var(--typography-h1-weight, 750);
+  line-height: var(--typography-h1-line-height, 1.12);
+  letter-spacing: var(--typography-h1-letter-spacing, -0.04em);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--typography-heading, var(--text-primary, #1a1a1a));
+}
+
+.tiptap h2,
+.rich-editor__content h2 {
+  font-family: var(--typography-font-heading, var(--font-display, sans-serif));
+  font-size: var(--typography-h2-size, 1.78rem);
+  font-weight: var(--typography-h2-weight, 700);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-top: 2.15rem;
+  margin-bottom: 0.8rem;
+  color: var(--typography-heading, var(--text-primary, #1a1a1a));
+}
+
+.tiptap h3,
+.rich-editor__content h3 {
+  font-family: var(--typography-font-heading, var(--font-display, sans-serif));
+  font-size: var(--typography-h3-size, 1.34rem);
+  font-weight: var(--typography-h3-weight, 680);
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  margin-top: 1.85rem;
+  margin-bottom: 0.65rem;
+  color: var(--typography-heading, var(--text-primary, #1a1a1a));
+}
+
+.tiptap h4,
+.rich-editor__content h4 {
+  font-family: var(--typography-font-heading, var(--font-display, sans-serif));
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin-top: 1.55rem;
+  margin-bottom: 0.55rem;
+  color: var(--typography-heading, var(--text-primary, #1a1a1a));
+}
+
+.tiptap p,
+.rich-editor__content p {
+  margin: 0 0 1rem;
+  color: var(--typography-text, var(--text-body, #333639));
+  max-width: var(--typography-measure, 70ch);
+}
+
+.tiptap p:last-child,
+.rich-editor__content p:last-child {
+  margin-bottom: 0;
+}
+
+.tiptap strong,
+.rich-editor__content strong {
+  font-weight: 650;
+}
+
+.tiptap em,
+.rich-editor__content em {
+  font-style: italic;
+}
+
+.tiptap u,
+.rich-editor__content u {
+  text-decoration: underline;
+}
+
+.tiptap s,
+.rich-editor__content s {
+  text-decoration: line-through;
+}
+
+.tiptap code,
+.rich-editor__content code {
+  font-family: var(--typography-font-code, var(--font-mono, monospace));
+  font-size: 0.84em;
+  background: var(--typography-inline-code-bg, rgba(0, 0, 0, 0.04));
+  border-radius: 0.45rem;
+  padding: 0.18rem 0.42rem;
+  color: var(--typography-inline-code-color, var(--text-accent, #5a3b00));
+}
+
+.tiptap blockquote,
+.rich-editor__content blockquote {
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--typography-blockquote-border, rgba(0, 0, 0, 0.08));
+  border-radius: 1rem;
+  background: var(--typography-blockquote-bg, rgba(255, 255, 255, 0.72));
+  color: var(--typography-blockquote-text, var(--text-secondary, rgba(26, 26, 26, 0.6)));
+  font-style: normal;
+}
+
+.tiptap blockquote p,
+.rich-editor__content blockquote p {
+  margin-bottom: 0;
+  max-width: none;
+}
+
+.tiptap hr,
+.rich-editor__content hr {
+  border: none;
+  height: 1px;
+  margin: 2rem 0;
+  background: linear-gradient(90deg, transparent, var(--typography-hr, rgba(0, 0, 0, 0.12)), transparent);
+}
+
+.tiptap ul,
+.tiptap ol,
+.rich-editor__content ul,
+.rich-editor__content ol {
+  padding-left: 1.3rem;
+  margin: 0 0 1.05rem;
+}
+
+.tiptap li,
+.rich-editor__content li {
+  line-height: calc(var(--typography-line-height, 1.85) - 0.07);
+  margin-bottom: 0.32rem;
+  max-width: calc(var(--typography-measure, 70ch) - 2ch);
+}
+
+.tiptap li p,
+.rich-editor__content li p {
+  margin-bottom: 0;
+}
+
+.tiptap ul,
+.rich-editor__content ul {
+  list-style-type: disc;
+}
+
+.tiptap ol,
+.rich-editor__content ol {
+  list-style-type: decimal;
+}
+
+.tiptap ul[data-type="taskList"],
+.rich-editor__content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.tiptap ul[data-type="taskList"] li,
+.rich-editor__content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.15rem 0;
+}
+
+.tiptap ul[data-type="taskList"] li > label,
+.rich-editor__content ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.tiptap ul[data-type="taskList"] li > div,
+.rich-editor__content ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.tiptap ul[data-type="taskList"] input[type="checkbox"],
+.rich-editor__content ul[data-type="taskList"] input[type="checkbox"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--typography-link, var(--color-primary, #fabb18));
+  cursor: pointer;
+}
+
+.tiptap pre,
+.rich-editor__content pre {
+  background: var(--typography-code-block-bg, #1e293b);
+  border: 1px solid var(--typography-code-block-border, transparent);
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+  margin: 1.4rem 0 1.6rem;
+  overflow-x: auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.tiptap pre code,
+.rich-editor__content pre code {
+  font-family: var(--typography-font-code, var(--font-mono, monospace));
+  font-size: 0.875rem;
+  line-height: 1.75;
+  background: none;
+  padding: 0;
+  color: var(--typography-code-block-color, #e2e8f0);
+  border-radius: 0;
+}
+
+.tiptap table,
+.rich-editor__content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.4rem 0;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  border: 1px solid var(--typography-table-border, rgba(0, 0, 0, 0.08));
+}
+
+.tiptap th,
+.tiptap td,
+.rich-editor__content th,
+.rich-editor__content td {
+  border: 1px solid var(--typography-table-border, rgba(0, 0, 0, 0.08));
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.tiptap th,
+.rich-editor__content th {
+  background: var(--typography-table-header-bg, rgba(0, 0, 0, 0.03));
+  font-weight: 650;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--typography-heading, var(--text-primary, #1a1a1a));
+}
+
+.tiptap td,
+.rich-editor__content td {
+  background: var(--typography-table-cell-bg, transparent);
+}
+
+.tiptap .selectedCell,
+.rich-editor__content .selectedCell {
+  background: color-mix(in srgb, var(--typography-link, var(--color-primary, #fabb18)) 16%, transparent) !important;
+}
+
+.tiptap a,
+.rich-editor__content a {
+  color: var(--typography-link, var(--color-link, #097FE8));
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--typography-link, var(--color-link, #097FE8)) 36%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.tiptap a:hover,
+.rich-editor__content a:hover {
+  text-decoration-color: var(--typography-link, var(--color-link, #097FE8));
+}
+
+.tiptap img,
+.rich-editor__content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--typography-image-radius, 1rem);
+  margin: 1.2rem 0;
+}
+
+.tiptap img.ProseMirror-selectednode,
+.rich-editor__content img.ProseMirror-selectednode {
+  outline: 2px solid var(--typography-link, var(--color-primary, #fabb18));
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .tiptap,
+  .rich-editor__content {
+    padding: 1.15rem 1rem 2.25rem;
+  }
+
+  .tiptap h1,
+  .rich-editor__content h1 {
+    font-size: min(var(--typography-h1-size, 2.35rem), 2rem);
+  }
+
+  .tiptap h2,
+  .rich-editor__content h2 {
+    font-size: min(var(--typography-h2-size, 1.78rem), 1.55rem);
+  }
+}

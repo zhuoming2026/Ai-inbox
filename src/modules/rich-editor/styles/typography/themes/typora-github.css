@@ -1,0 +1,73 @@
+/* ─── Typography Theme: Typora GitHub ─────────────────────────────────────── */
+/* Inspired by Typora's GitHub-style reading surface. */
+
+[data-typography-theme='typora-github'],
+[data-content-theme='typora-github'] {
+  --typography-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --typography-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --typography-font-code: 'SFMono-Regular', 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  --typography-font-size: 16px;
+  --typography-line-height: 1.72;
+  --typography-letter-spacing: 0;
+  --typography-measure: 78ch;
+
+  --typography-text: #24292f;
+  --typography-heading: #1f2328;
+  --typography-placeholder: #8c959f;
+  --typography-link: #0969da;
+  --typography-inline-code-bg: #f6f8fa;
+  --typography-inline-code-color: #cf222e;
+  --typography-blockquote-border: #d0d7de;
+  --typography-blockquote-bg: transparent;
+  --typography-blockquote-text: #57606a;
+  --typography-hr: #d8dee4;
+  --typography-code-block-bg: #f6f8fa;
+  --typography-code-block-border: #d0d7de;
+  --typography-code-block-color: #24292f;
+  --typography-table-border: #d0d7de;
+  --typography-table-header-bg: #f6f8fa;
+  --typography-table-cell-bg: #ffffff;
+  --typography-image-radius: 0.5rem;
+  --typography-h1-size: 2rem;
+  --typography-h2-size: 1.5rem;
+  --typography-h3-size: 1.25rem;
+  --typography-h1-weight: 600;
+  --typography-h2-weight: 600;
+  --typography-h3-weight: 600;
+  --typography-h1-letter-spacing: -0.02em;
+}
+
+[data-typography-theme='typora-github'] .tiptap h1,
+[data-content-theme='typora-github'] .tiptap h1,
+[data-typography-theme='typora-github'] .rich-editor__content h1,
+[data-content-theme='typora-github'] .rich-editor__content h1 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #d8dee4;
+  margin-top: 1.2rem;
+}
+
+[data-typography-theme='typora-github'] .tiptap h2,
+[data-content-theme='typora-github'] .tiptap h2,
+[data-typography-theme='typora-github'] .rich-editor__content h2,
+[data-content-theme='typora-github'] .rich-editor__content h2 {
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid #d8dee4;
+}
+
+[data-typography-theme='typora-github'] .tiptap blockquote,
+[data-content-theme='typora-github'] .tiptap blockquote,
+[data-typography-theme='typora-github'] .rich-editor__content blockquote,
+[data-content-theme='typora-github'] .rich-editor__content blockquote {
+  padding: 0 1rem;
+  border-width: 0 0 0 0.25rem;
+  border-style: solid;
+  border-radius: 0;
+}
+
+[data-typography-theme='typora-github'] .tiptap pre,
+[data-content-theme='typora-github'] .tiptap pre,
+[data-typography-theme='typora-github'] .rich-editor__content pre,
+[data-content-theme='typora-github'] .rich-editor__content pre {
+  border-radius: 0.5rem;
+  box-shadow: none;
+}

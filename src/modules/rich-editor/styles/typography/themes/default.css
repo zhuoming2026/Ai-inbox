@@ -1,0 +1,30 @@
+/* ─── Typography Theme: Default ───────────────────────────────────────────── */
+
+[data-typography-theme='default'],
+[data-content-theme='default'] {
+  --typography-font-body: var(--font-editor, var(--font-body, 'PingFang SC', sans-serif));
+  --typography-font-heading: var(--font-display, var(--font-editor, 'PingFang SC', sans-serif));
+  --typography-font-code: var(--font-mono, 'JetBrains Mono', monospace);
+  --typography-font-size: 1rem;
+  --typography-line-height: 1.82;
+  --typography-letter-spacing: 0.003em;
+  --typography-measure: 70ch;
+
+  --typography-text: var(--text-body, #333639);
+  --typography-heading: var(--text-primary, #1a1a1a);
+  --typography-placeholder: var(--text-placeholder, rgba(26, 26, 26, 0.3));
+  --typography-link: var(--color-link, var(--text-link, #097FE8));
+  --typography-inline-code-bg: color-mix(in srgb, var(--color-primary, #fabb18) 10%, transparent);
+  --typography-inline-code-color: var(--text-accent, #5a3b00);
+  --typography-blockquote-border: color-mix(in srgb, var(--color-primary, #fabb18) 20%, transparent);
+  --typography-blockquote-bg: color-mix(in srgb, var(--bg-secondary, #faf9f6) 88%, var(--bg-card, #ffffff));
+  --typography-blockquote-text: var(--text-secondary, rgba(26, 26, 26, 0.6));
+  --typography-hr: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 90%, transparent);
+  --typography-code-block-bg: #1b2433;
+  --typography-code-block-border: rgba(255, 255, 255, 0.06);
+  --typography-code-block-color: #e2e8f0;
+  --typography-table-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 92%, transparent);
+  --typography-table-header-bg: color-mix(in srgb, var(--bg-secondary, #faf9f6) 92%, var(--bg-card, #ffffff));
+  --typography-table-cell-bg: var(--bg-card, #ffffff);
+  --typography-image-radius: 1rem;
+}
