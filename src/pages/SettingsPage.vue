@@ -115,6 +115,53 @@
                 </div>
               </div>
               <div class="appearance-row">
+                <span class="appearance-label">强调色预览</span>
+                <div class="accent-preview appearance-input">
+                  <span class="accent-focus-sample">Focus</span>
+                  <span class="accent-star-sample">★</span>
+                  <span class="accent-link-sample">Link</span>
+                </div>
+              </div>
+              <div class="appearance-section-header">
+                <span class="section-label">主要按钮</span>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">按钮背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.bg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.bg" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">按钮悬停背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.bgHover" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.bgHover" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">按钮文字</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.text" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.text" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">按钮边框</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.border" @change="persistAppearanceSettings(false)" />
+              </div>
+              <div class="appearance-row preview-row">
+                <span class="appearance-label">主色预览</span>
+                <div class="primary-control-preview appearance-input">
+                  <button type="button" class="preview-primary-button">Inbox</button>
+                  <button type="button" class="preview-today-button">Today</button>
+                  <span class="preview-edit-tag">Edit</span>
+                  <button type="button" class="preview-filter-button">All</button>
+                  <button type="button" class="preview-save-button">保存更改</button>
+                  <button type="button" class="preview-segment-button">浅色</button>
+                </div>
+              </div>
+              <div class="appearance-row">
                 <span class="appearance-label">背景</span>
                 <div class="color-input appearance-input">
                   <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.page" @input="persistAppearanceSettings(false)" />
@@ -256,6 +303,24 @@
                   <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.blockText" @input="persistAppearanceSettings(false)" />
                   <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.blockText" @change="persistAppearanceSettings(false)" />
                 </div>
+              </div>
+
+              <div class="appearance-section-header">
+                <span class="section-label">源码</span>
+              </div>
+              <div class="source-editor-block">
+                <div class="source-editor-actions">
+                  <span class="source-editor-state" :class="{ error: Boolean(themeSourceError) }">{{ themeSourceError || sourceEditorStatus }}</span>
+                  <button class="btn-copy" type="button" @click="loadThemeSourceFromSelected">重新载入</button>
+                  <button class="btn-copy" type="button" @click="copyThemeSource">复制源码</button>
+                  <button class="save-btn source-apply-btn" type="button" @click="applyThemeSourceToSelected">应用源码</button>
+                </div>
+                <textarea
+                  v-model="themeSourceText"
+                  class="theme-source-textarea"
+                  spellcheck="false"
+                  @input="markThemeSourceDirty"
+                ></textarea>
               </div>
 
             </div>
@@ -483,6 +548,9 @@ const pendingImportConfig = shallowRef<ThemePresetConfig | null>(null)
 const importWarnings = ref<string[]>([])
 const importNameInput = ref('')
 const importLoading = ref(false)
+const themeSourceText = ref('')
+const themeSourceDirty = ref(false)
+const themeSourceError = ref('')
 const message = useMessage()
 
 const systemFonts = [
@@ -515,6 +583,7 @@ onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
   settings.value = normalizeSettings(loaded || {})
   selectedPreset.value = resolveSelectedTheme(settings.value)
+  loadThemeSourceFromSelected()
   await refreshMcpStatus()
 })
 
@@ -557,6 +626,22 @@ const selectedPresetLabel = computed(() => {
 })
 
 const isSelectedBaseTheme = computed(() => isBaseThemeId(selectedPreset.value))
+
+const sourceEditorStatus = computed(() => themeSourceDirty.value ? '源码未应用' : '源码已同步')
+
+watch(selectedPreset, () => {
+  loadThemeSourceFromSelected()
+})
+
+watch(
+  selectedPresetConfig,
+  () => {
+    if (!themeSourceDirty.value) {
+      loadThemeSourceFromSelected()
+    }
+  },
+  { deep: true }
+)
 
 function resolveSelectedTheme(current: AppSettings) {
   if (current.themeMode === 'dark') return current.darkTheme
@@ -616,6 +701,64 @@ function normalizeSettings(raw: Record<string, unknown>): AppSettings {
 
 function serializeSettings(current: AppSettings) {
   return { ...current }
+}
+
+function serializeThemeSource(config: ThemePresetConfig) {
+  return JSON.stringify({
+    name: config.name,
+    variant: config.variant,
+    codeThemeId: config.codeThemeId,
+    tokens: config.tokens,
+    articleCss: config.articleCss || '',
+    codeCss: config.codeCss || '',
+  }, null, 2)
+}
+
+function loadThemeSourceFromSelected() {
+  themeSourceText.value = serializeThemeSource(selectedPresetConfig.value)
+  themeSourceDirty.value = false
+  themeSourceError.value = ''
+}
+
+function markThemeSourceDirty() {
+  themeSourceDirty.value = true
+  themeSourceError.value = ''
+}
+
+async function copyThemeSource() {
+  await navigator.clipboard.writeText(themeSourceText.value)
+  message.success('主题源码已复制')
+}
+
+async function applyThemeSourceToSelected() {
+  if (!settings.value) return
+  try {
+    const jsonText = stripThemeFileComments(themeSourceText.value).replace(/^codex-theme-v[12]:\s*/, '')
+    const parsed = JSON.parse(jsonText)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error('主题源码必须是 JSON 对象')
+    }
+    const id = selectedPreset.value
+    const fallback = selectedPresetConfig.value.variant === 'dark' ? defaultThemeConfigs.dark : defaultThemeConfigs.light
+    const config = normalizeThemeConfig(id, { ...parsed, id }, fallback)
+    settings.value.customThemes[id] = config
+    if (config.variant === 'dark') {
+      settings.value.darkTheme = id
+      settings.value.themeMode = 'dark'
+    } else {
+      settings.value.lightTheme = id
+      settings.value.themeMode = 'light'
+    }
+    settings.value.activeThemeId = id
+    themeSourceDirty.value = false
+    themeSourceError.value = ''
+    await persistAppearanceSettings(false)
+    loadThemeSourceFromSelected()
+    message.success('主题源码已应用')
+  } catch (error) {
+    themeSourceError.value = error instanceof Error ? error.message : '主题源码解析失败'
+    message.error(themeSourceError.value)
+  }
 }
 
 async function updateAppearance(patch: Partial<Pick<AppSettings, 'themeMode' | 'lightTheme' | 'darkTheme'>>) {
@@ -1222,6 +1365,10 @@ async function stopMcp() {
   max-width: 100%;
 }
 
+.preview-row {
+  align-items: start;
+}
+
 .color-input {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -1254,6 +1401,132 @@ async function stopMcp() {
 .color-swatch::-moz-color-swatch {
   border: none;
   border-radius: 10px;
+}
+
+.accent-preview,
+.primary-control-preview {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.accent-focus-sample,
+.accent-star-sample,
+.accent-link-sample,
+.preview-primary-button,
+.preview-today-button,
+.preview-edit-tag,
+.preview-filter-button,
+.preview-save-button,
+.preview-segment-button {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.accent-focus-sample {
+  padding: 0 12px;
+  color: var(--text-primary);
+  background: var(--surface-control);
+  border: 1px solid var(--border-focus);
+  box-shadow: 0 0 0 3px var(--selection-bg);
+}
+
+.accent-star-sample {
+  width: 32px;
+  color: var(--color-primary);
+  background: var(--surface-icon-active);
+  border: 1px solid var(--border-icon-active);
+}
+
+.accent-link-sample {
+  padding: 0 12px;
+  color: var(--color-primary);
+  background: var(--surface-neutral-faint);
+  border: 1px solid var(--border-control);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.preview-primary-button,
+.preview-today-button,
+.preview-edit-tag,
+.preview-filter-button,
+.preview-save-button,
+.preview-segment-button {
+  padding: 0 12px;
+  background: var(--action-primary-bg);
+  color: var(--action-primary-text);
+  border: 1px solid var(--action-primary-border);
+}
+
+.preview-save-button {
+  box-shadow: var(--action-primary-shadow);
+}
+
+.preview-edit-tag {
+  min-width: 44px;
+}
+
+.source-editor-block {
+  padding: var(--space-4);
+  border-top: 1px solid var(--border-strong);
+  background: var(--surface-neutral-faint);
+}
+
+.source-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.source-editor-state {
+  margin-right: auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.source-editor-state.error {
+  color: var(--status-danger-text);
+}
+
+.source-apply-btn {
+  margin-left: 0;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.theme-source-textarea {
+  width: 100%;
+  min-height: 360px;
+  max-height: 52vh;
+  resize: vertical;
+  border: 1px solid var(--border-control);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface-panel);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.62;
+  outline: none;
+}
+
+.theme-source-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--selection-bg);
 }
 
 .toggle-row,
