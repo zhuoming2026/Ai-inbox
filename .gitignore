@@ -29,7 +29,6 @@ Thumbs.db
 .env.*.local
 
 # Test
-*.test.*
 coverage/
 
 # Misc
@@ -38,3 +37,7 @@ coverage/
 auto-imports.d.ts
 components.d.ts
 Awesome DESIGN/
+
+# Local tool config and artifacts
+.claude/*.local.json
+.screenshots/
