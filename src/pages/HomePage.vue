@@ -18,8 +18,8 @@
           </div>
           <PillButton
             :icon="SettingsOutline"
-            bg-color="var(--surface-control)"
-            text-color="var(--text-body)"
+            bg-color="var(--action-icon-bg)"
+            text-color="var(--action-icon-text)"
             icon-only
             class="toolbar-tool-button"
             @click="$router.push('/settings')"
@@ -38,15 +38,15 @@
             />
             <div class="input-actions">
               <div class="attach-btns">
-                <PillButton :icon="Image" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Link" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
-                <PillButton :icon="Document" bg-color="var(--surface-control)" text-color="var(--text-body)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Image" bg-color="var(--action-icon-bg)" text-color="var(--action-icon-text)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Link" bg-color="var(--action-icon-bg)" text-color="var(--action-icon-text)" icon-only class="toolbar-tool-button" />
+                <PillButton :icon="Document" bg-color="var(--action-icon-bg)" text-color="var(--action-icon-text)" icon-only class="toolbar-tool-button" />
               </div>
               <PillButton
                 text="Inbox"
                 :icon="ArrowForwardOutline"
-                bg-color="var(--surface-accent-soft)"
-                text-color="var(--text-accent)"
+                bg-color="var(--action-primary-bg)"
+                text-color="var(--action-primary-text)"
                 class="submit-button"
                 @click="submitInput"
               />
@@ -255,9 +255,9 @@ const message = useMessage()
 const SearchIcon = () => h(NIcon, null, () => h(SearchOutline))
 
 const resolvedThemeTokens = ref({
-  primaryColor: '#fabb18',
-  primaryColorHover: '#f9c84a',
-  primaryColorPressed: '#d9a015',
+  primaryColor: '#f2c94c',
+  primaryColorHover: '#f5d76a',
+  primaryColorPressed: '#d9a928',
   cardColor: '#ffffff',
   cardShadow: '0px 4px 20px rgba(0, 0, 0, 0.03)',
   inputColor: 'rgba(239, 239, 239, 0.47)',
@@ -298,9 +298,9 @@ function refreshResolvedThemeTokens() {
   if (typeof window === 'undefined') return
   const styles = getComputedStyle(document.documentElement)
   resolvedThemeTokens.value = {
-    primaryColor: styles.getPropertyValue('--color-primary').trim() || '#fabb18',
-    primaryColorHover: styles.getPropertyValue('--color-primary-hover').trim() || '#f9c84a',
-    primaryColorPressed: styles.getPropertyValue('--color-primary-pressed').trim() || '#d9a015',
+    primaryColor: styles.getPropertyValue('--action-primary-bg').trim() || '#f2c94c',
+    primaryColorHover: styles.getPropertyValue('--action-primary-bg-hover').trim() || '#f5d76a',
+    primaryColorPressed: styles.getPropertyValue('--action-primary-bg-pressed').trim() || '#d9a928',
     cardColor: styles.getPropertyValue('--bg-card').trim() || '#ffffff',
     cardShadow: styles.getPropertyValue('--shadow-card').trim() || '0px 4px 20px rgba(0, 0, 0, 0.03)',
     inputColor: styles.getPropertyValue('--bg-input').trim() || 'rgba(239, 239, 239, 0.47)',
@@ -697,23 +697,23 @@ watch(scratchpadContent, (value) => {
 }
 
 .toolbar-tool-button :deep(.pill-btn) {
-  box-shadow: 0 0 0 1px var(--border-control);
+  box-shadow: 0 0 0 1px var(--action-icon-border);
   backdrop-filter: blur(8px);
 }
 
 .toolbar-tool-button :deep(.pill-btn:hover) {
-  background: var(--surface-control-hover) !important;
-  box-shadow: 0 0 0 1px var(--border-control-hover);
+  background: var(--action-icon-bg-hover) !important;
+  box-shadow: 0 0 0 1px var(--action-icon-border-hover);
 }
 
 .submit-button :deep(.pill-btn) {
   padding: 0 12px !important;
-  box-shadow: 0 0 0 1px var(--border-accent-soft);
+  box-shadow: 0 0 0 1px var(--action-primary-border), var(--action-primary-shadow);
 }
 
 .submit-button :deep(.pill-btn:hover) {
-  background: var(--surface-accent-soft-hover) !important;
-  box-shadow: var(--shadow-accent-soft-hover);
+  background: var(--action-primary-bg-hover) !important;
+  box-shadow: 0 0 0 1px var(--action-primary-border-hover), var(--action-primary-shadow);
 }
 
 .attach-btns {
@@ -769,7 +769,7 @@ watch(scratchpadContent, (value) => {
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--nav-tab-text);
   cursor: pointer;
   position: relative;
   transition: color var(--transition-base), opacity var(--transition-base), background var(--transition-base);
@@ -781,17 +781,17 @@ watch(scratchpadContent, (value) => {
   right: -3px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--separator-soft);
+  color: var(--nav-tab-separator, var(--separator-soft));
   pointer-events: none;
 }
 
 .filter-button:hover {
-  color: var(--text-primary);
+  color: var(--nav-tab-hover-text);
 }
 
 .filter-button.active {
-  color: var(--color-primary);
-  background: var(--surface-accent-faint);
+  color: var(--nav-tab-active-text);
+  background: var(--nav-tab-active-bg);
   border-radius: 999px;
 }
 
@@ -802,18 +802,18 @@ watch(scratchpadContent, (value) => {
   max-width: 100%;
   padding: 8px 12px;
   border-radius: 999px;
-  background: var(--surface-accent-subtle);
-  color: var(--text-primary);
+  background: var(--nav-chip-bg);
+  color: var(--nav-chip-text);
   font-size: var(--text-sm);
 }
 
 .filter-chip.subtle {
-  background: var(--surface-neutral-soft);
-  border: 1px solid var(--border-neutral-soft);
+  background: var(--nav-chip-subtle-bg);
+  border: 1px solid var(--nav-chip-border);
 }
 
 .filter-chip-label {
-  color: var(--text-muted);
+  color: var(--nav-chip-label);
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -838,7 +838,7 @@ watch(scratchpadContent, (value) => {
 .clear-filter-btn {
   border: none;
   background: transparent;
-  color: var(--color-primary);
+  color: var(--nav-tab-active-text);
   font-weight: 600;
   cursor: pointer;
   padding: 0 0 0 10px;
@@ -878,9 +878,9 @@ watch(scratchpadContent, (value) => {
   width: 100%;
   position: relative;
   margin: 0 0 14px;
-  background: var(--bg-card);
+  background: var(--card-item-bg);
   border-radius: 24px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--card-item-border);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   cursor: pointer;
@@ -999,9 +999,9 @@ watch(scratchpadContent, (value) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: var(--surface-control);
-  color: var(--text-body);
+  border: 1px solid var(--action-icon-border);
+  background: var(--action-icon-bg);
+  color: var(--action-icon-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1010,14 +1010,14 @@ watch(scratchpadContent, (value) => {
 }
 
 .icon-action:hover {
-  border-color: var(--border-control-strong);
-  background: var(--surface-neutral-faint);
+  border-color: var(--action-icon-border-hover);
+  background: var(--action-icon-bg-hover);
 }
 
 .icon-action.active {
-  color: var(--color-primary);
-  border-color: var(--border-icon-active);
-  background: var(--surface-icon-active);
+  color: var(--action-icon-active-text);
+  border-color: var(--action-icon-active-border);
+  background: var(--action-icon-active-bg);
 }
 
 .icon-action.danger {
@@ -1100,9 +1100,9 @@ watch(scratchpadContent, (value) => {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid var(--border-control);
-  background: var(--surface-control);
-  color: var(--text-body);
+  border: 1px solid var(--action-icon-border);
+  background: var(--calendar-control-bg);
+  color: var(--calendar-control-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1113,16 +1113,16 @@ watch(scratchpadContent, (value) => {
 }
 
 .calendar-inline-btn:hover {
-  border-color: var(--border-control-hover);
-  background: var(--surface-control-hover);
+  border-color: var(--action-icon-border-hover);
+  background: var(--calendar-control-hover-bg);
 }
 
 .calendar-inline-today {
   width: auto;
   padding: 0 10px;
-  color: var(--text-accent);
-  border-color: var(--border-accent-soft);
-  background: var(--surface-accent-soft-hover);
+  color: var(--calendar-today-text);
+  border-color: var(--calendar-today-border);
+  background: var(--calendar-today-bg);
 }
 
 .calendar-inline-month {

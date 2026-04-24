@@ -109,59 +109,57 @@ let allPassed = true
 
 const themeConfigTests = [
   {
-    name: '提取 accent（链接色）',
+    name: '提取 system.accent（链接色候选）',
     css: '#write a { color: #2875d9; }',
-    expectedKey: 'accent',
+    expectedPath: 'tokens.system.accent',
     expectedValue: '#2875d9',
   },
   {
-    name: '提取 surface（背景色）',
+    name: '提取 article.bg（背景色）',
     css: '#write { background: #f5f5f5; }',
-    expectedKey: 'surface',
+    expectedPath: 'tokens.article.bg',
     expectedValue: '#f5f5f5',
   },
   {
-    name: '提取 ink（正文字色）',
+    name: '提取 article.text（正文字色）',
     css: '#write p { color: #333333; }',
-    expectedKey: 'ink',
+    expectedPath: 'tokens.article.text',
     expectedValue: '#333333',
   },
   {
-    name: '提取 headingColor',
+    name: '提取 article.heading',
     css: '#write h1 { color: #1a1a1a; }',
-    expectedKey: 'headingColor',
+    expectedPath: 'tokens.article.heading',
     expectedValue: '#1a1a1a',
   },
   {
-    name: '提取 fonts.article',
+    name: '提取 fonts.body',
     css: "#write { font-family: 'Computer Modern', serif; }",
-    expectedKey: 'fonts',
-    nestedKey: 'article',
+    expectedPath: 'tokens.fonts.body',
     expectedValue: "'Computer Modern', serif",
   },
   {
     name: '提取 fonts.heading',
     css: '#write h1, #write h2 { font-family: Georgia, serif; }',
-    expectedKey: 'fonts',
-    nestedKey: 'heading',
+    expectedPath: 'tokens.fonts.heading',
     expectedValue: 'Georgia, serif',
   },
   {
-    name: '提取 codeBlockBg',
+    name: '提取 code.blockBg',
     css: '.md-fences { background: #f6f8fa; }',
-    expectedKey: 'codeBlockBg',
+    expectedPath: 'tokens.code.blockBg',
     expectedValue: '#f6f8fa',
   },
   {
-    name: '提取 blockquoteBg',
+    name: '提取 blocks.blockquoteBg',
     css: '#write blockquote { background-color: #f9f9f9; }',
-    expectedKey: 'blockquoteBg',
+    expectedPath: 'tokens.blocks.blockquoteBg',
     expectedValue: '#f9f9f9',
   },
   {
-    name: '提取 linkColor',
+    name: '提取 article.link',
     css: '#write a { color: #2875d9; }',
-    expectedKey: 'linkColor',
+    expectedPath: 'tokens.article.link',
     expectedValue: '#2875d9',
   },
 ]
@@ -180,14 +178,12 @@ for (const tc of themeConfigTests) {
     continue
   }
 
-  const value = tc.nestedKey
-    ? result.themeConfig[tc.expectedKey]?.[tc.nestedKey]
-    : result.themeConfig[tc.expectedKey]
+  const value = tc.expectedPath.split('.').reduce((current, key) => current?.[key], result.themeConfig)
 
   if (value === tc.expectedValue) {
-    process.stdout.write(`  PASS: ${tc.expectedKey}${tc.nestedKey ? '.' + tc.nestedKey : ''} = "${value}"\n`)
+    process.stdout.write(`  PASS: ${tc.expectedPath} = "${value}"\n`)
   } else {
-    process.stdout.write(`  FAIL: 期望 ${tc.expectedKey}${tc.nestedKey ? '.' + tc.nestedKey : ''} = "${tc.expectedValue}", 得到 "${value}"\n`)
+    process.stdout.write(`  FAIL: 期望 ${tc.expectedPath} = "${tc.expectedValue}", 得到 "${value}"\n`)
     allPassed = false
   }
 }

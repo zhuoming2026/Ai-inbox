@@ -174,9 +174,9 @@ watch(
 
 .icon-btn,
 .text-btn {
-  border: 1px solid var(--border-control, var(--border-color));
-  background: var(--surface-control, transparent);
-  color: var(--text-body, var(--text-primary));
+  border: 1px solid var(--action-icon-border, var(--border-color));
+  background: var(--calendar-control-bg, transparent);
+  color: var(--calendar-control-text, var(--text-primary));
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -201,14 +201,14 @@ watch(
 
 .icon-btn:hover,
 .text-btn:hover {
-  border-color: var(--border-control-hover);
-  background: var(--surface-control-hover);
+  border-color: var(--action-icon-border-hover);
+  background: var(--calendar-control-hover-bg);
 }
 
 .today-btn {
-  color: var(--text-accent);
-  border-color: var(--border-accent-soft);
-  background: var(--surface-accent-soft-hover);
+  color: var(--calendar-today-text);
+  border-color: var(--calendar-today-border);
+  background: var(--calendar-today-bg);
 }
 
 .calendar-weekdays,
@@ -235,7 +235,7 @@ watch(
   border: 1px solid transparent;
   border-radius: 16px;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--calendar-cell-text);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -246,20 +246,21 @@ watch(
 }
 
 .calendar-cell:hover {
-  background: var(--surface-accent-subtle);
+  background: var(--calendar-cell-hover-bg);
 }
 
 .calendar-cell.is-other-month {
-  opacity: 0.28;
+  opacity: var(--calendar-cell-muted-opacity);
 }
 
 .calendar-cell.is-selected {
-  background: var(--surface-accent-soft);
-  border-color: var(--border-accent-soft);
+  background: var(--calendar-cell-selected-bg);
+  border-color: var(--calendar-cell-selected-border);
+  color: var(--calendar-cell-selected-text);
 }
 
 .calendar-cell.is-today .cell-number {
-  color: var(--color-primary);
+  color: var(--calendar-cell-today-text);
   font-weight: 700;
 }
 
@@ -267,6 +268,6 @@ watch(
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--calendar-item-dot);
 }
 </style>

@@ -110,6 +110,6 @@ function goToday() {
 }
 .cal-grid span:hover { background: var(--bg-tertiary); }
 .cal-grid .other-month { color: var(--text-muted); opacity: 0.4; }
-.cal-grid .is-today { color: #FABB18; font-weight: 600; }
-.cal-grid .is-selected { background: var(--color-link); color: white; }
+.cal-grid .is-today { color: var(--calendar-cell-today-text); font-weight: 600; }
+.cal-grid .is-selected { background: var(--calendar-cell-selected-bg); color: var(--calendar-cell-selected-text); }
 </style>

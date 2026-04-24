@@ -5,50 +5,6 @@ import { defaultThemeConfigs, normalizeThemeConfigs, type ThemePresetConfig, typ
 const currentTheme: Ref<string> = ref('light')
 const ACTIVE_THEME_STYLE_ID = 'ai-inbox-active-theme-style'
 
-const overrideKeys = [
-  '--bg-primary',
-  '--bg-secondary',
-  '--bg-sidebar',
-  '--page-bg',
-  '--fg-primary',
-  '--page-fg',
-  '--text-primary',
-  '--text-secondary',
-  '--text-placeholder',
-  '--text-muted',
-  '--text-body',
-  '--text-accent',
-  '--color-primary',
-  '--color-primary-hover',
-  '--color-primary-pressed',
-  '--color-link',
-  '--btn-primary-bg',
-  '--btn-primary-hover',
-  '--btn-primary-pressed',
-  '--border-focus',
-  '--font-display',
-  '--font-body',
-  '--font-editor',
-  '--font-mono',
-  '--surface-panel',
-  '--surface-panel-soft',
-  '--surface-control',
-  '--surface-control-hover',
-  '--surface-accent-soft',
-  '--surface-accent-soft-hover',
-  '--border-strong',
-  '--border-control',
-  '--border-control-hover',
-  '--border-accent-soft',
-  '--separator-soft',
-  '--surface-neutral-soft',
-  '--surface-neutral-faint',
-  '--surface-code-block',
-  '--surface-empty',
-  '--color-success',
-  '--color-error',
-]
-
 function resolveTheme(settings: Record<string, any> | undefined | null) {
   const lightTheme = settings?.lightTheme || 'light'
   const darkTheme = settings?.darkTheme || 'dark'
@@ -66,115 +22,280 @@ function resolveTheme(settings: Record<string, any> | undefined | null) {
   return lightTheme
 }
 
-function hexToRgb(hex: string) {
-  const sanitized = hex.trim().replace('#', '')
-  const value = sanitized.length === 3
-    ? sanitized.split('').map((char) => `${char}${char}`).join('')
-    : sanitized
-  const parsed = Number.parseInt(value, 16)
-  if (Number.isNaN(parsed) || value.length !== 6) return null
-  return {
-    r: (parsed >> 16) & 255,
-    g: (parsed >> 8) & 255,
-    b: parsed & 255,
+function setVars(vars: Record<string, string>) {
+  const root = document.documentElement
+  for (const [key, value] of Object.entries(vars)) {
+    root.style.setProperty(key, value)
   }
-}
-
-function rgbToHex(r: number, g: number, b: number) {
-  return `#${[r, g, b].map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('')}`
-}
-
-function mix(hex: string, target: string, ratio: number) {
-  const from = hexToRgb(hex)
-  const to = hexToRgb(target)
-  if (!from || !to) return hex
-  return rgbToHex(
-    from.r + (to.r - from.r) * ratio,
-    from.g + (to.g - from.g) * ratio,
-    from.b + (to.b - from.b) * ratio,
-  )
-}
-
-function withAlpha(hex: string, alpha: number) {
-  const rgb = hexToRgb(hex)
-  if (!rgb) return hex
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
 }
 
 function applyPresetOverrides(config: ThemePresetConfig) {
-  const root = document.documentElement
-  for (const key of overrideKeys) {
-    root.style.removeProperty(key)
-  }
+  const { tokens } = config
+  const { system, fonts, radius, app, editorChrome, article, code, blocks } = tokens
+  const primary = app.actions.primary
+  const secondary = app.actions.secondary
+  const icon = app.actions.icon
+  const iconActive = app.actions.iconActive
 
-  const accent = config.theme.accent
-  const surface = config.theme.surface
-  const ink = config.theme.ink
-  const dark = config.variant === 'dark'
-  const contrastStrength = Math.max(0, Math.min(100, config.theme.contrast)) / 100
-  const hoverAccent = dark ? mix(accent, '#ffffff', 0.16) : mix(accent, '#ffffff', 0.1)
-  const pressedAccent = dark ? mix(accent, '#000000', 0.14) : mix(accent, '#000000', 0.12)
-  const secondarySurface = dark ? mix(surface, '#ffffff', 0.06) : mix(surface, '#ffffff', 0.28)
-  const sidebarSurface = dark ? mix(surface, '#ffffff', 0.03) : mix(surface, '#000000', 0.02)
-  const panelAlpha = config.theme.opaqueWindows ? (dark ? 0.92 : 0.9) : (dark ? 0.76 : 0.8)
-  const controlAlpha = config.theme.opaqueWindows ? (dark ? 0.82 : 0.86) : (dark ? 0.72 : 0.76)
-  const borderBase = dark ? withAlpha('#ffffff', 0.08 + contrastStrength * 0.1) : withAlpha(ink, 0.08 + contrastStrength * 0.08)
-  const borderHover = dark ? withAlpha('#ffffff', 0.16 + contrastStrength * 0.08) : withAlpha(ink, 0.14 + contrastStrength * 0.08)
+  setVars({
+    // Core / legacy app variables kept as aliases for existing surfaces.
+    '--bg-primary': app.surfaces.page,
+    '--bg-secondary': app.surfaces.pageSubtle,
+    '--bg-sidebar': app.surfaces.sidebar,
+    '--bg-card': app.surfaces.card,
+    '--bg-modal': app.surfaces.modal,
+    '--bg-embedded': app.surfaces.input,
+    '--bg-tertiary': app.surfaces.control,
+    '--bg-input': app.surfaces.input,
+    '--bg-input-focus': app.surfaces.inputFocus,
+    '--page-bg': app.surfaces.page,
+    '--page-fg': app.text.primary,
+    '--fg-primary': app.text.primary,
+    '--text-primary': app.text.primary,
+    '--text-secondary': app.text.muted,
+    '--text-muted': app.text.muted,
+    '--text-tertiary': app.text.subtle,
+    '--text-placeholder': app.text.placeholder,
+    '--text-body': app.text.body,
+    '--text-inverse': app.text.inverse,
+    '--text-accent': app.text.accent,
+    '--text-link': app.text.link,
+    '--color-primary': system.accent,
+    '--color-primary-hover': primary.bgHover,
+    '--color-primary-pressed': primary.bgPressed,
+    '--color-link': app.text.link,
+    '--color-link-bg': app.status.infoBg,
+    '--color-success': system.success,
+    '--color-success-text': system.successText,
+    '--color-error': system.danger,
+    '--color-danger-text': system.dangerText,
+    '--color-warning': system.warning,
+    '--color-warning-text': system.warningText,
+    '--color-info': system.info,
+    '--color-info-text': system.infoText,
+    '--border-default': app.border.default,
+    '--border-subtle': app.border.subtle,
+    '--border-color': app.border.default,
+    '--border-color-light': app.border.subtle,
+    '--border-strong': app.border.strong,
+    '--border-control': app.border.control,
+    '--border-control-hover': app.border.controlHover,
+    '--border-control-strong': app.border.controlStrong,
+    '--border-focus': app.border.focus,
+    '--border-color-focus': app.border.focus,
+    '--border-accent-soft': app.border.accent,
+    '--separator-soft': app.navigation.separator,
+    '--divider': app.border.divider,
+    '--font-display': fonts.heading,
+    '--font-body': fonts.ui,
+    '--font-editor': fonts.body,
+    '--font-mono': fonts.code,
+    '--font-heading-alt': fonts.heading,
+    '--radius-sm': radius.sm,
+    '--radius-md': radius.md,
+    '--radius-lg': radius.lg,
+    '--radius-xl': radius.xl,
+    '--radius-pill': radius.pill,
+    '--surface-panel': app.surfaces.panel,
+    '--surface-panel-soft': app.surfaces.panelSoft,
+    '--surface-control': app.surfaces.control,
+    '--surface-control-hover': app.surfaces.controlHover,
+    '--surface-neutral-soft': app.actions.subtle.bg,
+    '--surface-neutral-faint': app.status.neutralBg,
+    '--surface-accent-soft': primary.bg,
+    '--surface-accent-soft-hover': primary.bgHover,
+    '--surface-accent-subtle': app.navigation.chipBg,
+    '--surface-accent-faint': app.navigation.tabActiveBg,
+    '--surface-empty': app.surfaces.empty,
+    '--surface-code-block': app.surfaces.codePreview,
+    '--surface-collected': app.cards.collectedBg,
+    '--surface-deleted': app.cards.deletedBg,
+    '--surface-image': app.cards.imageBg,
+    '--border-neutral-soft': app.border.default,
+    '--border-neutral-strong': app.border.divider,
+    '--border-empty': app.border.empty,
+    '--border-collected': app.cards.collectedBorder,
+    '--border-deleted': app.cards.deletedBorder,
+    '--border-icon-active': iconActive.border,
+    '--surface-icon-active': iconActive.bg,
+    '--surface-segmented': app.navigation.segmentedBg,
+    '--border-segmented': app.navigation.segmentedBorder,
+    '--overlay-page-fade': app.overlay.fade,
+    '--shadow-panel': app.shadow.panel,
+    '--shadow-card': app.shadow.card,
+    '--shadow-button': app.shadow.button,
+    '--shadow-popover': app.shadow.popover,
+    '--shadow-segmented': app.navigation.segmentedShadow,
+    '--shadow-card-hover-soft': app.cards.itemHoverShadow,
+    '--shadow-collected': app.cards.collectedShadow,
+    '--shadow-deleted-hover': app.cards.deletedHoverShadow,
+    '--shadow-accent-soft-hover': primary.shadow || app.shadow.button,
 
-  root.style.setProperty('--bg-primary', surface)
-  root.style.setProperty('--bg-secondary', secondarySurface)
-  root.style.setProperty('--bg-sidebar', sidebarSurface)
-  root.style.setProperty('--page-bg', surface)
-  root.style.setProperty('--fg-primary', ink)
-  root.style.setProperty('--page-fg', ink)
-  root.style.setProperty('--text-primary', ink)
-  root.style.setProperty('--text-secondary', withAlpha(ink, dark ? 0.7 : 0.62))
-  root.style.setProperty('--text-placeholder', withAlpha(ink, dark ? 0.34 : 0.34))
-  root.style.setProperty('--text-muted', withAlpha(ink, dark ? 0.58 : 0.58))
-  root.style.setProperty('--text-body', dark ? withAlpha('#f5f4ed', 0.88) : mix(ink, '#333639', 0.16))
-  root.style.setProperty('--text-accent', config.theme.semanticColors.skill)
-  root.style.setProperty('--color-primary', accent)
-  root.style.setProperty('--color-primary-hover', hoverAccent)
-  root.style.setProperty('--color-primary-pressed', pressedAccent)
-  root.style.setProperty('--color-link', config.theme.linkColor || accent)
-  root.style.setProperty('--btn-primary-bg', accent)
-  root.style.setProperty('--btn-primary-hover', hoverAccent)
-  root.style.setProperty('--btn-primary-pressed', pressedAccent)
-  root.style.setProperty('--border-focus', accent)
-  root.style.setProperty('--font-display', config.theme.fonts.ui)
-  root.style.setProperty('--font-body', config.theme.fonts.article || config.theme.fonts.ui)
-  root.style.setProperty('--font-editor', config.theme.fonts.ui)
-  root.style.setProperty('--font-mono', config.theme.fonts.code)
-  root.style.setProperty('--surface-panel', config.theme.panel || withAlpha(dark ? '#242424' : '#ffffff', panelAlpha))
-  root.style.setProperty('--surface-panel-soft', withAlpha(dark ? '#2d2d2d' : '#ffffff', panelAlpha - 0.08))
-  root.style.setProperty('--surface-control', config.theme.control || withAlpha(dark ? '#2d2d2d' : '#ffffff', controlAlpha))
-  root.style.setProperty('--surface-control-hover', withAlpha(dark ? '#383838' : '#ffffff', Math.min(controlAlpha + 0.12, 0.96)))
-  root.style.setProperty('--surface-accent-soft', withAlpha(accent, dark ? 0.18 : 0.16))
-  root.style.setProperty('--surface-accent-soft-hover', withAlpha(accent, dark ? 0.24 : 0.22))
-  root.style.setProperty('--border-strong', config.theme.panelBorder || borderBase)
-  root.style.setProperty('--border-control', config.theme.controlBorder || borderBase)
-  root.style.setProperty('--border-control-hover', borderHover)
-  root.style.setProperty('--border-accent-soft', withAlpha(accent, dark ? 0.32 : 0.24))
-  root.style.setProperty('--separator-soft', withAlpha(ink, dark ? 0.22 : 0.18))
-  root.style.setProperty('--surface-neutral-soft', withAlpha(ink, dark ? 0.05 : 0.04))
-  root.style.setProperty('--surface-neutral-faint', withAlpha(ink, dark ? 0.04 : 0.03))
-  root.style.setProperty('--surface-code-block', config.theme.codeBlockBg || withAlpha(ink, dark ? 0.07 : 0.04))
-  root.style.setProperty('--surface-empty', withAlpha(dark ? '#242424' : '#ffffff', dark ? 0.5 : 0.48))
-  root.style.setProperty('--color-success', config.theme.semanticColors.diffAdded)
-  root.style.setProperty('--color-error', config.theme.semanticColors.diffRemoved)
-  // 文章正文样式扩展
-  if (config.theme.headingColor) root.style.setProperty('--typography-heading', config.theme.headingColor)
-  if (config.theme.linkColor) root.style.setProperty('--typography-link', config.theme.linkColor)
-  if (config.theme.blockquoteBg) root.style.setProperty('--typography-blockquote-bg', config.theme.blockquoteBg)
-  if (config.theme.blockquoteBorder) root.style.setProperty('--typography-blockquote-border', config.theme.blockquoteBorder)
-  if (config.theme.tableBorder) root.style.setProperty('--typography-table-border', config.theme.tableBorder)
-  if (config.theme.tableHeaderBg) root.style.setProperty('--typography-table-header-bg', config.theme.tableHeaderBg)
-  if (config.theme.inlineCodeBg) root.style.setProperty('--typography-inline-code-bg', config.theme.inlineCodeBg)
-  if (config.theme.inlineCodeColor) root.style.setProperty('--typography-inline-code-color', config.theme.inlineCodeColor)
-  // 字体映射
-  if (config.theme.fonts.article) root.style.setProperty('--typography-font-body', config.theme.fonts.article)
-  if (config.theme.fonts.heading) root.style.setProperty('--typography-font-heading', config.theme.fonts.heading)
-  if (config.theme.fonts.code) root.style.setProperty('--typography-font-code', config.theme.fonts.code)
+    // Action tokens.
+    '--action-primary-bg': primary.bg,
+    '--action-primary-bg-hover': primary.bgHover,
+    '--action-primary-bg-pressed': primary.bgPressed,
+    '--action-primary-text': primary.text,
+    '--action-primary-border': primary.border,
+    '--action-primary-border-hover': primary.borderHover,
+    '--action-primary-shadow': primary.shadow || app.shadow.button,
+    '--action-secondary-bg': secondary.bg,
+    '--action-secondary-bg-hover': secondary.bgHover,
+    '--action-secondary-bg-pressed': secondary.bgPressed,
+    '--action-secondary-text': secondary.text,
+    '--action-secondary-border': secondary.border,
+    '--action-secondary-border-hover': secondary.borderHover,
+    '--action-icon-bg': icon.bg,
+    '--action-icon-bg-hover': icon.bgHover,
+    '--action-icon-bg-pressed': icon.bgPressed,
+    '--action-icon-text': icon.text,
+    '--action-icon-border': icon.border,
+    '--action-icon-border-hover': icon.borderHover,
+    '--action-icon-active-bg': iconActive.bg,
+    '--action-icon-active-text': iconActive.text,
+    '--action-icon-active-border': iconActive.border,
+    '--action-danger-bg': app.actions.danger.bg,
+    '--action-danger-bg-hover': app.actions.danger.bgHover,
+    '--action-danger-text': app.actions.danger.text,
+    '--action-danger-border': app.actions.danger.border,
+    '--action-warning-bg': app.actions.warning.bg,
+    '--action-warning-bg-hover': app.actions.warning.bgHover,
+    '--action-warning-text': app.actions.warning.text,
+    '--action-warning-border': app.actions.warning.border,
+    '--action-success-bg': app.actions.success.bg,
+    '--action-success-bg-hover': app.actions.success.bgHover,
+    '--action-success-text': app.actions.success.text,
+    '--action-success-border': app.actions.success.border,
+
+    // Component-domain app tokens.
+    '--nav-tab-text': app.navigation.tabText,
+    '--nav-tab-hover-text': app.navigation.tabHoverText,
+    '--nav-tab-active-bg': app.navigation.tabActiveBg,
+    '--nav-tab-active-text': app.navigation.tabActiveText,
+    '--nav-chip-bg': app.navigation.chipBg,
+    '--nav-chip-text': app.navigation.chipText,
+    '--nav-chip-label': app.navigation.chipLabel,
+    '--nav-chip-border': app.navigation.chipBorder,
+    '--nav-chip-subtle-bg': app.navigation.chipSubtleBg,
+    '--calendar-control-bg': app.calendar.controlBg,
+    '--calendar-control-hover-bg': app.calendar.controlHoverBg,
+    '--calendar-control-text': app.calendar.controlText,
+    '--calendar-today-bg': app.calendar.todayBg,
+    '--calendar-today-text': app.calendar.todayText,
+    '--calendar-today-border': app.calendar.todayBorder,
+    '--calendar-cell-text': app.calendar.cellText,
+    '--calendar-cell-muted-opacity': app.calendar.cellMutedOpacity,
+    '--calendar-cell-hover-bg': app.calendar.cellHoverBg,
+    '--calendar-cell-selected-bg': app.calendar.cellSelectedBg,
+    '--calendar-cell-selected-text': app.calendar.cellSelectedText,
+    '--calendar-cell-selected-border': app.calendar.cellSelectedBorder,
+    '--calendar-cell-today-text': app.calendar.cellTodayText,
+    '--calendar-item-dot': app.calendar.itemDot,
+    '--card-item-bg': app.cards.itemBg,
+    '--card-item-border': app.cards.itemBorder,
+    '--status-success-bg': app.status.successBg,
+    '--status-success-text': app.status.successText,
+    '--status-warning-bg': app.status.warningBg,
+    '--status-warning-text': app.status.warningText,
+    '--status-danger-bg': app.status.dangerBg,
+    '--status-danger-text': app.status.dangerText,
+    '--status-info-bg': app.status.infoBg,
+    '--status-info-text': app.status.infoText,
+    '--status-neutral-bg': app.status.neutralBg,
+    '--status-neutral-text': app.status.neutralText,
+    '--overlay-mask': app.overlay.mask,
+    '--overlay-modal-shadow': app.overlay.modalShadow,
+    '--app-header-bg': app.header.bg,
+    '--app-header-border': app.header.border,
+
+    // Editor chrome tokens.
+    '--editor-border': editorChrome.border,
+    '--editor-border-strong': editorChrome.borderStrong,
+    '--editor-focus-border': editorChrome.focusBorder,
+    '--editor-focus-ring': editorChrome.focusRing,
+    '--editor-shadow': editorChrome.shadow,
+    '--editor-bg': editorChrome.shellBg,
+    '--editor-content-bg': editorChrome.contentBg,
+    '--editor-toolbar-bg': editorChrome.toolbarBg,
+    '--editor-toolbar-border': editorChrome.toolbarBorder,
+    '--editor-toolbar-hover-bg': editorChrome.toolbarHoverBg,
+    '--editor-toolbar-active-bg': editorChrome.toolbarActiveBg,
+    '--editor-toolbar-active-strong-bg': editorChrome.toolbarActiveStrongBg,
+    '--editor-toolbar-icon': editorChrome.toolbarIcon,
+    '--editor-toolbar-icon-hover': editorChrome.toolbarIconHover,
+    '--editor-toolbar-active-icon': editorChrome.toolbarIconActive,
+    '--editor-popover-bg': editorChrome.popoverBg,
+    '--editor-popover-border': editorChrome.popoverBorder,
+    '--editor-popover-shadow': editorChrome.popoverShadow,
+    '--editor-popover-item-hover': editorChrome.popoverItemHover,
+    '--editor-popover-item-active': editorChrome.popoverItemActive,
+    '--editor-popover-icon': editorChrome.popoverIcon,
+    '--editor-popover-icon-hover': editorChrome.popoverIconHover,
+    '--editor-popover-icon-active': editorChrome.popoverIconActive,
+    '--editor-popover-input-color': editorChrome.popoverInputColor,
+    '--editor-popover-input-placeholder': editorChrome.popoverInputPlaceholder,
+    '--editor-popover-subtle-bg': editorChrome.popoverSubtleBg,
+    '--editor-popover-subtle-border': editorChrome.popoverSubtleBorder,
+    '--editor-popover-label': editorChrome.popoverLabel,
+    '--editor-frontmatter-bg': editorChrome.frontmatterBg,
+    '--editor-frontmatter-hover-bg': editorChrome.frontmatterHoverBg,
+    '--editor-frontmatter-body-bg': editorChrome.frontmatterBodyBg,
+    '--editor-frontmatter-border': editorChrome.frontmatterBorder,
+    '--editor-frontmatter-shadow': editorChrome.frontmatterShadow,
+    '--editor-table-header-bg': blocks.tableHeaderBg,
+    '--editor-table-cell-bg': blocks.tableCellBg,
+    '--editor-heading': article.heading,
+    '--editor-text': article.text,
+    '--editor-text-muted': article.textMuted,
+    '--editor-placeholder': article.placeholder,
+    '--editor-link-color': article.link,
+    '--editor-blockquote-border': blocks.blockquoteBorder,
+    '--editor-blockquote-text': blocks.blockquoteText,
+    '--editor-hr-border': blocks.hr,
+    '--editor-code-bg': code.blockBg,
+    '--editor-inline-code-bg': code.inlineBg,
+    '--editor-inline-code-color': code.inlineText,
+    '--editor-table-border': blocks.tableBorder,
+
+    // Article typography tokens.
+    '--typography-bg': article.bg,
+    '--typography-text': article.text,
+    '--typography-muted': article.textMuted,
+    '--typography-heading': article.heading,
+    '--typography-placeholder': article.placeholder,
+    '--typography-link': article.link,
+    '--typography-measure': article.measure,
+    '--typography-font-body': fonts.body,
+    '--typography-font-heading': fonts.heading,
+    '--typography-font-code': fonts.code,
+    '--typography-font-size': article.fontSize,
+    '--typography-line-height': article.lineHeight,
+    '--typography-letter-spacing': article.letterSpacing,
+    '--typography-paragraph-spacing': article.paragraphSpacing,
+    '--typography-h1-size': article.h1Size,
+    '--typography-h2-size': article.h2Size,
+    '--typography-h3-size': article.h3Size,
+    '--typography-h1-weight': article.h1Weight,
+    '--typography-h2-weight': article.h2Weight,
+    '--typography-h3-weight': article.h3Weight,
+    '--typography-inline-code-bg': code.inlineBg,
+    '--typography-inline-code-color': code.inlineText,
+    '--typography-code-block-bg': code.blockBg,
+    '--typography-code-block-color': code.blockText,
+    '--typography-code-block-border': code.blockBorder,
+    '--typography-code-font-size': code.fontSize,
+    '--typography-code-line-height': code.lineHeight,
+    '--typography-blockquote-bg': blocks.blockquoteBg,
+    '--typography-blockquote-text': blocks.blockquoteText,
+    '--typography-blockquote-border': blocks.blockquoteBorder,
+    '--typography-table-border': blocks.tableBorder,
+    '--typography-table-header-bg': blocks.tableHeaderBg,
+    '--typography-table-cell-bg': blocks.tableCellBg,
+    '--typography-hr': blocks.hr,
+    '--typography-image-radius': blocks.imageRadius,
+    '--selection-bg': system.selectionBg,
+    '--selection-text': system.selectionText,
+  })
 }
 
 function injectThemeCss(themeId: string, config: ThemePresetConfig) {

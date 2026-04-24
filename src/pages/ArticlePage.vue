@@ -73,27 +73,27 @@
               <div class="theme-popup-row">
                 <span class="theme-popup-label">强调色</span>
                 <div class="color-input">
-                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.accent" @input="applyLocalTheme" />
-                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.accent" @change="applyLocalTheme" />
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.tokens.system.accent" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.tokens.system.accent" @change="applyLocalTheme" />
                 </div>
               </div>
               <div class="theme-popup-row">
                 <span class="theme-popup-label">背景</span>
                 <div class="color-input">
-                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.surface" @input="applyLocalTheme" />
-                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.surface" @change="applyLocalTheme" />
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.tokens.app.surfaces.page" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.tokens.app.surfaces.page" @change="applyLocalTheme" />
                 </div>
               </div>
               <div class="theme-popup-row">
                 <span class="theme-popup-label">前景</span>
                 <div class="color-input">
-                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.ink" @input="applyLocalTheme" />
-                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.ink" @change="applyLocalTheme" />
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.tokens.app.text.primary" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.tokens.app.text.primary" @change="applyLocalTheme" />
                 </div>
               </div>
               <div class="theme-popup-row">
                 <span class="theme-popup-label">界面字体</span>
-                <select class="form-input" v-model="localThemeConfig!.theme.fonts.ui" @change="applyLocalTheme">
+                <select class="form-input" v-model="localThemeConfig!.tokens.fonts.ui" @change="applyLocalTheme">
                   <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
                 </select>
               </div>
@@ -179,11 +179,31 @@ const router = useRouter()
 const slug = route.params.slug as string
 const message = useMessage()
 
-const themeOverrides: GlobalThemeOverrides = {
+const resolvedThemeTokens = ref({
+  primaryColor: '#f2c94c',
+  primaryColorHover: '#f5d76a',
+  primaryColorPressed: '#d9a928',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif',
+})
+
+const themeOverrides = computed<GlobalThemeOverrides>(() => ({
   common: {
-    primaryColor: '#fabb18',
-    fontFamily: 'PingFang SC, SF Pro Text, Helvetica Neue, Noto Sans SC, system-ui, -apple-system, sans-serif',
+    primaryColor: resolvedThemeTokens.value.primaryColor,
+    primaryColorHover: resolvedThemeTokens.value.primaryColorHover,
+    primaryColorPressed: resolvedThemeTokens.value.primaryColorPressed,
+    fontFamily: resolvedThemeTokens.value.fontFamily,
   },
+}))
+
+function refreshResolvedThemeTokens() {
+  if (typeof window === 'undefined') return
+  const styles = getComputedStyle(document.documentElement)
+  resolvedThemeTokens.value = {
+    primaryColor: styles.getPropertyValue('--action-primary-bg').trim() || '#f2c94c',
+    primaryColorHover: styles.getPropertyValue('--action-primary-bg-hover').trim() || '#f5d76a',
+    primaryColorPressed: styles.getPropertyValue('--action-primary-bg-pressed').trim() || '#d9a928',
+    fontFamily: styles.getPropertyValue('--font-body').trim() || '-apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif',
+  }
 }
 
 const frontmatterText = ref('')
@@ -248,6 +268,7 @@ async function applyLocalTheme() {
   await window.electronAPI?.saveSettings(settings)
   window.dispatchEvent(new CustomEvent('settings-changed', { detail: settings }))
   await applyThemeFromSettings(settings)
+  refreshResolvedThemeTokens()
 }
 
 const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
@@ -552,6 +573,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleSettingsChanged() {
+  refreshResolvedThemeTokens()
   void loadEditorAppearanceSettings()
   void loadThemeSettings()
 }
@@ -571,6 +593,7 @@ async function loadThemeSettings() {
 }
 
 onMounted(() => {
+  refreshResolvedThemeTokens()
   void loadRawDocument()
   void loadEditorAppearanceSettings()
   void loadThemeSettings()
@@ -611,9 +634,8 @@ onUnmounted(() => {
   gap: var(--space-4);
   min-height: 76px;
   padding: 14px var(--space-8);
-  border-bottom: 1px solid var(--border-strong);
-  background:
-    linear-gradient(180deg, rgba(255, 253, 247, 0.94), rgba(255, 255, 255, 0.7));
+  border-bottom: 1px solid var(--app-header-border);
+  background: var(--app-header-bg);
   backdrop-filter: blur(18px);
   flex-shrink: 0;
 }
@@ -703,15 +725,15 @@ onUnmounted(() => {
 }
 
 .save-indicator[data-state='saved'] {
-  color: #1aae39;
+  color: var(--status-success-text);
 }
 
 .save-indicator[data-state='saving'] {
-  color: #7d341c;
+  color: var(--status-warning-text);
 }
 
 .save-indicator[data-state='error'] {
-  color: #d14343;
+  color: var(--status-danger-text);
 }
 
 .back-btn {
@@ -765,13 +787,13 @@ onUnmounted(() => {
 }
 
 .notice-warning {
-  background: rgba(250, 173, 20, 0.12);
-  color: #8d5b00;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .notice-info {
-  background: rgba(9, 127, 232, 0.1);
-  color: #0a5cb6;
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .editor-workspace {
@@ -803,12 +825,12 @@ onUnmounted(() => {
   width: 100%;
   border: none;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--editor-frontmatter-bg);
   padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 20px rgba(62, 45, 12, 0.1);
+  box-shadow: var(--editor-frontmatter-shadow);
   font-size: 13px;
   color: var(--text-primary);
   cursor: pointer;
@@ -817,8 +839,8 @@ onUnmounted(() => {
 }
 
 .frontmatter-toggle:hover {
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 10px 28px rgba(62, 45, 12, 0.14);
+  background: var(--editor-frontmatter-hover-bg);
+  box-shadow: var(--editor-frontmatter-shadow);
 }
 
 .frontmatter-toggle-title {
@@ -829,9 +851,9 @@ onUnmounted(() => {
 
 .frontmatter-body {
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(26, 26, 26, 0.06);
-  box-shadow: 0 24px 48px rgba(48, 35, 14, 0.14);
+  background: var(--editor-frontmatter-body-bg);
+  border: 1px solid var(--editor-frontmatter-border);
+  box-shadow: var(--editor-frontmatter-shadow);
   overflow: hidden;
 }
 

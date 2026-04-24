@@ -30,25 +30,7 @@ export interface TyporaThemeImportDraft {
   metadata: ImportedThemeMetadata
   warnings: string[]
   themeConfig?: {
-    accent?: string
-    surface?: string
-    ink?: string
-    headingColor?: string
-    linkColor?: string
-    blockquoteBg?: string
-    blockquoteBorder?: string
-    tableBorder?: string
-    tableHeaderBg?: string
-    inlineCodeBg?: string
-    inlineCodeColor?: string
-    codeBlockBg?: string
-    codeBlockColor?: string
-    fonts?: {
-      ui?: string
-      code?: string
-      article?: string
-      heading?: string
-    }
+    tokens?: Record<string, unknown>
   }
 }
 

@@ -16,6 +16,12 @@
   caret-color: var(--typography-link, var(--color-link, #097FE8));
 }
 
+.tiptap ::selection,
+.rich-editor__content ::selection {
+  background: var(--selection-bg, rgba(9, 127, 232, 0.18));
+  color: var(--selection-text, inherit);
+}
+
 .tiptap.is-editor-empty:first-child::before,
 .rich-editor__content.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
@@ -75,7 +81,7 @@
 
 .tiptap p,
 .rich-editor__content p {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--typography-paragraph-spacing, 1rem);
   color: var(--typography-text, var(--text-body, #333639));
   max-width: var(--typography-measure, 70ch);
 }
@@ -108,7 +114,7 @@
 .tiptap code,
 .rich-editor__content code {
   font-family: var(--typography-font-code, var(--font-mono, monospace));
-  font-size: 0.84em;
+  font-size: var(--typography-code-font-size, 0.84em);
   background: var(--typography-inline-code-bg, rgba(0, 0, 0, 0.04));
   border-radius: 0.45rem;
   padding: 0.18rem 0.42rem;
@@ -217,8 +223,8 @@
 .tiptap pre code,
 .rich-editor__content pre code {
   font-family: var(--typography-font-code, var(--font-mono, monospace));
-  font-size: 0.875rem;
-  line-height: 1.75;
+  font-size: var(--typography-code-font-size, 0.875rem);
+  line-height: var(--typography-code-line-height, 1.75);
   background: none;
   padding: 0;
   color: var(--typography-code-block-color, #e2e8f0);

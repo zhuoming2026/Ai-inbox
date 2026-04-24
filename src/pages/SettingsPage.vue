@@ -110,41 +110,41 @@
               <div class="appearance-row">
                 <span class="appearance-label">强调色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.accent" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.accent" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.system.accent" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.system.accent" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.surface" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.surface" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.page" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.page" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">前景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.ink" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.ink" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.text.primary" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.text.primary" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">面板色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.panel" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.panel" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.panel" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.panel" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">控件色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.control" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.control" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.control" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.control" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">圆角</span>
-                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.borderRadius" @change="persistAppearanceSettings(false)" placeholder="如: 12px" />
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.tokens.radius.lg" @change="persistAppearanceSettings(false)" placeholder="如: 12px" />
               </div>
 
               <!-- 字体 -->
@@ -153,27 +153,27 @@
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">界面字体</span>
-                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)">
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.tokens.fonts.ui" @change="persistAppearanceSettings(false)">
                   <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
                 </select>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">文章正文字体</span>
-                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.article" @change="persistAppearanceSettings(false)">
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.tokens.fonts.body" @change="persistAppearanceSettings(false)">
                   <option value="">跟随界面字体</option>
                   <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
                 </select>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">标题字体</span>
-                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.heading" @change="persistAppearanceSettings(false)">
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.tokens.fonts.heading" @change="persistAppearanceSettings(false)">
                   <option value="">跟随界面字体</option>
                   <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
                 </select>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码字体</span>
-                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)">
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.tokens.fonts.code" @change="persistAppearanceSettings(false)">
                   <option v-for="font in monoFonts" :key="font" :value="font">{{ font }}</option>
                 </select>
               </div>
@@ -185,43 +185,43 @@
               <div class="appearance-row">
                 <span class="appearance-label">标题颜色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.headingColor" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.headingColor" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.article.heading" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.article.heading" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">链接色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.linkColor" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.linkColor" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.article.link" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.article.link" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">引用背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.blockquoteBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.blockquoteBg" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.blockquoteBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.blockquoteBg" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">引用边框</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.blockquoteBorder" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.blockquoteBorder" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.blockquoteBorder" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.blockquoteBorder" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">表格边框</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.tableBorder" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.tableBorder" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.tableBorder" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.tableBorder" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">表头背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.tableHeaderBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.tableHeaderBg" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.tableHeaderBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.tableHeaderBg" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
 
@@ -232,29 +232,29 @@
               <div class="appearance-row">
                 <span class="appearance-label">inline 代码背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.inlineCodeBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.inlineCodeBg" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.inlineBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.inlineBg" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">inline 代码文字</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.inlineCodeColor" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.inlineCodeColor" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.inlineText" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.inlineText" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码块背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.codeBlockBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.codeBlockBg" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.blockBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.blockBg" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码块文字</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.codeBlockColor" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.codeBlockColor" @change="persistAppearanceSettings(false)" />
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.blockText" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.blockText" @change="persistAppearanceSettings(false)" />
                 </div>
               </div>
 
@@ -393,7 +393,7 @@
       <textarea
         v-model="appearanceImportText"
         class="modal-textarea"
-        placeholder="粘贴 ai-inbox theme v1 JSON"
+        placeholder="粘贴 ai-inbox theme v2 JSON"
         rows="8"
       ></textarea>
       <div v-if="appearanceImportWarnings.length > 0" class="import-warnings">
@@ -675,35 +675,30 @@ function stripThemeFileComments(raw: string) {
 }
 
 function collectExtraThemeKeys(value: unknown, prefix = ''): string[] {
-  const allowed: Record<string, string[] | true> = {
-    '': ['id', 'name', 'codeThemeId', 'variant', 'theme', 'app', 'articleCss', 'codeCss'],
-    theme: [
-      'accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface',
-      'panel', 'panelBorder', 'control', 'controlBorder', 'borderRadius',
-      'articleFontSize', 'articleLineHeight', 'articleParagraphSpacing', 'articleContentWidth',
-      'headingColor', 'linkColor', 'blockquoteBg', 'blockquoteBorder', 'tableBorder', 'tableHeaderBg',
-      'codeFontSize', 'inlineCodeBg', 'inlineCodeColor', 'codeBlockBg', 'codeBlockColor', 'codeBlockBorder',
-    ],
-    app: [
-      'accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface',
-      'panel', 'panelBorder', 'control', 'controlBorder', 'borderRadius',
-      'articleFontSize', 'articleLineHeight', 'articleParagraphSpacing', 'articleContentWidth',
-      'headingColor', 'linkColor', 'blockquoteBg', 'blockquoteBorder', 'tableBorder', 'tableHeaderBg',
-      'codeFontSize', 'inlineCodeBg', 'inlineCodeColor', 'codeBlockBg', 'codeBlockColor', 'codeBlockBorder',
-    ],
-    'theme.fonts': ['code', 'ui', 'article', 'heading'],
-    'app.fonts': ['code', 'ui', 'article', 'heading'],
-    'theme.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
-    'app.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
-  }
+  const schema = {
+    id: true,
+    name: true,
+    codeThemeId: true,
+    variant: true,
+    tokens: defaultThemeConfigs.light.tokens,
+    articleCss: true,
+    codeCss: true,
+  } as Record<string, unknown>
+  const schemaAtPath = prefix
+    ? prefix.split('.').reduce<unknown>((current, key) => (
+        typeof current === 'object' && current !== null && !Array.isArray(current)
+          ? (current as Record<string, unknown>)[key]
+          : undefined
+      ), schema)
+    : schema
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return []
-  const keys = allowed[prefix]
-  if (!Array.isArray(keys)) return []
+  if (typeof schemaAtPath !== 'object' || schemaAtPath === null || Array.isArray(schemaAtPath)) return []
+  const allowedKeys = Object.keys(schemaAtPath)
 
   const extras: string[] = []
   for (const [key, nested] of Object.entries(value)) {
     const path = prefix ? `${prefix}.${key}` : key
-    if (!keys.includes(key)) {
+    if (!allowedKeys.includes(key)) {
       extras.push(path)
       continue
     }
@@ -713,16 +708,16 @@ function collectExtraThemeKeys(value: unknown, prefix = ''): string[] {
 }
 
 function parseThemeImport(rawText: string, nameFallback: string) {
-  const jsonText = stripThemeFileComments(rawText).replace(/^codex-theme-v1:\s*/, '')
+  const jsonText = stripThemeFileComments(rawText).replace(/^codex-theme-v[12]:\s*/, '')
   const parsed = JSON.parse(jsonText)
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     throw new Error('主题文件格式错误：根节点必须是对象')
   }
-  if (!('theme' in parsed) && !('app' in parsed)) {
-    throw new Error('主题文件格式错误：必须包含 theme 或 app 字段')
+  if (!('tokens' in parsed)) {
+    throw new Error('主题文件格式错误：必须包含 tokens 字段')
   }
-  if ('theme' in parsed && (typeof (parsed as any).theme !== 'object' || (parsed as any).theme === null || Array.isArray((parsed as any).theme))) {
-    throw new Error('主题文件格式错误：theme 必须是对象')
+  if (typeof (parsed as any).tokens !== 'object' || (parsed as any).tokens === null || Array.isArray((parsed as any).tokens)) {
+    throw new Error('主题文件格式错误：tokens 必须是对象')
   }
 
   // 提取 extra key warning
@@ -731,18 +726,18 @@ function parseThemeImport(rawText: string, nameFallback: string) {
   // 提取缺失字段 warning（用 light 主题对照）
   const missingWarnings: string[] = []
   const normalizedLight = normalizeThemeConfig('__check__', {}, defaultThemeConfigs.light)
-  const checkTheme = (parsed as any).theme || (parsed as any).app || {}
-  const checkFonts = checkTheme.fonts || {}
-  const lightFonts = normalizedLight.theme.fonts
+  const checkTokens = (parsed as any).tokens || {}
+  const checkFonts = checkTokens.fonts || {}
+  const lightTokens = normalizedLight.tokens
 
   const checkFields: Array<[string, unknown, unknown]> = [
-    ['accent', (checkTheme as any).accent, normalizedLight.theme.accent],
-    ['surface', (checkTheme as any).surface, normalizedLight.theme.surface],
-    ['ink', (checkTheme as any).ink, normalizedLight.theme.ink],
-    ['fonts.ui', checkFonts.ui, lightFonts.ui],
-    ['fonts.code', checkFonts.code, lightFonts.code],
-    ['fonts.article', checkFonts.article, lightFonts?.article],
-    ['fonts.heading', checkFonts.heading, lightFonts?.heading],
+    ['tokens.system.accent', checkTokens.system?.accent, lightTokens.system.accent],
+    ['tokens.app.surfaces.page', checkTokens.app?.surfaces?.page, lightTokens.app.surfaces.page],
+    ['tokens.app.text.primary', checkTokens.app?.text?.primary, lightTokens.app.text.primary],
+    ['tokens.fonts.ui', checkFonts.ui, lightTokens.fonts.ui],
+    ['tokens.fonts.body', checkFonts.body, lightTokens.fonts.body],
+    ['tokens.fonts.heading', checkFonts.heading, lightTokens.fonts.heading],
+    ['tokens.fonts.code', checkFonts.code, lightTokens.fonts.code],
   ]
   for (const [field, actual, fallback] of checkFields) {
     if (actual === undefined && fallback !== undefined) {
@@ -846,30 +841,10 @@ async function handleImportTypora() {
       id: result.draft.id,
       name: result.draft.name,
       variant: result.draft.metadata.isDark ? 'dark' : 'light',
-      theme: {
-        accent: result.draft.themeConfig?.accent,
-        surface: result.draft.themeConfig?.surface,
-        ink: result.draft.themeConfig?.ink,
-        headingColor: result.draft.themeConfig?.headingColor,
-        linkColor: result.draft.themeConfig?.linkColor,
-        blockquoteBg: result.draft.themeConfig?.blockquoteBg,
-        blockquoteBorder: result.draft.themeConfig?.blockquoteBorder,
-        tableBorder: result.draft.themeConfig?.tableBorder,
-        tableHeaderBg: result.draft.themeConfig?.tableHeaderBg,
-        inlineCodeBg: result.draft.themeConfig?.inlineCodeBg,
-        inlineCodeColor: result.draft.themeConfig?.inlineCodeColor,
-        codeBlockBg: result.draft.themeConfig?.codeBlockBg,
-        codeBlockColor: result.draft.themeConfig?.codeBlockColor,
-        fonts: {
-          ui: result.draft.themeConfig?.fonts?.ui,
-          code: result.draft.themeConfig?.fonts?.code,
-          article: result.draft.themeConfig?.fonts?.article,
-          heading: result.draft.themeConfig?.fonts?.heading,
-        },
-      },
+      tokens: result.draft.themeConfig?.tokens,
       articleCss: result.draft.css,
       codeCss: result.draft.css,
-    }, defaultThemeConfigs.light)
+    }, result.draft.metadata.isDark ? defaultThemeConfigs.dark : defaultThemeConfigs.light)
     showImportDialog.value = true
   } finally {
     importLoading.value = false
@@ -1027,17 +1002,17 @@ async function stopMcp() {
 .save-btn {
   margin-left: auto;
   padding: 10px 16px;
-  border: 1px solid var(--border-accent-soft);
+  border: 1px solid var(--action-primary-border);
   border-radius: 999px;
-  background: var(--surface-accent-soft);
-  color: var(--text-accent);
+  background: var(--action-primary-bg);
+  color: var(--action-primary-text);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .save-btn:hover {
-  background: var(--surface-accent-soft-hover);
+  background: var(--action-primary-bg-hover);
 }
 
 .body {
@@ -1360,8 +1335,8 @@ async function stopMcp() {
 }
 
 .segment-btn.active {
-  background: var(--surface-accent-soft-hover);
-  color: var(--text-accent);
+  background: var(--nav-tab-active-bg);
+  color: var(--nav-tab-active-text);
 }
 
 .status-block {
@@ -1465,8 +1440,8 @@ async function stopMcp() {
 .btn-primary {
   padding: 10px 16px;
   border-radius: 999px;
-  background: var(--color-success);
-  color: white;
+  background: var(--action-success-bg);
+  color: var(--action-success-text);
   font-size: 14px;
 }
 
@@ -1477,20 +1452,22 @@ async function stopMcp() {
 .btn-secondary {
   padding: 10px 16px;
   border-radius: 999px;
-  background: var(--surface-control);
-  color: var(--text-primary);
+  background: var(--action-secondary-bg);
+  color: var(--action-secondary-text);
+  border: 1px solid var(--action-secondary-border);
   font-size: 14px;
 }
 
 .btn-secondary:hover {
-  background: var(--color-link);
-  color: white;
+  background: var(--action-secondary-bg-hover);
+  color: var(--action-secondary-text);
+  border-color: var(--action-secondary-border-hover);
 }
 
 .modal-mask {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.18);
+  background: var(--overlay-mask);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1503,7 +1480,7 @@ async function stopMcp() {
   max-height: min(720px, calc(100dvh - 48px));
   border-radius: 24px;
   background: var(--surface-panel);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--overlay-modal-shadow);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
@@ -1551,7 +1528,7 @@ async function stopMcp() {
 
 .modal-textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--border-focus);
 }
 
 .modal-actions {
@@ -1624,13 +1601,13 @@ async function stopMcp() {
 }
 
 .dark-badge {
-  background: var(--surface-accent-soft);
-  color: var(--text-accent);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .active-badge {
-  background: var(--surface-success-soft, rgba(22, 163, 74, 0.1));
-  color: var(--color-success);
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .imported-theme-actions {
@@ -1652,7 +1629,7 @@ async function stopMcp() {
 }
 
 .btn-theme-action {
-  color: var(--text-accent);
+  color: var(--action-primary-text);
 }
 
 .btn-delete-theme {
