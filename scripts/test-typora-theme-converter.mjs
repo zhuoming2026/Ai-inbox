@@ -107,6 +107,91 @@ const testCases = [
 
 let allPassed = true
 
+const themeConfigTests = [
+  {
+    name: '提取 accent（链接色）',
+    css: '#write a { color: #2875d9; }',
+    expectedKey: 'accent',
+    expectedValue: '#2875d9',
+  },
+  {
+    name: '提取 surface（背景色）',
+    css: '#write { background: #f5f5f5; }',
+    expectedKey: 'surface',
+    expectedValue: '#f5f5f5',
+  },
+  {
+    name: '提取 ink（正文字色）',
+    css: '#write p { color: #333333; }',
+    expectedKey: 'ink',
+    expectedValue: '#333333',
+  },
+  {
+    name: '提取 headingColor',
+    css: '#write h1 { color: #1a1a1a; }',
+    expectedKey: 'headingColor',
+    expectedValue: '#1a1a1a',
+  },
+  {
+    name: '提取 fonts.article',
+    css: "#write { font-family: 'Computer Modern', serif; }",
+    expectedKey: 'fonts',
+    nestedKey: 'article',
+    expectedValue: "'Computer Modern', serif",
+  },
+  {
+    name: '提取 fonts.heading',
+    css: '#write h1, #write h2 { font-family: Georgia, serif; }',
+    expectedKey: 'fonts',
+    nestedKey: 'heading',
+    expectedValue: 'Georgia, serif',
+  },
+  {
+    name: '提取 codeBlockBg',
+    css: '.md-fences { background: #f6f8fa; }',
+    expectedKey: 'codeBlockBg',
+    expectedValue: '#f6f8fa',
+  },
+  {
+    name: '提取 blockquoteBg',
+    css: '#write blockquote { background-color: #f9f9f9; }',
+    expectedKey: 'blockquoteBg',
+    expectedValue: '#f9f9f9',
+  },
+  {
+    name: '提取 linkColor',
+    css: '#write a { color: #2875d9; }',
+    expectedKey: 'linkColor',
+    expectedValue: '#2875d9',
+  },
+]
+
+for (const tc of themeConfigTests) {
+  process.stdout.write('\nTest: ' + tc.name + '\n')
+  const result = await convertTyporaTheme({
+    css: tc.css,
+    fileName: 'sample.css',
+    existingIds: [THEME_ID],
+  })
+
+  if (!result.themeConfig) {
+    process.stdout.write('  FAIL: themeConfig 为空\n')
+    allPassed = false
+    continue
+  }
+
+  const value = tc.nestedKey
+    ? result.themeConfig[tc.expectedKey]?.[tc.nestedKey]
+    : result.themeConfig[tc.expectedKey]
+
+  if (value === tc.expectedValue) {
+    process.stdout.write(`  PASS: ${tc.expectedKey}${tc.nestedKey ? '.' + tc.nestedKey : ''} = "${value}"\n`)
+  } else {
+    process.stdout.write(`  FAIL: 期望 ${tc.expectedKey}${tc.nestedKey ? '.' + tc.nestedKey : ''} = "${tc.expectedValue}", 得到 "${value}"\n`)
+    allPassed = false
+  }
+}
+
 for (const tc of testCases) {
   process.stdout.write('\nTest: ' + tc.name + '\n')
   const result = await convertTyporaTheme({

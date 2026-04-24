@@ -25,6 +25,27 @@ export interface ConvertTyporaThemeOutput {
   css: string
   metadata: ImportedThemeMetadata
   warnings: string[]
+  themeConfig?: {
+    accent?: string
+    surface?: string
+    ink?: string
+    headingColor?: string
+    linkColor?: string
+    blockquoteBg?: string
+    blockquoteBorder?: string
+    tableBorder?: string
+    tableHeaderBg?: string
+    inlineCodeBg?: string
+    inlineCodeColor?: string
+    codeBlockBg?: string
+    codeBlockColor?: string
+    fonts?: {
+      ui?: string
+      code?: string
+      article?: string
+      heading?: string
+    }
+  }
 }
 
 // ─── Slug 工具 ────────────────────────────────────────────────────────────────
@@ -393,13 +414,31 @@ function transformRule(rule: postcss.Rule, themeId: string, warnings: string[]):
 interface TokenExtraction {
   typographyTokens: Record<string, string>
   appShellTokens: Record<string, string>
+  themeConfig: ConvertTyporaThemeOutput['themeConfig']
 }
 
 function extractTokens(rules: postcss.Rule[], _themeId: string): TokenExtraction {
   const tokens: TokenExtraction = {
     typographyTokens: {},
     appShellTokens: {},
+    themeConfig: {
+      accent: undefined,
+      surface: undefined,
+      ink: undefined,
+      headingColor: undefined,
+      linkColor: undefined,
+      blockquoteBg: undefined,
+      blockquoteBorder: undefined,
+      tableBorder: undefined,
+      tableHeaderBg: undefined,
+      inlineCodeBg: undefined,
+      inlineCodeColor: undefined,
+      codeBlockBg: undefined,
+      codeBlockColor: undefined,
+      fonts: { ui: undefined, code: undefined, article: undefined, heading: undefined },
+    },
   }
+  const tc = tokens.themeConfig!
 
   const add = (
     map: Record<string, string>,
@@ -412,68 +451,142 @@ function extractTokens(rules: postcss.Rule[], _themeId: string): TokenExtraction
     }
   }
 
+  // 优先从 :root CSS 变量中提取 accent（--primary-color）
+  for (const rule of rules) {
+    if (rule.type === 'rule' && rule.selector === ':root') {
+      rule.walkDecls((decl) => {
+        if (decl.prop === '--primary-color' && decl.value && !tc.accent) {
+          tc.accent = decl.value
+        }
+        if (decl.prop === '--accent-color' && decl.value && !tc.accent) {
+          tc.accent = decl.value
+        }
+      })
+    }
+    // 处理 @media print 规则中的 color 等属性
+    if (rule.parent?.type === 'atrule') {
+      const atRule = rule.parent as postcss.AtRule
+      if (atRule.name === 'media' && atRule.params.includes('print')) continue
+    }
+  }
+
   for (const rule of rules) {
     const selector = rule.selector
 
-    // 只从 #write 相关选择器中提取 token
-    if (!selector.includes('#write') && !selector.includes('.md-fences')) {
-      continue
+    // 跳过明显的 UI selector
+    if (isTyporaUiSelector(selector)) continue
+
+    // 跳过 @media print 等 at-rule 内的规则（已在上面处理）
+    if (rule.parent?.type === 'atrule') {
+      const atRule = rule.parent as postcss.AtRule
+      if (atRule.name === 'media' || atRule.name === 'page' || atRule.name.includes('keyframes')) continue
     }
+
+    const isWrite = selector.includes('#write')
+    const isGlobal = !isWrite && (
+      selector === 'a' ||
+      selector === 'code' ||
+      selector === 'p' ||
+      selector === 'body' ||
+      selector.match(/^h[1-6]$/)
+    )
+    const isCode = selector.includes('.md-fences') || selector === '#write pre' || selector === '#write code' || selector === 'code'
 
     rule.walkDecls((decl) => {
       const prop = decl.prop
       const value = decl.value
-      const isWrite = selector.includes('#write')
-      const isCode = selector.includes('.md-fences') || selector === '#write pre' || selector === '#write code'
 
-      if (isWrite) {
-        if (prop === 'background' || prop === 'background-color') {
+      if (prop === 'background' || prop === 'background-color') {
+        if (isWrite || selector === 'body') {
           add(tokens.typographyTokens, '--typography-bg', value, prop)
           add(tokens.appShellTokens, '--bg-primary', value, prop)
-          add(tokens.appShellTokens, '--bg-card', value, prop)
-        } else if (prop === 'color') {
-          if (selector.match(/\b(h1|h2|h3|h4|h5|h6)\b/)) {
-            add(tokens.typographyTokens, '--typography-heading', value, prop)
-          } else {
-            add(tokens.typographyTokens, '--typography-text', value, prop)
-            add(tokens.appShellTokens, '--text-primary', value, prop)
-          }
-        } else if (prop === 'font-family') {
-          add(tokens.typographyTokens, '--typography-font-body', value, prop)
-          add(tokens.appShellTokens, '--font-body', value, prop)
-        } else if (prop === 'border-color') {
-          add(tokens.typographyTokens, '--typography-table-border', value, prop)
-          add(tokens.appShellTokens, '--border-subtle', value, prop)
-          add(tokens.appShellTokens, '--border-strong', value, prop)
-        } else if (prop === 'border') {
-          add(tokens.typographyTokens, '--typography-blockquote-border', value, prop)
+          if (!tc.surface) tc.surface = value
         }
-      }
-
-      if (isCode) {
-        if (prop === 'background' || prop === 'background-color') {
+        if (isCode) {
           add(tokens.typographyTokens, '--typography-code-block-bg', value, prop)
           add(tokens.appShellTokens, '--surface-code-block', value, prop)
-        } else if (prop === 'color') {
-          add(tokens.typographyTokens, '--typography-code-block-color', value, prop)
+          if (!tc.codeBlockBg) tc.codeBlockBg = value
         }
-      }
-
-      // 链接颜色
-      if (selector.includes('#write a') || selector === '#write a') {
-        if (prop === 'color') {
+      } else if (prop === 'color') {
+        if (selector.match(/^a$|^a\s/) && !isWrite) {
+          // 全局 a selector（不是 #write a）
           add(tokens.typographyTokens, '--typography-link', value, prop)
           add(tokens.appShellTokens, '--color-primary', value, prop)
           add(tokens.appShellTokens, '--color-link', value, prop)
+          if (!tc.linkColor) tc.linkColor = value
+          if (!tc.accent) tc.accent = value
+        } else if (selector.match(/\bh[1-6]\b/) || selector.match(/^h[1-6]$/)) {
+          add(tokens.typographyTokens, '--typography-heading', value, prop)
+          if (!tc.headingColor) tc.headingColor = value
+        } else if (selector.match(/^code$/) && !isWrite) {
+          if (!tc.inlineCodeColor) tc.inlineCodeColor = value
+        } else if (isWrite && selector.includes('blockquote')) {
+          add(tokens.typographyTokens, '--typography-text', value, prop)
+        } else if (isWrite && selector.includes('a')) {
+          add(tokens.typographyTokens, '--typography-link', value, prop)
+          add(tokens.appShellTokens, '--color-primary', value, prop)
+          add(tokens.appShellTokens, '--color-link', value, prop)
+          if (!tc.linkColor) tc.linkColor = value
+          if (!tc.accent) tc.accent = value
+        } else if (isWrite) {
+          add(tokens.typographyTokens, '--typography-text', value, prop)
+          add(tokens.appShellTokens, '--text-primary', value, prop)
+          if (!tc.ink) tc.ink = value
+        } else if (!selector.includes('blockquote') && !selector.includes('a')) {
+          if (!tc.ink) tc.ink = value
+        }
+      } else if (prop === 'font-family') {
+        if (isWrite || isGlobal || selector.match(/^h[1-6]$/)) {
+          add(tokens.typographyTokens, '--typography-font-body', value, prop)
+          add(tokens.appShellTokens, '--font-body', value, prop)
+          if (selector.match(/\bh[1-6]\b/) || selector.match(/^h[1-6]$/)) {
+            if (!tc.fonts?.heading) tc.fonts!.heading = value
+          } else {
+            if (!tc.fonts?.article) tc.fonts!.article = value
+          }
+        }
+        if (isCode) {
+          add(tokens.appShellTokens, '--font-mono', value, prop)
+          if (!tc.fonts?.code) tc.fonts!.code = value
+        }
+      } else if (prop === 'border-color') {
+        add(tokens.typographyTokens, '--typography-table-border', value, prop)
+        add(tokens.appShellTokens, '--border-subtle', value, prop)
+        add(tokens.appShellTokens, '--border-strong', value, prop)
+        if (!tc.tableBorder) tc.tableBorder = value
+      } else if (prop === 'border') {
+        add(tokens.typographyTokens, '--typography-blockquote-border', value, prop)
+      } else if (prop === 'border-left-color') {
+        if (!tc.blockquoteBorder) tc.blockquoteBorder = value
+      }
+
+      // inline code 背景（全局 code selector）
+      if (selector.match(/^code$/) && !isWrite) {
+        if (prop === 'background-color' && !tc.inlineCodeBg) {
+          tc.inlineCodeBg = value
         }
       }
 
-      // 引用块
+      // 表格表头背景
+      if (selector.match(/\bth\b|\bthead\b/)) {
+        if (prop === 'background-color' && !tc.tableHeaderBg) {
+          tc.tableHeaderBg = value
+        }
+      }
+
+      // blockquote 背景
       if (selector.includes('blockquote')) {
-        if (prop === 'border-left-color') {
-          add(tokens.typographyTokens, '--typography-blockquote-border', value, prop)
-        } else if (prop === 'background-color') {
+        if (prop === 'background-color' && !tc.blockquoteBg) {
           add(tokens.typographyTokens, '--typography-blockquote-bg', value, prop)
+          tc.blockquoteBg = value
+        }
+      }
+
+      // .md-fences code block 背景
+      if (selector.includes('.md-fences') || selector.includes('pre')) {
+        if (prop === 'background-color' && !tc.codeBlockBg) {
+          add(tokens.typographyTokens, '--typography-code-block-bg', value, prop)
+          tc.codeBlockBg = value
         }
       }
     })
@@ -523,7 +636,7 @@ export async function convertTyporaTheme(input: ConvertTyporaThemeInput): Promis
   const isDark = detectIsDark(backgroundColor, warnings)
 
   // 5. 提取 token
-  const { typographyTokens, appShellTokens } = extractTokens(allRules, id)
+  const { typographyTokens, appShellTokens, themeConfig } = extractTokens(allRules, id)
 
   // 6. 生成输出 CSS
   const lines: string[] = []
@@ -570,5 +683,6 @@ export async function convertTyporaTheme(input: ConvertTyporaThemeInput): Promis
     css: outputCss,
     metadata,
     warnings,
+    themeConfig,
   }
 }

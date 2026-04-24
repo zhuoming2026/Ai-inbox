@@ -102,6 +102,11 @@
                 <span class="appearance-label">主题名称</span>
                 <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.name" @change="persistAppearanceSettings(false)" />
               </div>
+
+              <!-- App 样式 -->
+              <div class="appearance-section-header">
+                <span class="section-label">App 样式</span>
+              </div>
               <div class="appearance-row">
                 <span class="appearance-label">强调色</span>
                 <div class="color-input appearance-input">
@@ -124,16 +129,134 @@
                 </div>
               </div>
               <div class="appearance-row">
+                <span class="appearance-label">面板色</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.panel" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.panel" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">控件色</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.control" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.control" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">圆角</span>
+                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.theme.borderRadius" @change="persistAppearanceSettings(false)" placeholder="如: 12px" />
+              </div>
+
+              <!-- 字体 -->
+              <div class="appearance-section-header">
+                <span class="section-label">字体</span>
+              </div>
+              <div class="appearance-row">
                 <span class="appearance-label">界面字体</span>
-                <input class="form-input appearance-input" type="text" list="theme-font-options" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)" />
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.ui" @change="persistAppearanceSettings(false)">
+                  <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
+                </select>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">文章正文字体</span>
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.article" @change="persistAppearanceSettings(false)">
+                  <option value="">跟随界面字体</option>
+                  <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
+                </select>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">标题字体</span>
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.heading" @change="persistAppearanceSettings(false)">
+                  <option value="">跟随界面字体</option>
+                  <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
+                </select>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码字体</span>
-                <input class="form-input appearance-input" type="text" list="theme-font-options" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)" />
+                <select class="form-input appearance-input" v-model="selectedPresetConfig.theme.fonts.code" @change="persistAppearanceSettings(false)">
+                  <option v-for="font in monoFonts" :key="font" :value="font">{{ font }}</option>
+                </select>
               </div>
-              <datalist id="theme-font-options">
-                <option v-for="font in fontOptions" :key="font" :value="font" />
-              </datalist>
+
+              <!-- 文章正文样式 -->
+              <div class="appearance-section-header">
+                <span class="section-label">文章正文</span>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">标题颜色</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.headingColor" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.headingColor" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">链接色</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.linkColor" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.linkColor" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">引用背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.blockquoteBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.blockquoteBg" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">引用边框</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.blockquoteBorder" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.blockquoteBorder" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">表格边框</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.tableBorder" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.tableBorder" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">表头背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.tableHeaderBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.tableHeaderBg" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+
+              <!-- 代码区样式 -->
+              <div class="appearance-section-header">
+                <span class="section-label">代码区</span>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">inline 代码背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.inlineCodeBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.inlineCodeBg" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">inline 代码文字</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.inlineCodeColor" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.inlineCodeColor" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">代码块背景</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.codeBlockBg" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.codeBlockBg" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
+              <div class="appearance-row">
+                <span class="appearance-label">代码块文字</span>
+                <div class="color-input appearance-input">
+                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.theme.codeBlockColor" @input="persistAppearanceSettings(false)" />
+                  <input class="form-input" type="text" v-model="selectedPresetConfig.theme.codeBlockColor" @change="persistAppearanceSettings(false)" />
+                </div>
+              </div>
 
             </div>
           </div>
@@ -360,8 +483,31 @@ const pendingImportConfig = shallowRef<ThemePresetConfig | null>(null)
 const importWarnings = ref<string[]>([])
 const importNameInput = ref('')
 const importLoading = ref(false)
-const fontOptions = ref<string[]>([])
 const message = useMessage()
+
+const systemFonts = [
+  'PingFang SC',
+  'SF Pro Display',
+  'Helvetica Neue',
+  'Noto Sans SC',
+  'Microsoft YaHei',
+  'SimSun',
+  'SimHei',
+  'Arial',
+  'Georgia',
+  'Times New Roman',
+]
+
+const monoFonts = [
+  'SF Mono',
+  'JetBrains Mono',
+  'Fira Code',
+  'Menlo',
+  'Monaco',
+  'Consolas',
+  'Source Code Pro',
+]
+
 const { applyThemeFromSettings } = useTheme()
 const { previewTypora } = useImportedThemes()
 
@@ -369,7 +515,6 @@ onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
   settings.value = normalizeSettings(loaded || {})
   selectedPreset.value = resolveSelectedTheme(settings.value)
-  fontOptions.value = await window.electronAPI?.theme.listFonts() || []
   await refreshMcpStatus()
 })
 
@@ -532,10 +677,22 @@ function stripThemeFileComments(raw: string) {
 function collectExtraThemeKeys(value: unknown, prefix = ''): string[] {
   const allowed: Record<string, string[] | true> = {
     '': ['id', 'name', 'codeThemeId', 'variant', 'theme', 'app', 'articleCss', 'codeCss'],
-    theme: ['accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface'],
-    app: ['accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface'],
-    'theme.fonts': ['code', 'ui'],
-    'app.fonts': ['code', 'ui'],
+    theme: [
+      'accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface',
+      'panel', 'panelBorder', 'control', 'controlBorder', 'borderRadius',
+      'articleFontSize', 'articleLineHeight', 'articleParagraphSpacing', 'articleContentWidth',
+      'headingColor', 'linkColor', 'blockquoteBg', 'blockquoteBorder', 'tableBorder', 'tableHeaderBg',
+      'codeFontSize', 'inlineCodeBg', 'inlineCodeColor', 'codeBlockBg', 'codeBlockColor', 'codeBlockBorder',
+    ],
+    app: [
+      'accent', 'contrast', 'fonts', 'ink', 'opaqueWindows', 'semanticColors', 'surface',
+      'panel', 'panelBorder', 'control', 'controlBorder', 'borderRadius',
+      'articleFontSize', 'articleLineHeight', 'articleParagraphSpacing', 'articleContentWidth',
+      'headingColor', 'linkColor', 'blockquoteBg', 'blockquoteBorder', 'tableBorder', 'tableHeaderBg',
+      'codeFontSize', 'inlineCodeBg', 'inlineCodeColor', 'codeBlockBg', 'codeBlockColor', 'codeBlockBorder',
+    ],
+    'theme.fonts': ['code', 'ui', 'article', 'heading'],
+    'app.fonts': ['code', 'ui', 'article', 'heading'],
     'theme.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
     'app.semanticColors': ['diffAdded', 'diffRemoved', 'skill'],
   }
@@ -561,11 +718,39 @@ function parseThemeImport(rawText: string, nameFallback: string) {
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     throw new Error('主题文件格式错误：根节点必须是对象')
   }
+  if (!('theme' in parsed) && !('app' in parsed)) {
+    throw new Error('主题文件格式错误：必须包含 theme 或 app 字段')
+  }
   if ('theme' in parsed && (typeof (parsed as any).theme !== 'object' || (parsed as any).theme === null || Array.isArray((parsed as any).theme))) {
     throw new Error('主题文件格式错误：theme 必须是对象')
   }
 
-  const warnings = collectExtraThemeKeys(parsed).map((key) => `未使用的字段: ${key}`)
+  // 提取 extra key warning
+  const extraWarnings = collectExtraThemeKeys(parsed).map((key) => `未使用的字段: ${key}`)
+
+  // 提取缺失字段 warning（用 light 主题对照）
+  const missingWarnings: string[] = []
+  const normalizedLight = normalizeThemeConfig('__check__', {}, defaultThemeConfigs.light)
+  const checkTheme = (parsed as any).theme || (parsed as any).app || {}
+  const checkFonts = checkTheme.fonts || {}
+  const lightFonts = normalizedLight.theme.fonts
+
+  const checkFields: Array<[string, unknown, unknown]> = [
+    ['accent', (checkTheme as any).accent, normalizedLight.theme.accent],
+    ['surface', (checkTheme as any).surface, normalizedLight.theme.surface],
+    ['ink', (checkTheme as any).ink, normalizedLight.theme.ink],
+    ['fonts.ui', checkFonts.ui, lightFonts.ui],
+    ['fonts.code', checkFonts.code, lightFonts.code],
+    ['fonts.article', checkFonts.article, lightFonts?.article],
+    ['fonts.heading', checkFonts.heading, lightFonts?.heading],
+  ]
+  for (const [field, actual, fallback] of checkFields) {
+    if (actual === undefined && fallback !== undefined) {
+      missingWarnings.push(`缺失字段已补齐: ${field}（使用默认值）`)
+    }
+  }
+
+  const warnings = [...missingWarnings, ...extraWarnings]
   const name = appearanceImportName.value.trim() || (typeof (parsed as any).name === 'string' ? (parsed as any).name : nameFallback)
   const id = slugifyThemeName(name, Object.keys(settings.value?.customThemes || {}))
   const config = normalizeThemeConfig(id, { ...parsed, id, name }, defaultThemeConfigs.light)
@@ -661,7 +846,27 @@ async function handleImportTypora() {
       id: result.draft.id,
       name: result.draft.name,
       variant: result.draft.metadata.isDark ? 'dark' : 'light',
-      theme: {},
+      theme: {
+        accent: result.draft.themeConfig?.accent,
+        surface: result.draft.themeConfig?.surface,
+        ink: result.draft.themeConfig?.ink,
+        headingColor: result.draft.themeConfig?.headingColor,
+        linkColor: result.draft.themeConfig?.linkColor,
+        blockquoteBg: result.draft.themeConfig?.blockquoteBg,
+        blockquoteBorder: result.draft.themeConfig?.blockquoteBorder,
+        tableBorder: result.draft.themeConfig?.tableBorder,
+        tableHeaderBg: result.draft.themeConfig?.tableHeaderBg,
+        inlineCodeBg: result.draft.themeConfig?.inlineCodeBg,
+        inlineCodeColor: result.draft.themeConfig?.inlineCodeColor,
+        codeBlockBg: result.draft.themeConfig?.codeBlockBg,
+        codeBlockColor: result.draft.themeConfig?.codeBlockColor,
+        fonts: {
+          ui: result.draft.themeConfig?.fonts?.ui,
+          code: result.draft.themeConfig?.fonts?.code,
+          article: result.draft.themeConfig?.fonts?.article,
+          heading: result.draft.themeConfig?.fonts?.heading,
+        },
+      },
       articleCss: result.draft.css,
       codeCss: result.draft.css,
     }, defaultThemeConfigs.light)
@@ -958,6 +1163,22 @@ async function stopMcp() {
 .scene-row + .scene-row,
 .appearance-row + .appearance-row {
   border-top: 1px solid var(--border-strong);
+}
+
+.appearance-section-header {
+  background: var(--surface-panel-soft);
+}
+
+.appearance-section-header {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .scene-label,

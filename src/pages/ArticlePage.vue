@@ -50,6 +50,55 @@
           >
             Delete
           </n-button>
+
+          <n-popover
+            ref="themePopupRef"
+            trigger="click"
+            placement="bottom-end"
+            :width="320"
+          >
+            <template #trigger>
+              <button class="theme-btn" type="button" title="主题">
+                <n-icon><ColorPaletteOutline /></n-icon>
+              </button>
+            </template>
+            <div class="theme-popup">
+              <div class="theme-popup-header">主题</div>
+              <div class="theme-popup-row">
+                <span class="theme-popup-label">主题</span>
+                <select class="form-input" v-model="localThemeId" @change="handleThemeSelectChange">
+                  <option v-for="opt in editableThemeOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="theme-popup-row">
+                <span class="theme-popup-label">强调色</span>
+                <div class="color-input">
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.accent" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.accent" @change="applyLocalTheme" />
+                </div>
+              </div>
+              <div class="theme-popup-row">
+                <span class="theme-popup-label">背景</span>
+                <div class="color-input">
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.surface" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.surface" @change="applyLocalTheme" />
+                </div>
+              </div>
+              <div class="theme-popup-row">
+                <span class="theme-popup-label">前景</span>
+                <div class="color-input">
+                  <input class="color-swatch" type="color" v-model="localThemeConfig!.theme.ink" @input="applyLocalTheme" />
+                  <input class="form-input" type="text" v-model="localThemeConfig!.theme.ink" @change="applyLocalTheme" />
+                </div>
+              </div>
+              <div class="theme-popup-row">
+                <span class="theme-popup-label">界面字体</span>
+                <select class="form-input" v-model="localThemeConfig!.theme.fonts.ui" @change="applyLocalTheme">
+                  <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
+                </select>
+              </div>
+            </div>
+          </n-popover>
         </div>
       </header>
 
@@ -102,10 +151,11 @@ import {
   NButton,
   NConfigProvider,
   NIcon,
+  NPopover,
   useMessage,
   type GlobalThemeOverrides,
 } from 'naive-ui'
-import { ArrowBackOutline } from '@vicons/ionicons5'
+import { ArrowBackOutline, ColorPaletteOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
 import {
@@ -116,6 +166,8 @@ import {
   syncFrontmatterBucket,
   type InboxFrontmatter,
 } from '../shared/inbox-document'
+import { defaultThemeConfigs, listThemeOptions, type ThemePresetConfig, type ThemePresetId } from '../styles/theme-presets'
+import { useTheme } from '../composables/useTheme'
 
 type SaveState = 'unsaved' | 'saving' | 'saved' | 'error'
 
@@ -143,6 +195,9 @@ const frontmatterExpanded = ref(false)
 const saveState = ref<SaveState>('saved')
 const hasExternalChange = ref(false)
 const pendingExternalRaw = ref<string | null>(null)
+const themePopupRef = ref<InstanceType<typeof NPopover> | null>(null)
+const localThemeConfig = ref<ThemePresetConfig | null>(null)
+const localThemeId = ref<ThemePresetId>('light')
 
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 let inboxUnsubscribe: (() => void) | null = null
@@ -151,6 +206,49 @@ let suppressDirtyTracking = false
 let queuedSaveAfterCurrent = false
 let activeSaveSnapshot: string | null = null
 let recentLocalWrite: { raw: string; timestamp: number } | null = null
+
+const { applyThemeFromSettings } = useTheme()
+
+const themeConfigs = ref<Record<string, ThemePresetConfig>>({})
+
+const editableThemeOptions = computed(() => listThemeOptions(themeConfigs.value))
+
+const systemFonts = [
+  'PingFang SC', 'SF Pro Display', 'Helvetica Neue', 'Noto Sans SC',
+  'Microsoft YaHei', 'SimSun', 'SimHei', 'Arial',
+]
+
+function loadThemeToPopup() {
+  const id = localThemeId.value
+  localThemeConfig.value = JSON.parse(JSON.stringify(themeConfigs.value[id] || defaultThemeConfigs.light))
+}
+
+function handleThemeSelectChange() {
+  loadThemeToPopup()
+}
+
+async function applyLocalTheme() {
+  if (!localThemeConfig.value || !localThemeId.value) return
+  const id = localThemeId.value
+  const config = JSON.parse(JSON.stringify(localThemeConfig.value))
+
+  // 保存到 themeConfigs 并同步 settings
+  themeConfigs.value = { ...themeConfigs.value, [id]: config }
+
+  const settings = await window.electronAPI?.getSettings()
+  if (!settings) return
+  if (config.variant === 'dark') {
+    settings.darkTheme = id
+    settings.themeMode = 'dark'
+  } else {
+    settings.lightTheme = id
+    settings.themeMode = 'light'
+  }
+  settings.customThemes = themeConfigs.value
+  await window.electronAPI?.saveSettings(settings)
+  window.dispatchEvent(new CustomEvent('settings-changed', { detail: settings }))
+  await applyThemeFromSettings(settings)
+}
 
 const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
@@ -455,11 +553,27 @@ function handleKeydown(event: KeyboardEvent) {
 
 function handleSettingsChanged() {
   void loadEditorAppearanceSettings()
+  void loadThemeSettings()
+}
+
+async function loadThemeSettings() {
+  const settings = await window.electronAPI?.getSettings()
+  if (settings?.customThemes) {
+    themeConfigs.value = settings.customThemes
+  } else {
+    themeConfigs.value = defaultThemeConfigs
+  }
+  const themeId = settings?.themeMode === 'dark'
+    ? settings?.darkTheme || 'dark'
+    : settings?.lightTheme || 'light'
+  localThemeId.value = themeId
+  loadThemeToPopup()
 }
 
 onMounted(() => {
   void loadRawDocument()
   void loadEditorAppearanceSettings()
+  void loadThemeSettings()
   inboxUnsubscribe = window.electronAPI?.onInboxUpdate(() => {
     void handleExternalFileUpdate()
   }) || null
@@ -799,5 +913,91 @@ onUnmounted(() => {
   }
 
   /* frontmatter panel 移动端同样浮空，不挤压 editor */
+}
+
+.theme-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-control);
+  background: var(--surface-control);
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-body);
+  border-radius: 999px;
+  transition: all var(--transition-base);
+}
+
+.theme-btn:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--border-control-hover);
+}
+
+.theme-popup {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.theme-popup-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-body);
+  margin-bottom: var(--space-1);
+}
+
+.theme-popup-row {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.theme-popup-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.color-input {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-control);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.color-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+.color-swatch::-webkit-color-swatch { border: none; border-radius: 7px; }
+.color-swatch::-moz-color-swatch { border: none; border-radius: 7px; }
+
+.form-input {
+  padding: 5px 10px;
+  border: 1px solid var(--border-color-light);
+  border-radius: 8px;
+  background: var(--surface-neutral-faint);
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: border-color var(--transition-base);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-link);
 }
 </style>

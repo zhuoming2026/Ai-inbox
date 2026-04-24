@@ -541,6 +541,7 @@ ipcMain.handle('theme:preview-typora', async () => {
         css: output.css,
         metadata: output.metadata,
         warnings: output.warnings,
+        themeConfig: output.themeConfig,
       },
     }
   })

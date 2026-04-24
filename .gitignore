@@ -39,5 +39,5 @@ components.d.ts
 Awesome DESIGN/
 
 # Local tool config and artifacts
-.claude/*.local.json
+.claude/
 .screenshots/

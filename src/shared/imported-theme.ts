@@ -29,6 +29,27 @@ export interface TyporaThemeImportDraft {
   css: string
   metadata: ImportedThemeMetadata
   warnings: string[]
+  themeConfig?: {
+    accent?: string
+    surface?: string
+    ink?: string
+    headingColor?: string
+    linkColor?: string
+    blockquoteBg?: string
+    blockquoteBorder?: string
+    tableBorder?: string
+    tableHeaderBg?: string
+    inlineCodeBg?: string
+    inlineCodeColor?: string
+    codeBlockBg?: string
+    codeBlockColor?: string
+    fonts?: {
+      ui?: string
+      code?: string
+      article?: string
+      heading?: string
+    }
+  }
 }
 
 /** 兼容旧字段（内部使用，不暴露给新 UI） */

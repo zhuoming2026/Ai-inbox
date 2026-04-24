@@ -10,8 +10,10 @@ export interface ThemePresetConfig {
     accent: string
     contrast: number
     fonts: {
-      code: string
       ui: string
+      code: string
+      article?: string
+      heading?: string
     }
     ink: string
     opaqueWindows: boolean
@@ -21,6 +23,30 @@ export interface ThemePresetConfig {
       skill: string
     }
     surface: string
+    // App 样式
+    panel?: string
+    panelBorder?: string
+    control?: string
+    controlBorder?: string
+    borderRadius?: string
+    // 文章正文样式
+    articleFontSize?: string
+    articleLineHeight?: string
+    articleParagraphSpacing?: string
+    articleContentWidth?: string
+    headingColor?: string
+    linkColor?: string
+    blockquoteBg?: string
+    blockquoteBorder?: string
+    tableBorder?: string
+    tableHeaderBg?: string
+    // 代码区样式
+    codeFontSize?: string
+    inlineCodeBg?: string
+    inlineCodeColor?: string
+    codeBlockBg?: string
+    codeBlockColor?: string
+    codeBlockBorder?: string
   }
   articleCss?: string
   codeCss?: string
@@ -171,6 +197,8 @@ export function normalizeThemeConfig(id: string, raw: unknown, fallback: ThemePr
       fonts: {
         ui: typeof fonts.ui === 'string' ? fonts.ui : fallback.theme.fonts.ui,
         code: typeof fonts.code === 'string' ? fonts.code : fallback.theme.fonts.code,
+        article: typeof fonts.article === 'string' ? fonts.article : fallback.theme.fonts?.article,
+        heading: typeof fonts.heading === 'string' ? fonts.heading : fallback.theme.fonts?.heading,
       },
       ink: typeof theme.ink === 'string' ? theme.ink : fallback.theme.ink,
       opaqueWindows: typeof theme.opaqueWindows === 'boolean' ? theme.opaqueWindows : fallback.theme.opaqueWindows,
@@ -180,6 +208,30 @@ export function normalizeThemeConfig(id: string, raw: unknown, fallback: ThemePr
         skill: typeof semanticColors.skill === 'string' ? semanticColors.skill : fallback.theme.semanticColors.skill,
       },
       surface: typeof theme.surface === 'string' ? theme.surface : fallback.theme.surface,
+      // App 样式
+      panel: typeof theme.panel === 'string' ? theme.panel : fallback.theme.panel,
+      panelBorder: typeof theme.panelBorder === 'string' ? theme.panelBorder : fallback.theme.panelBorder,
+      control: typeof theme.control === 'string' ? theme.control : fallback.theme.control,
+      controlBorder: typeof theme.controlBorder === 'string' ? theme.controlBorder : fallback.theme.controlBorder,
+      borderRadius: typeof theme.borderRadius === 'string' ? theme.borderRadius : fallback.theme.borderRadius,
+      // 文章正文样式
+      articleFontSize: typeof theme.articleFontSize === 'string' ? theme.articleFontSize : fallback.theme.articleFontSize,
+      articleLineHeight: typeof theme.articleLineHeight === 'string' ? theme.articleLineHeight : fallback.theme.articleLineHeight,
+      articleParagraphSpacing: typeof theme.articleParagraphSpacing === 'string' ? theme.articleParagraphSpacing : fallback.theme.articleParagraphSpacing,
+      articleContentWidth: typeof theme.articleContentWidth === 'string' ? theme.articleContentWidth : fallback.theme.articleContentWidth,
+      headingColor: typeof theme.headingColor === 'string' ? theme.headingColor : fallback.theme.headingColor,
+      linkColor: typeof theme.linkColor === 'string' ? theme.linkColor : fallback.theme.linkColor,
+      blockquoteBg: typeof theme.blockquoteBg === 'string' ? theme.blockquoteBg : fallback.theme.blockquoteBg,
+      blockquoteBorder: typeof theme.blockquoteBorder === 'string' ? theme.blockquoteBorder : fallback.theme.blockquoteBorder,
+      tableBorder: typeof theme.tableBorder === 'string' ? theme.tableBorder : fallback.theme.tableBorder,
+      tableHeaderBg: typeof theme.tableHeaderBg === 'string' ? theme.tableHeaderBg : fallback.theme.tableHeaderBg,
+      // 代码区样式
+      codeFontSize: typeof theme.codeFontSize === 'string' ? theme.codeFontSize : fallback.theme.codeFontSize,
+      inlineCodeBg: typeof theme.inlineCodeBg === 'string' ? theme.inlineCodeBg : fallback.theme.inlineCodeBg,
+      inlineCodeColor: typeof theme.inlineCodeColor === 'string' ? theme.inlineCodeColor : fallback.theme.inlineCodeColor,
+      codeBlockBg: typeof theme.codeBlockBg === 'string' ? theme.codeBlockBg : fallback.theme.codeBlockBg,
+      codeBlockColor: typeof theme.codeBlockColor === 'string' ? theme.codeBlockColor : fallback.theme.codeBlockColor,
+      codeBlockBorder: typeof theme.codeBlockBorder === 'string' ? theme.codeBlockBorder : fallback.theme.codeBlockBorder,
     },
     articleCss: typeof candidate.articleCss === 'string' ? candidate.articleCss : fallback.articleCss,
     codeCss: typeof candidate.codeCss === 'string' ? candidate.codeCss : fallback.codeCss,
@@ -212,21 +264,22 @@ export function listThemeOptions(configs: Record<string, ThemePresetConfig>) {
 }
 
 export function exportThemeConfig(config: ThemePresetConfig) {
+  const { articleFontSize, articleLineHeight, articleParagraphSpacing, articleContentWidth, headingColor, linkColor, blockquoteBg, blockquoteBorder, tableBorder, tableHeaderBg, codeFontSize, inlineCodeBg, inlineCodeColor, codeBlockBg, codeBlockColor, codeBlockBorder, panel, panelBorder, control, controlBorder, borderRadius, ...restTheme } = config.theme
   const file = {
     name: config.name,
     variant: config.variant,
     codeThemeId: config.codeThemeId,
-    app: config.theme,
+    app: restTheme,
     articleCss: config.articleCss || '',
     codeCss: config.codeCss || '',
   }
 
   return [
     '/* ai-inbox theme v1',
-    '   app: App 样式',
+    '   app: App 样式（accent, contrast, fonts, ink, opaqueWindows, semanticColors, surface 及扩展字段）',
     '   articleCss: 文章正文样式',
     '   codeCss: 代码区样式',
-    '   可以直接修改下面 JSON；缺失字段会按 light 主题补齐，多余字段导入时会提示。',
+    '   缺失字段会按 light 主题补齐，多余字段导入时会提示。',
     '*/',
     JSON.stringify(file, null, 2),
   ].join('\n')
