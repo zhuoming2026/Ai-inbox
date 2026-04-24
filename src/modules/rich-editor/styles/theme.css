@@ -1,107 +1,58 @@
-/* ─── Design Tokens (CSS Custom Properties) ───────────────────────────────── */
-/* Override these in your app to theme the editor without touching the CSS */
+/* ─── Rich Editor Chrome Theme ─────────────────────────────────────────────── */
+/* This layer styles editor chrome only: shell, toolbar, menus, popovers.
+   It intentionally follows the host app theme tokens and avoids typography
+   decisions so markdown rendering can evolve independently. */
 
 :root {
-  /* Surface */
-  --editor-border: rgba(98, 74, 26, 0.12);
-  --editor-border-strong: rgba(98, 74, 26, 0.18);
-  --editor-focus-border: oklch(0.71 0.11 83);
-  --editor-focus-ring: color-mix(in oklab, oklch(0.71 0.11 83) 16%, transparent);
-  --editor-shadow: 0 24px 60px rgba(86, 62, 18, 0.08), 0 6px 18px rgba(86, 62, 18, 0.06);
+  --editor-border: var(--border-control, rgba(64, 72, 87, 0.12));
+  --editor-border-strong: var(--border-control-hover, rgba(64, 72, 87, 0.18));
+  --editor-focus-border: var(--color-primary, #fabb18);
+  --editor-focus-ring: color-mix(in srgb, var(--color-primary, #fabb18) 18%, transparent);
+  --editor-shadow: var(--shadow-panel, 0 8px 22px rgba(40, 32, 16, 0.03));
   --editor-bg:
-    linear-gradient(180deg, rgba(255, 253, 249, 0.98) 0%, rgba(255, 255, 255, 1) 16%);
-  --editor-content-bg: rgba(255, 255, 255, 0.78);
-  --editor-toolbar-bg: rgba(251, 248, 241, 0.9);
-  --editor-toolbar-border: rgba(98, 74, 26, 0.08);
-  --editor-toolbar-hover-bg: rgba(132, 101, 35, 0.08);
-  --editor-toolbar-active-bg: rgba(250, 186, 24, 0.16);
-  --editor-toolbar-active-strong-bg: rgba(250, 186, 24, 0.22);
-  --editor-table-header-bg: #f9fafb;
-  --editor-table-cell-bg: #ffffff;
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card, #ffffff) 94%, var(--bg-primary, #f5f4ed)) 0%, var(--bg-card, #ffffff) 20%);
+  --editor-content-bg: color-mix(in srgb, var(--bg-card, #ffffff) 88%, transparent);
+  --editor-toolbar-bg: color-mix(in srgb, var(--bg-card, #ffffff) 84%, var(--bg-secondary, #faf9f6));
+  --editor-toolbar-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 86%, transparent);
+  --editor-toolbar-hover-bg: color-mix(in srgb, var(--color-primary, #fabb18) 10%, var(--bg-card, #ffffff));
+  --editor-toolbar-active-bg: color-mix(in srgb, var(--color-primary, #fabb18) 14%, var(--bg-card, #ffffff));
+  --editor-toolbar-active-strong-bg: color-mix(in srgb, var(--color-primary, #fabb18) 20%, var(--bg-card, #ffffff));
+  --editor-table-header-bg: var(--bg-secondary, #faf9f6);
+  --editor-table-cell-bg: var(--bg-card, #ffffff);
   --editor-shell-radius: 1rem;
   --editor-toolbar-radius: 0.75rem;
   --editor-control-radius: 0.7rem;
   --editor-control-height: 2rem;
 
-  /* Text */
-  --editor-heading: #111827;
-  --editor-text: #3f3a2d;
-  --editor-text-muted: #8b7e66;
-  --editor-placeholder: #b2a58d;
-  --editor-link-color: oklch(0.58 0.18 255);
+  --editor-heading: var(--text-primary, #1a1a1a);
+  --editor-text: var(--text-body, #333639);
+  --editor-text-muted: var(--text-secondary, rgba(26, 26, 26, 0.6));
+  --editor-placeholder: var(--text-placeholder, rgba(26, 26, 26, 0.3));
+  --editor-link-color: var(--color-link, var(--text-link, #097FE8));
 
-  /* Specific */
-  --editor-blockquote-border: rgba(214, 163, 55, 0.32);
-  --editor-blockquote-text: #6f6552;
-  --editor-hr-border: rgba(98, 74, 26, 0.11);
-  --editor-code-bg: #1b2433;
-  --editor-inline-code-bg: rgba(160, 124, 51, 0.1);
-  --editor-inline-code-color: #8a4f12;
-  --editor-table-border: rgba(98, 74, 26, 0.12);
-  --editor-toolbar-icon: #736854;
-  --editor-toolbar-icon-hover: #2f2a1f;
-  --editor-toolbar-active-icon: #8e5a11;
+  --editor-blockquote-border: color-mix(in srgb, var(--color-primary, #fabb18) 30%, transparent);
+  --editor-blockquote-text: var(--text-secondary, rgba(26, 26, 26, 0.6));
+  --editor-hr-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 88%, transparent);
+  --editor-code-bg: color-mix(in srgb, var(--bg-primary, #f5f4ed) 18%, #0f172a);
+  --editor-inline-code-bg: color-mix(in srgb, var(--color-primary, #fabb18) 10%, transparent);
+  --editor-inline-code-color: var(--text-accent, #5a3b00);
+  --editor-table-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 92%, transparent);
+  --editor-toolbar-icon: var(--text-secondary, rgba(26, 26, 26, 0.6));
+  --editor-toolbar-icon-hover: var(--text-primary, #1a1a1a);
+  --editor-toolbar-active-icon: color-mix(in srgb, var(--color-primary, #fabb18) 68%, var(--text-primary, #1a1a1a));
 
-  /* Popover (Bubble / Link / Slash) */
-  --editor-popover-bg: rgba(255, 255, 255, 0.98);
-  --editor-popover-border: rgba(98, 74, 26, 0.12);
-  --editor-popover-shadow: 0 18px 42px rgba(68, 50, 17, 0.12), 0 4px 14px rgba(68, 50, 17, 0.08);
+  --editor-popover-bg: color-mix(in srgb, var(--bg-card, #ffffff) 96%, var(--bg-secondary, #faf9f6));
+  --editor-popover-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 86%, transparent);
+  --editor-popover-shadow: 0 18px 42px color-mix(in srgb, var(--text-primary, #1a1a1a) 10%, transparent), 0 4px 14px color-mix(in srgb, var(--text-primary, #1a1a1a) 6%, transparent);
   --editor-popover-radius: 0.95rem;
-  --editor-popover-item-hover: rgba(153, 117, 39, 0.08);
-  --editor-popover-item-active: rgba(250, 186, 24, 0.16);
-  --editor-popover-icon: #4b4031;
-  --editor-popover-icon-hover: #231f17;
-  --editor-popover-icon-active: #8e5a11;
-  --editor-popover-input-color: #2f2a1f;
-  --editor-popover-input-placeholder: #aa9a80;
-  --editor-popover-subtle-bg: rgba(247, 241, 230, 0.9);
-  --editor-popover-subtle-border: rgba(98, 74, 26, 0.08);
-  --editor-popover-label: #94856d;
-}
-
-/* Dark mode tokens (apply .dark class or use your theme system) */
-.dark {
-  --editor-border: rgba(245, 231, 205, 0.11);
-  --editor-border-strong: rgba(245, 231, 205, 0.16);
-  --editor-bg:
-    linear-gradient(180deg, rgba(31, 27, 20, 0.98) 0%, rgba(21, 18, 14, 1) 24%);
-  --editor-content-bg: rgba(36, 30, 22, 0.72);
-  --editor-toolbar-bg: rgba(36, 30, 22, 0.88);
-  --editor-toolbar-border: rgba(245, 231, 205, 0.08);
-  --editor-toolbar-hover-bg: rgba(245, 231, 205, 0.08);
-  --editor-toolbar-active-bg: rgba(250, 186, 24, 0.16);
-  --editor-toolbar-active-strong-bg: rgba(250, 186, 24, 0.22);
-  --editor-focus-border: oklch(0.77 0.1 83);
-  --editor-focus-ring: color-mix(in oklab, oklch(0.77 0.1 83) 20%, transparent);
-  --editor-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), 0 8px 20px rgba(0, 0, 0, 0.2);
-  --editor-heading: #f8f1e3;
-  --editor-text: #ded3bf;
-  --editor-text-muted: #a99a7d;
-  --editor-placeholder: #7f7565;
-  --editor-link-color: oklch(0.76 0.12 249);
-  --editor-blockquote-border: rgba(250, 186, 24, 0.24);
-  --editor-blockquote-text: #c7b89a;
-  --editor-hr-border: rgba(245, 231, 205, 0.12);
-  --editor-code-bg: #0f172a;
-  --editor-inline-code-bg: rgba(250, 186, 24, 0.12);
-  --editor-inline-code-color: #ffd089;
-  --editor-table-border: rgba(245, 231, 205, 0.12);
-  --editor-table-header-bg: rgba(53, 44, 31, 0.98);
-  --editor-table-cell-bg: rgba(28, 24, 18, 0.96);
-  --editor-toolbar-icon: #c4b59a;
-  --editor-toolbar-icon-hover: #fff4df;
-  --editor-toolbar-active-icon: #ffd089;
-  --editor-popover-bg: rgba(38, 31, 22, 0.98);
-  --editor-popover-border: rgba(245, 231, 205, 0.1);
-  --editor-popover-shadow: 0 18px 42px rgba(0, 0, 0, 0.34), 0 4px 14px rgba(0, 0, 0, 0.24);
-  --editor-popover-item-hover: rgba(245, 231, 205, 0.08);
-  --editor-popover-item-active: rgba(250, 186, 24, 0.18);
-  --editor-popover-icon: #e4d8c4;
-  --editor-popover-icon-hover: #fff5e5;
-  --editor-popover-icon-active: #ffd089;
-  --editor-popover-input-color: #f7eddd;
-  --editor-popover-input-placeholder: #93866f;
-  --editor-popover-subtle-bg: rgba(62, 50, 35, 0.9);
-  --editor-popover-subtle-border: rgba(245, 231, 205, 0.08);
-  --editor-popover-label: #a7987a;
+  --editor-popover-item-hover: color-mix(in srgb, var(--color-primary, #fabb18) 10%, transparent);
+  --editor-popover-item-active: color-mix(in srgb, var(--color-primary, #fabb18) 16%, transparent);
+  --editor-popover-icon: var(--text-body, #333639);
+  --editor-popover-icon-hover: var(--text-primary, #1a1a1a);
+  --editor-popover-icon-active: color-mix(in srgb, var(--color-primary, #fabb18) 68%, var(--text-primary, #1a1a1a));
+  --editor-popover-input-color: var(--text-primary, #1a1a1a);
+  --editor-popover-input-placeholder: var(--text-placeholder, rgba(26, 26, 26, 0.3));
+  --editor-popover-subtle-bg: color-mix(in srgb, var(--bg-secondary, #faf9f6) 92%, var(--bg-card, #ffffff));
+  --editor-popover-subtle-border: color-mix(in srgb, var(--border-control, rgba(64, 72, 87, 0.12)) 76%, transparent);
+  --editor-popover-label: var(--text-tertiary, #87867f);
 }

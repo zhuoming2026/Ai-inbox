@@ -354,7 +354,11 @@ defineExpose({ editor })
       :options="editorOptions"
       layout="fixed"
       @open-link-editor="linkPopoverOpen = true"
-    />
+    >
+      <template #end>
+        <slot name="toolbar-end" />
+      </template>
+    </RichEditorToolbar>
 
     <!-- Editor Content -->
     <div class="rich-editor__scroll-wrapper">

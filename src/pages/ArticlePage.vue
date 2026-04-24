@@ -13,21 +13,6 @@
         </div>
 
         <div class="header-actions">
-          <div class="editor-appearance-controls">
-            <label class="editor-appearance-field">
-              <span class="editor-appearance-label">正文</span>
-              <select class="editor-appearance-select" :value="editorTypographyTheme" @change="onTypographyThemeChange">
-                <option v-for="theme in typographyThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
-              </select>
-            </label>
-            <label class="editor-appearance-field">
-              <span class="editor-appearance-label">代码</span>
-              <select class="editor-appearance-select" :value="editorCodeTheme" @change="onCodeThemeChange">
-                <option v-for="theme in codeThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
-              </select>
-            </label>
-          </div>
-
           <span class="save-indicator" :data-state="saveState">{{ saveIndicatorLabel }}</span>
 
           <n-button round tertiary :disabled="!isDirty || saveState === 'saving'" @click="saveNow(false)">
@@ -82,9 +67,6 @@
             <section class="frontmatter-panel" :data-open="frontmatterExpanded">
               <button class="frontmatter-toggle" type="button" @click="toggleFrontmatterExpanded">
                 <span class="frontmatter-toggle-title">文档属性</span>
-                <span class="frontmatter-toggle-meta">
-                  {{ frontmatterExpanded ? '收起' : frontmatterSummary }}
-                </span>
               </button>
 
               <div v-if="frontmatterExpanded" class="frontmatter-body">
@@ -103,7 +85,24 @@
                   v-model="bodyMarkdown"
                   :typography-theme="editorTypographyTheme"
                   :code-theme="editorCodeTheme"
-                />
+                >
+                  <template #toolbar-end>
+                    <div class="editor-appearance-controls">
+                      <label class="editor-appearance-field">
+                        <span class="editor-appearance-label">正文</span>
+                        <select class="editor-appearance-select" :value="editorTypographyTheme" @change="onTypographyThemeChange">
+                          <option v-for="theme in typographyThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+                        </select>
+                      </label>
+                      <label class="editor-appearance-field">
+                        <span class="editor-appearance-label">代码</span>
+                        <select class="editor-appearance-select" :value="editorCodeTheme" @change="onCodeThemeChange">
+                          <option v-for="theme in codeThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+                        </select>
+                      </label>
+                    </div>
+                  </template>
+                </ArticleBodyEditor>
               </section>
             </div>
           </div>
@@ -203,25 +202,11 @@ const currentFrontmatter = computed(() =>
 )
 
 const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value))
-const articleStatus = computed(() =>
-  typeof currentFrontmatter.value.status === 'string' ? currentFrontmatter.value.status : 'ready'
-)
 const documentTitle = computed(() =>
   typeof currentFrontmatter.value.title === 'string' && currentFrontmatter.value.title.trim()
     ? currentFrontmatter.value.title
     : slug
 )
-const frontmatterSummary = computed(() => {
-  if (frontmatterParseError.value) return '存在格式问题'
-
-  const pieces = [
-    articleBucket.value,
-    articleStatus.value,
-  ].filter(Boolean)
-
-  return pieces.join(' · ') || '展开'
-})
-
 const saveIndicatorLabel = computed(() => {
   if (saveState.value === 'saving') return '保存中'
   if (saveState.value === 'error') return '保存失败'
@@ -585,6 +570,10 @@ onUnmounted(() => {
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-actions {
@@ -598,35 +587,40 @@ onUnmounted(() => {
 .editor-appearance-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border-control);
-  background: var(--surface-control);
+  gap: 0.375rem;
+  flex-wrap: nowrap;
 }
 
 .editor-appearance-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.25rem;
 }
 
 .editor-appearance-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--editor-toolbar-icon, #6b7280);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .editor-appearance-select {
-  min-width: 118px;
-  height: 30px;
-  padding: 0 28px 0 10px;
-  border: 1px solid var(--border-control);
-  border-radius: 999px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-size: 12px;
+  min-width: 90px;
+  height: var(--editor-control-height, 2rem);
+  padding: 0 24px 0 8px;
+  border: 1px solid var(--editor-toolbar-border, var(--border-control, rgba(64, 72, 87, 0.12)));
+  border-radius: var(--editor-control-radius, 0.7rem);
+  background: var(--editor-toolbar-bg, var(--bg-card, #ffffff));
+  color: var(--editor-toolbar-icon, var(--text-primary, #333639));
+  font-size: 11px;
   outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  flex-shrink: 0;
 }
 
 .editor-appearance-select:focus {
@@ -654,6 +648,7 @@ onUnmounted(() => {
 }
 
 .back-btn {
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -723,8 +718,8 @@ onUnmounted(() => {
 
 .frontmatter-panel {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 78px;
+  right: 28px;
   z-index: 40;
   width: min(340px, calc(100% - 36px));
   display: flex;
@@ -734,34 +729,35 @@ onUnmounted(() => {
 }
 
 .frontmatter-panel[data-open='false'] {
-  width: min(260px, calc(100% - 36px));
+  width: min(108px, calc(100% - 36px));
 }
 
 .frontmatter-toggle {
   width: 100%;
   border: none;
-  border-radius: 20px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.96);
-  padding: 14px 16px;
+  padding: 8px 14px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  box-shadow: 0 18px 34px rgba(62, 45, 12, 0.12);
-  font-size: 14px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(62, 45, 12, 0.1);
+  font-size: 13px;
   color: var(--text-primary);
   cursor: pointer;
-  text-align: left;
+  text-align: center;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+.frontmatter-toggle:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 10px 28px rgba(62, 45, 12, 0.14);
 }
 
 .frontmatter-toggle-title {
   font-weight: 600;
   letter-spacing: 0.01em;
-}
-
-.frontmatter-toggle-meta {
-  color: var(--text-secondary);
-  font-size: 12px;
+  white-space: nowrap;
 }
 
 .frontmatter-body {

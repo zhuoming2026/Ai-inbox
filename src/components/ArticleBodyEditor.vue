@@ -9,7 +9,11 @@
       min-height="100%"
       max-width="100%"
       :on-insert-image="handleInsertImage"
-    />
+    >
+      <template #toolbar-end>
+        <slot name="toolbar-end" />
+      </template>
+    </RichEditor>
   </div>
 </template>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 import { NIcon } from 'naive-ui'
 import type { Editor } from '@tiptap/core'
 import type { EditorToolbarItem } from '../types/editor'
@@ -19,8 +19,8 @@ const props = defineProps<{
 }>()
 
 const layout = computed(() => props.layout ?? 'fixed')
-
 const flatItems = computed(() => props.items.flat())
+const slots = useSlots()
 
 const emit = defineEmits<{
   openLinkEditor: []
@@ -64,28 +64,34 @@ function handleItemClick(item: EditorToolbarItem) {
       'rich-editor__floating-menu': layout === 'floating',
     }"
   >
-    <template v-for="(group, gi) in items" :key="gi">
-      <!-- Separator between groups -->
-      <div v-if="gi > 0" class="rich-editor__toolbar-separator" />
+    <div class="rich-editor__toolbar-main">
+      <template v-for="(group, gi) in items" :key="gi">
+        <!-- Separator between groups -->
+        <div v-if="gi > 0" class="rich-editor__toolbar-separator" />
 
-      <div class="rich-editor__toolbar-group">
-        <button
-          v-for="item in group"
-          :key="item.kind"
-          type="button"
-          class="rich-editor__toolbar-btn"
-          :class="{ 'is-active': item.active }"
-          :disabled="item.disabled"
-          :title="item.tooltip ?? item.label"
-          @mousedown.prevent
-          @click.stop="handleItemClick(item)"
-        >
-          <n-icon v-if="resolveEditorIcon(item)" size="16">
-            <component :is="resolveEditorIcon(item)" />
-          </n-icon>
-          <span v-else class="rich-editor__toolbar-text">{{ resolveEditorTextFallback(item) }}</span>
-        </button>
-      </div>
-    </template>
+        <div class="rich-editor__toolbar-group">
+          <button
+            v-for="item in group"
+            :key="item.kind"
+            type="button"
+            class="rich-editor__toolbar-btn"
+            :class="{ 'is-active': item.active }"
+            :disabled="item.disabled"
+            :title="item.tooltip ?? item.label"
+            @mousedown.prevent
+            @click.stop="handleItemClick(item)"
+          >
+            <n-icon v-if="resolveEditorIcon(item)" size="16">
+              <component :is="resolveEditorIcon(item)" />
+            </n-icon>
+            <span v-else class="rich-editor__toolbar-text">{{ resolveEditorTextFallback(item) }}</span>
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <div v-if="slots.end" class="rich-editor__toolbar-end">
+      <slot name="end" />
+    </div>
   </div>
 </template>
