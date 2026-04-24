@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount, withDefaults, defineProps, defineEmits, defineExpose, nextTick } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, withDefaults, defineProps, defineEmits, defineExpose } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
-import type { EditorView } from '@tiptap/pm/view'
 import type { RichEditorProps, RichEditorEmits } from '../types/editor'
 import { createStarterKit } from '../extensions/starter'
 import { LinkExtension } from '../extensions/link'
@@ -54,10 +53,6 @@ const emit = defineEmits<RichEditorEmits>()
 
 const rootRef = ref<HTMLElement | null>(null)
 const linkPopoverOpen = ref(false)
-const bubblePosition = ref<{ left: string; top: string; transform?: string } | null>(null)
-const floatingPosition = ref<{ left: string; top: string; transform?: string } | null>(null)
-const linkPopoverPosition = ref<{ left: string; top: string; transform?: string } | null>(null)
-const suggestionPosition = ref<{ left: string; top: string; transform?: string } | null>(null)
 
 // ─── Content helpers ─────────────────────────────────────────────────────────
 
@@ -101,74 +96,6 @@ function looksLikeMarkdown(text: string) {
     /^---$/m,
     /\*\*[^*]+\*\*/,
   ].some((pattern) => pattern.test(sample))
-}
-
-function toOverlayPosition(left: number, top: number, transform = 'translate(-50%, calc(-100% - 12px))') {
-  return {
-    left: `${left}px`,
-    top: `${top}px`,
-    transform,
-  }
-}
-
-function getRelativeCoords(view: EditorView, from: number, to = from) {
-  const root = rootRef.value
-  if (!root) return null
-
-  const start = view.coordsAtPos(from)
-  const end = view.coordsAtPos(to)
-  const rect = root.getBoundingClientRect()
-
-  return {
-    left: ((start.left + end.right) / 2) - rect.left,
-    top: Math.min(start.top, end.top) - rect.top,
-    bottom: Math.max(start.bottom, end.bottom) - rect.top,
-  }
-}
-
-function updateOverlayPositions() {
-  const ed = editor.value
-  if (!ed) return
-
-  const { from, to, empty } = ed.state.selection
-  const coords = getRelativeCoords(ed.view, from, to)
-  if (!coords) return
-
-  bubblePosition.value = !empty && ed.isFocused
-    ? toOverlayPosition(coords.left, coords.top)
-    : null
-
-  linkPopoverPosition.value = linkPopoverOpen.value
-    ? toOverlayPosition(coords.left, coords.bottom + 12, 'translate(-50%, 0)')
-    : null
-
-  floatingPosition.value = empty && ed.isFocused
-    ? {
-        left: `${Math.max(coords.left - 24, 16)}px`,
-        top: `${coords.top - 8}px`,
-        transform: 'translate(-100%, -100%)',
-      }
-    : null
-}
-
-function updateSuggestionPosition(range = slashRange.value) {
-  const ed = editor.value
-  if (!ed || !range) {
-    suggestionPosition.value = null
-    return
-  }
-
-  const coords = getRelativeCoords(ed.view, range.from, range.to)
-  if (!coords) {
-    suggestionPosition.value = null
-    return
-  }
-
-  suggestionPosition.value = {
-    left: `${Math.max(coords.left - 18, 20)}px`,
-    top: `${coords.bottom + 10}px`,
-    transform: 'none',
-  }
 }
 
 // ─── Toolbar items ────────────────────────────────────────────────────────────
@@ -265,23 +192,13 @@ const editor = useEditor({
     emit('update:modelValue', value)
   },
   onFocus: ({ event }) => {
-    nextTick(() => {
-      updateOverlayPositions()
-      updateSuggestionPosition()
-    })
     emit('focus', event)
   },
   onBlur: ({ event }) => {
-    bubblePosition.value = null
-    floatingPosition.value = null
     emit('blur', event)
   },
   onSelectionUpdate: ({ editor: ed }) => {
     const { from, to } = ed.state.selection
-    nextTick(() => {
-      updateOverlayPositions()
-      updateSuggestionPosition()
-    })
     emit('selectionChange', { from, to })
   },
   onCreate: ({ editor: ed }) => {
@@ -307,23 +224,6 @@ watch(() => props.modelValue, (val) => {
 
 watch(() => props.editable, (val) => {
   editor.value?.setEditable(val)
-})
-
-watch(linkPopoverOpen, (open) => {
-  if (!open) {
-    linkPopoverPosition.value = null
-    return
-  }
-
-  nextTick(() => {
-    updateOverlayPositions()
-  })
-})
-
-watch(slashRange, (range) => {
-  nextTick(() => {
-    updateSuggestionPosition(range)
-  })
 })
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
@@ -371,7 +271,6 @@ defineExpose({ editor })
       :editor="editor"
       :items="bubbleItems"
       :options="editorOptions"
-      :position="bubblePosition"
       :should-show="({ editor: ed }) => {
         const { selection } = ed.state
         return !selection.empty && ed.isFocused
@@ -385,10 +284,9 @@ defineExpose({ editor })
       :editor="editor"
       :items="floatingItems"
       :options="editorOptions"
-      :position="floatingPosition"
     />
 
-<!-- Slash Command Suggestion Menu -->
+    <!-- Slash Command Suggestion Menu -->
     <RichEditorSuggestionMenu
       v-if="showSuggestionMenu && editor"
       :editor="editor"
@@ -396,7 +294,6 @@ defineExpose({ editor })
       :query="slashQuery"
       :items="filteredItems"
       :selected-index="selectedIndex"
-      :position="suggestionPosition"
       @close="showSuggestionMenu = false"
       @execute="executeSelectedItem"
       @key-down="({ event }) => onSlashKeyDown(event)"
@@ -408,7 +305,6 @@ defineExpose({ editor })
       v-if="editor && linkPopoverOpen"
       v-model:open="linkPopoverOpen"
       :editor="editor"
-      :position="linkPopoverPosition"
     />
   </div>
 </template>

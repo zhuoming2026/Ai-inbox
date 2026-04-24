@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import type { Editor } from '@tiptap/core'
 import type { EditorToolbarItem } from '../types/editor'
 import RichEditorToolbar from './RichEditorToolbar.vue'
+import { useEditorFloatingPosition } from '../composables/useEditorFloatingPosition'
 
 interface ToolbarOptions {
   onInsertImage?: () => Promise<string>
@@ -14,7 +15,6 @@ const props = defineProps<{
   items: EditorToolbarItem[][]
   shouldShow?: (ctx: { editor: Editor }) => boolean
   options?: ToolbarOptions
-  position?: { left: string; top: string; transform?: string } | null
 }>()
 
 const emit = defineEmits<{
@@ -22,13 +22,15 @@ const emit = defineEmits<{
 }>()
 
 const show = ref(false)
+const floatingRef = ref<HTMLElement | null>(null)
+
+// ─── Show/hide logic ─────────────────────────────────────────────────────────
 
 function updateVisibility() {
   if (!props.editor) return
   if (props.shouldShow) {
     show.value = props.shouldShow({ editor: props.editor })
   } else {
-    // Default: show when editor has focus and has a selection
     const { selection } = props.editor.state
     show.value = !selection.empty && props.editor.isFocused
   }
@@ -46,15 +48,42 @@ onBeforeUnmount(() => {
   props.editor.off('blur', updateVisibility)
 })
 
-// Watch for shouldShow changes
 watch(() => props.shouldShow, updateVisibility)
+
+// ─── Floating position ────────────────────────────────────────────────────────
+
+function getAnchorRect(): DOMRect | null {
+  if (!show.value) return null
+  const ed = props.editor
+  const { from, to, empty } = ed.state.selection
+  if (empty) return null
+
+  const start = ed.view.coordsAtPos(from)
+  const end = ed.view.coordsAtPos(to)
+  const midX = (start.left + end.right) / 2
+  const top = Math.min(start.top, end.top)
+  return new DOMRect(midX, top, 0, Math.max(start.bottom, end.bottom) - top)
+}
+
+const { position } = useEditorFloatingPosition({
+  editor: props.editor,
+  floatingRef,
+  getAnchorRect,
+  placement: 'top',
+  offsetValue: 8,
+})
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
 </script>
 
 <template>
   <div
-    v-if="show && position"
+    v-if="show"
+    ref="floatingRef"
     class="rich-editor__overlay rich-editor__bubble-menu--white"
-    :style="position"
+    :style="position
+      ? { position: 'fixed', left: `${position.left}px`, top: `${position.top}px` }
+      : { position: 'fixed', visibility: 'hidden', left: '0', top: '0' }"
   >
     <RichEditorToolbar
       :editor="editor"

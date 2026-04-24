@@ -30,7 +30,7 @@
 
 .rich-editor__overlay {
   position: absolute;
-  z-index: 30;
+  z-index: 80;
 }
 
 .rich-editor--readonly {
