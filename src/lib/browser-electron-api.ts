@@ -108,6 +108,13 @@ function createBrowserElectronApi(): BrowserElectronApi {
       source.onerror = () => {}
       return () => source.close()
     },
+    theme: {
+      previewTypora: async () => ({ ok: false, draft: null }),
+      saveImported: async () => ({ ok: false }),
+      listImported: async () => [],
+      read: async () => null,
+      delete: async () => false,
+    },
   }
 }
 

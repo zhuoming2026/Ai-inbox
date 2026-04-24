@@ -83,21 +83,15 @@
               <section class="editor-canvas">
                 <ArticleBodyEditor
                   v-model="bodyMarkdown"
-                  :typography-theme="editorTypographyTheme"
+                  :typography-theme="activeThemeId"
                   :code-theme="editorCodeTheme"
                 >
                   <template #toolbar-end>
                     <div class="editor-appearance-controls">
                       <label class="editor-appearance-field">
-                        <span class="editor-appearance-label">正文</span>
-                        <select class="editor-appearance-select" :value="editorTypographyTheme" @change="onTypographyThemeChange">
-                          <option v-for="theme in typographyThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
-                        </select>
-                      </label>
-                      <label class="editor-appearance-field">
-                        <span class="editor-appearance-label">代码</span>
-                        <select class="editor-appearance-select" :value="editorCodeTheme" @change="onCodeThemeChange">
-                          <option v-for="theme in codeThemeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
+                        <span class="editor-appearance-label">主题</span>
+                        <select class="editor-appearance-select" :value="activeThemeId" @change="onThemeChange">
+                          <option v-for="theme in themeOptions" :key="theme.value" :value="theme.value">{{ theme.label }}</option>
                         </select>
                       </label>
                     </div>
@@ -124,7 +118,9 @@ import {
 } from 'naive-ui'
 import { ArrowBackOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
-import type { EditorCodeTheme, TypographyTheme } from '../modules/rich-editor'
+import type { EditorCodeTheme } from '../modules/rich-editor'
+import { isBuiltInTypographyTheme } from '../modules/rich-editor/types/editor'
+import { useImportedThemes } from '../composables/useImportedThemes'
 import {
   buildFrontmatter,
   buildRawDocument,
@@ -153,13 +149,14 @@ const themeOverrides: GlobalThemeOverrides = {
 
 const frontmatterText = ref('')
 const bodyMarkdown = ref('')
-const editorTypographyTheme = ref<TypographyTheme>('typora-github')
+const activeThemeId = ref<string>('typora-github')
 const editorCodeTheme = ref<EditorCodeTheme>('github')
 const lastSavedRawDocument = ref('')
 const frontmatterExpanded = ref(false)
 const saveState = ref<SaveState>('saved')
 const hasExternalChange = ref(false)
 const pendingExternalRaw = ref<string | null>(null)
+const { importedThemes, activateTheme, deactivateTheme } = useImportedThemes()
 
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 let inboxUnsubscribe: (() => void) | null = null
@@ -169,18 +166,18 @@ let queuedSaveAfterCurrent = false
 let activeSaveSnapshot: string | null = null
 let recentLocalWrite: { raw: string; timestamp: number } | null = null
 
-const typographyThemeOptions: Array<{ label: string; value: TypographyTheme }> = [
-  { label: 'Typora GitHub', value: 'typora-github' },
-  { label: 'Newsprint', value: 'serif' },
-  { label: 'Default', value: 'default' },
-]
-
-const codeThemeOptions: Array<{ label: string; value: EditorCodeTheme }> = [
-  { label: 'GitHub', value: 'github' },
-  { label: 'Night', value: 'night' },
-  { label: 'Paper', value: 'paper' },
-  { label: 'Maize', value: 'maize' },
-]
+const themeOptions = computed<Array<{ label: string; value: string }>>(() => {
+  const builtIn: Array<{ label: string; value: string }> = [
+    { label: 'Typora GitHub', value: 'typora-github' },
+    { label: 'Newsprint', value: 'serif' },
+    { label: 'Default', value: 'default' },
+  ]
+  const imported = importedThemes.value.map((t) => ({
+    label: t.isDark ? `导入: ${t.name} · 深色` : `导入: ${t.name}`,
+    value: t.id,
+  }))
+  return [...builtIn, ...imported]
+})
 
 const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
@@ -304,11 +301,15 @@ async function loadRawDocument() {
 
 async function loadEditorAppearanceSettings() {
   const settings = await window.electronAPI?.getSettings()
-  const typographyValue = settings?.editorTypographyTheme
+  const themeId = settings?.activeThemeId ?? 'typora-github'
   const codeValue = settings?.editorCodeTheme
 
-  if (typographyValue === 'default' || typographyValue === 'serif' || typographyValue === 'typora-github') {
-    editorTypographyTheme.value = typographyValue
+  if (isBuiltInTypographyTheme(themeId)) {
+    deactivateTheme()
+    activeThemeId.value = themeId
+  } else {
+    const ok = await activateTheme(themeId)
+    activeThemeId.value = ok ? themeId : 'typora-github'
   }
 
   if (codeValue === 'github' || codeValue === 'night' || codeValue === 'paper' || codeValue === 'maize') {
@@ -316,7 +317,7 @@ async function loadEditorAppearanceSettings() {
   }
 }
 
-async function persistEditorAppearanceSettings(patch: Partial<{ editorTypographyTheme: TypographyTheme; editorCodeTheme: EditorCodeTheme }>) {
+async function persistEditorAppearanceSettings(patch: Partial<{ activeThemeId: string; editorCodeTheme: EditorCodeTheme }>) {
   const current = await window.electronAPI?.getSettings()
   if (!current) return
 
@@ -329,18 +330,24 @@ async function persistEditorAppearanceSettings(patch: Partial<{ editorTypography
   window.dispatchEvent(new CustomEvent('settings-changed', { detail: next }))
 }
 
-async function onTypographyThemeChange(event: Event) {
+async function onThemeChange(event: Event) {
   const value = (event.target as HTMLSelectElement).value
-  if (value !== 'default' && value !== 'serif' && value !== 'typora-github') return
-  editorTypographyTheme.value = value
-  await persistEditorAppearanceSettings({ editorTypographyTheme: value })
-}
+  let nextId = value
 
-async function onCodeThemeChange(event: Event) {
-  const value = (event.target as HTMLSelectElement).value
-  if (value !== 'github' && value !== 'night' && value !== 'paper' && value !== 'maize') return
-  editorCodeTheme.value = value
-  await persistEditorAppearanceSettings({ editorCodeTheme: value })
+  if (isBuiltInTypographyTheme(value)) {
+    deactivateTheme()
+    nextId = value
+  } else {
+    const ok = await activateTheme(value)
+    if (ok) {
+      nextId = value
+    } else {
+      deactivateTheme()
+      nextId = 'typora-github'
+    }
+  }
+  activeThemeId.value = nextId
+  await persistEditorAppearanceSettings({ activeThemeId: nextId })
 }
 
 async function saveNow(showSuccessMessage = false): Promise<boolean> {

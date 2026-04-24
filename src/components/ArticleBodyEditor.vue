@@ -21,6 +21,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { RichEditor, type EditorCodeTheme, type TypographyTheme } from '../modules/rich-editor'
+import { isBuiltInTypographyTheme } from '../modules/rich-editor/types/editor'
 
 const props = defineProps<{
   typographyTheme?: TypographyTheme
@@ -38,7 +39,7 @@ async function syncTypographyThemeFromSettings() {
   const settings = await window.electronAPI?.getSettings()
   const typographyValue = settings?.editorTypographyTheme
   const codeValue = settings?.editorCodeTheme
-  if (typographyValue === 'default' || typographyValue === 'serif' || typographyValue === 'typora-github') {
+  if (isBuiltInTypographyTheme((typographyValue as string) ?? '')) {
     typographyTheme.value = typographyValue
   }
   if (codeValue === 'github' || codeValue === 'night' || codeValue === 'paper' || codeValue === 'maize') {
@@ -70,8 +71,8 @@ function handleSettingsChanged(event: Event) {
   const detail = (event as CustomEvent<Record<string, unknown>>).detail
   const typographyValue = detail?.editorTypographyTheme
   const codeValue = detail?.editorCodeTheme
-  if (typographyValue === 'default' || typographyValue === 'serif' || typographyValue === 'typora-github') {
-    typographyTheme.value = typographyValue
+  if (isBuiltInTypographyTheme((typographyValue as string) ?? '')) {
+    typographyTheme.value = typographyValue as TypographyTheme
   }
   if (codeValue === 'github' || codeValue === 'night' || codeValue === 'paper' || codeValue === 'maize') {
     codeTheme.value = codeValue

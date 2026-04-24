@@ -27,6 +27,7 @@ const store = new Store({
     darkTheme: 'dark',
     editorTypographyTheme: 'typora-github',
     editorCodeTheme: 'github',
+    activeThemeId: 'typora-github',
     customThemes: defaultThemeConfigs,
   }
 })
@@ -441,6 +442,141 @@ function setupIPC() {
       scheduleAutoEnrich(result.slug)
     }
     return result
+  })
+
+  // ─── Theme IPC ──────────────────────────────────────────────────────────────
+
+  function getThemesDir(): string {
+    const p = join(app.getPath('home'), 'ai-inbox', 'themes')
+    if (!fs.existsSync(p)) {
+      fs.mkdirSync(p, { recursive: true })
+    }
+    return p
+  }
+
+  ipcMain.handle('theme:list-imported', () => {
+    const themesDir = getThemesDir()
+    if (!fs.existsSync(themesDir)) return []
+    const entries = fs.readdirSync(themesDir, { withFileTypes: true })
+    const metas: any[] = []
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      const metaPath = join(themesDir, entry.name, 'theme.json')
+      if (!fs.existsSync(metaPath)) continue
+      try {
+        const raw = fs.readFileSync(metaPath, 'utf-8')
+        metas.push(JSON.parse(raw))
+      } catch {}
+    }
+    return metas.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  })
+
+ipcMain.handle('theme:preview-typora', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Typora CSS', extensions: ['css'] }],
+    })
+    if (result.canceled || !result.filePaths[0]) {
+      return { ok: false, draft: null }
+    }
+
+    const cssPath = result.filePaths[0]
+    const css = fs.readFileSync(cssPath, 'utf-8')
+    const fileName = require('path').basename(cssPath)
+
+    // 获取已有 id 列表
+    const themesDir = getThemesDir()
+    const existingIds = fs.existsSync(themesDir)
+      ? fs.readdirSync(themesDir, { withFileTypes: true })
+          .filter((e) => e.isDirectory())
+          .map((e) => e.name)
+      : []
+
+    // 动态 import 避免 tsconfig.node.json 的 composite 项目限制
+    const { convertTyporaTheme } = await import('../src/shared/typora-theme-converter')
+    const output = await convertTyporaTheme({ css, fileName, existingIds })
+
+    return {
+      ok: true,
+      draft: {
+        id: output.id,
+        name: output.name,
+        css: output.css,
+        metadata: output.metadata,
+        warnings: output.warnings,
+      },
+    }
+  })
+
+  ipcMain.handle('theme:save-imported', async (_, { draft, name, activate }) => {
+    if (!draft) return { ok: false }
+
+    // 使用用户确认后的 name 重新生成 slug
+    const { toTyporaSlug } = await import('../src/shared/typora-theme-converter')
+    const themesDir = getThemesDir()
+    const existingIds = fs.existsSync(themesDir)
+      ? fs.readdirSync(themesDir, { withFileTypes: true })
+          .filter((e) => e.isDirectory())
+          .map((e) => e.name)
+      : []
+
+    const finalId = toTyporaSlug(name, existingIds)
+
+    // 如果 slug 变了，需要替换 css 中的旧 id 为新 id
+    let finalCss = draft.css
+    if (draft.id !== finalId) {
+      finalCss = finalCss.split(draft.id).join(finalId)
+    }
+
+    const themeDir = join(themesDir, finalId)
+    fs.mkdirSync(themeDir, { recursive: true })
+
+    const finalMetadata = {
+      ...draft.metadata,
+      id: finalId,
+      name,
+    }
+    fs.writeFileSync(join(themeDir, 'theme.json'), JSON.stringify(finalMetadata, null, 2), 'utf-8')
+    fs.writeFileSync(join(themeDir, 'theme.css'), finalCss, 'utf-8')
+
+    // 创建 assets 目录
+    fs.mkdirSync(join(themeDir, 'assets', 'fonts'), { recursive: true })
+    fs.mkdirSync(join(themeDir, 'assets', 'images'), { recursive: true })
+
+    return { ok: true, id: finalId, metadata: finalMetadata }
+  })
+
+  ipcMain.handle('theme:read', (_, id: string) => {
+    // 安全校验：禁止路径穿越
+    if (!id || id.includes('..') || id.includes('/') || id.includes('\\')) {
+      return null
+    }
+    const themesDir = getThemesDir()
+    const themeDir = join(themesDir, id)
+    if (!fs.existsSync(themeDir)) return null
+
+    const metaPath = join(themeDir, 'theme.json')
+    const cssPath = join(themeDir, 'theme.css')
+    if (!fs.existsSync(metaPath) || !fs.existsSync(cssPath)) return null
+
+    try {
+      const metadata = JSON.parse(fs.readFileSync(metaPath, 'utf-8'))
+      const css = fs.readFileSync(cssPath, 'utf-8')
+      return { metadata, css }
+    } catch {
+      return null
+    }
+  })
+
+  ipcMain.handle('theme:delete', (_, id: string) => {
+    if (!id || id.includes('..') || id.includes('/') || id.includes('\\')) {
+      return false
+    }
+    const themesDir = getThemesDir()
+    const themeDir = join(themesDir, id)
+    if (!fs.existsSync(themeDir)) return false
+    fs.rmSync(themeDir, { recursive: true, force: true })
+    return true
   })
 }
 

@@ -28,6 +28,13 @@ interface ElectronAPI {
   captureScreenshot(): Promise<string | null>
   selectFolder(): Promise<string | null>
   onInboxUpdate(cb: () => void): () => void
+  theme: {
+    previewTypora(): Promise<{ ok: boolean; draft: any | null }>
+    saveImported(data: { draft: any; name: string; activate: boolean }): Promise<{ ok: boolean; id?: string; metadata?: any }>
+    listImported(): Promise<any[]>
+    read(id: string): Promise<{ metadata: any; css: string } | null>
+    delete(id: string): Promise<boolean>
+  }
 }
 
 declare global {

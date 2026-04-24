@@ -37,5 +37,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // 文件夹选择
-  selectFolder: () => ipcRenderer.invoke('inbox:select-folder')
+  selectFolder: () => ipcRenderer.invoke('inbox:select-folder'),
+
+  // 导入主题
+  theme: {
+    previewTypora: () => ipcRenderer.invoke('theme:preview-typora'),
+    saveImported: (data: { draft: any; name: string; activate: boolean }) =>
+      ipcRenderer.invoke('theme:save-imported', data),
+    listImported: () => ipcRenderer.invoke('theme:list-imported'),
+    read: (id: string) => ipcRenderer.invoke('theme:read', id),
+    delete: (id: string) => ipcRenderer.invoke('theme:delete', id),
+  },
 })

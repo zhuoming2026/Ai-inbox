@@ -96,7 +96,11 @@ export interface ContentTypeOption {
 
 // ─── RichEditor Props ────────────────────────────────────────────────────────
 
-export type TypographyTheme = 'default' | 'serif' | 'typora-github'
+export type BuiltInTypographyTheme = 'default' | 'serif' | 'typora-github'
+export type TypographyTheme = BuiltInTypographyTheme | string
+export function isBuiltInTypographyTheme(value: string): value is BuiltInTypographyTheme {
+  return value === 'default' || value === 'serif' || value === 'typora-github'
+}
 export type EditorCodeTheme = 'github' | 'night' | 'paper' | 'maize'
 export type ContentTheme = TypographyTheme
 
