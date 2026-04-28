@@ -161,7 +161,12 @@ import type { EditorCodeTheme } from '../modules/rich-editor'
 import {
   buildFrontmatter,
   buildRawDocument,
+  extractMarkdownH1,
+  getAiTitle,
+  getContentTitle,
   getDocumentBucket,
+  getTitleSource,
+  parseFrontmatter,
   splitRawDocument,
   syncFrontmatterBucket,
   type InboxFrontmatter,
@@ -409,6 +414,30 @@ async function loadEditorAppearanceSettings() {
   }
 }
 
+function syncBodyH1ToFrontmatter() {
+  const { frontmatter } = parseFrontmatter(buildRawDocument(frontmatterText.value, bodyMarkdown.value))
+  const h1 = extractMarkdownH1(bodyMarkdown.value)
+  if (!h1) return
+
+  const existingContentTitle = getContentTitle(frontmatter)
+  const existingAiTitle = getAiTitle(frontmatter)
+
+  if (h1 !== existingContentTitle) {
+    const updated = { ...frontmatter, contentTitle: h1 }
+    if (!existingAiTitle) {
+      updated.title = h1
+      updated.titleSource = 'content'
+    }
+    frontmatterText.value = buildFrontmatterText(updated)
+  }
+}
+
+function buildFrontmatterText(frontmatter: InboxFrontmatter): string {
+  return Object.entries(frontmatter)
+    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+    .join('\n')
+}
+
 async function saveNow(showSuccessMessage = false): Promise<boolean> {
   const api = window.electronAPI
   if (!api) return false
@@ -420,7 +449,8 @@ async function saveNow(showSuccessMessage = false): Promise<boolean> {
     return savePromise
   }
 
-  const snapshot = currentRawDocument.value
+  syncBodyH1ToFrontmatter()
+  const snapshot = buildRawDocument(frontmatterText.value, bodyMarkdown.value)
   if (!isDirty.value) {
     saveState.value = 'saved'
     return true

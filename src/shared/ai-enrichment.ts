@@ -1,4 +1,4 @@
-import { parseFrontmatter, buildFrontmatter } from './inbox-document'
+import { parseFrontmatter, buildFrontmatter, upsertMarkdownSection } from './inbox-document'
 
 export type SupportedAiProvider = 'openai' | 'minimax' | 'ollama'
 export type EnrichStatus = 'none' | 'fetching' | 'success' | 'failed'
@@ -16,7 +16,7 @@ export interface AiSettings {
 export interface EnrichmentPayload {
   title?: string
   tags?: string[]
-  body?: string
+  summaryMarkdown?: string
 }
 
 function normalizeProvider(settings: AiSettings): SupportedAiProvider {
@@ -153,10 +153,10 @@ export async function testAiConnection(settings: AiSettings) {
 export async function enrichDocumentContent(raw: string, settings: AiSettings): Promise<EnrichmentPayload> {
   const { frontmatter, body } = parseFrontmatter(raw)
   const prompt = [
-    '请根据下面的文档返回 JSON，字段仅包含 title、tags、body。',
+    '请根据下面的文档返回 JSON，字段仅包含 title、tags、summaryMarkdown。',
     '要求：',
     '1. 保留原始信息，不要发明事实。',
-    '2. body 使用 Markdown，适当整理结构。',
+    '2. summaryMarkdown 使用 Markdown，整理要点或摘要。',
     '3. tags 返回字符串数组，最多 5 个。',
     '',
     'Frontmatter:',
@@ -175,7 +175,7 @@ export async function enrichDocumentContent(raw: string, settings: AiSettings): 
   return {
     title: typeof json?.title === 'string' ? json.title : undefined,
     tags: Array.isArray(json?.tags) ? json.tags.filter((tag: unknown) => typeof tag === 'string').slice(0, 5) : undefined,
-    body: typeof json?.body === 'string' ? json.body : undefined,
+    summaryMarkdown: typeof json?.summaryMarkdown === 'string' ? json.summaryMarkdown : undefined,
   }
 }
 
@@ -192,7 +192,11 @@ export function applyEnrichmentToRaw(raw: string, enrichment: EnrichmentPayload,
     aiProvider: meta.provider || 'none',
   }
 
-  if (enrichment.title) nextFrontmatter.title = enrichment.title
+  if (enrichment.title) {
+    nextFrontmatter.aiTitle = enrichment.title
+    nextFrontmatter.title = enrichment.title
+    nextFrontmatter.titleSource = 'ai'
+  }
   if (enrichment.tags?.length) nextFrontmatter.tags = enrichment.tags
 
   if (meta.error) {
@@ -201,5 +205,10 @@ export function applyEnrichmentToRaw(raw: string, enrichment: EnrichmentPayload,
     delete nextFrontmatter.enrichError
   }
 
-  return buildFrontmatter(nextFrontmatter, enrichment.body || body)
+  let nextBody = body
+  if (enrichment.summaryMarkdown) {
+    nextBody = upsertMarkdownSection(body, 'AI 总结', enrichment.summaryMarkdown)
+  }
+
+  return buildFrontmatter(nextFrontmatter, nextBody)
 }

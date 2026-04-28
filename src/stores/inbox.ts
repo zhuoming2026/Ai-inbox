@@ -4,7 +4,7 @@ import type { InboxDocument } from '../shared/inbox-document'
 import {
   getDocumentBucket,
   getDocumentTags,
-  getDocumentTitle,
+  resolveDisplayTitle,
   getPreviewText,
   type DocumentBucket,
 } from '../shared/inbox-document'
@@ -33,7 +33,7 @@ export const useInboxStore = defineStore('inbox', () => {
         .map((f: InboxDocument) => ({
           slug: f.slug,
           type: f.type,
-          title: getDocumentTitle(f),
+          title: resolveDisplayTitle(f.frontmatter, f.body, f.slug),
           preview: getPreviewText(f.body).slice(0, 180),
           tags: getDocumentTags(f.frontmatter),
           enrichStatus: typeof f.frontmatter?.enrichStatus === 'string' ? f.frontmatter.enrichStatus : 'none',

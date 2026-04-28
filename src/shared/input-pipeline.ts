@@ -1,4 +1,4 @@
-import { buildFrontmatter, parseFrontmatter } from './inbox-document'
+import { buildFrontmatter, parseFrontmatter, extractMarkdownH1, extractFirstMeaningfulLine } from './inbox-document'
 import type { AiProcessingMode, EnrichStatus } from './ai-enrichment'
 
 export type RawInputType = 'text' | 'url' | 'image'
@@ -99,6 +99,8 @@ function getInitialEnrichStatus(settings?: PipelineSettings): EnrichStatus {
 function baseFrontmatter(params: {
   type: PipelineDocumentType
   title: string
+  contentTitle: string
+  titleSource: string
   today: string
   source: 'app' | 'mcp'
   rawInputType: RawInputType
@@ -110,6 +112,9 @@ function baseFrontmatter(params: {
   const frontmatter: Record<string, unknown> = {
     type: params.type,
     title: params.title || 'Untitled',
+    contentTitle: params.contentTitle,
+    aiTitle: '',
+    titleSource: params.titleSource,
     created: params.today,
     updated: params.today,
     tags: [params.type],
@@ -150,6 +155,8 @@ function createDraft(classification: ClassificationResult, input: PipelineInput,
           frontmatter: baseFrontmatter({
             type: 'todo',
             title: `Todo ${month}`,
+            contentTitle: `Todo ${month}`,
+            titleSource: 'fallback',
             today,
             source,
             rawInputType: classification.rawInputType,
@@ -176,12 +183,17 @@ function createDraft(classification: ClassificationResult, input: PipelineInput,
     }
     case 'link': {
       const parsed = new URL(classification.normalizedContent)
-      const title = parsed.hostname.replace(/^www\./, '') || classification.normalizedContent
+      const hostTitle = parsed.hostname.replace(/^www\./, '') || classification.normalizedContent
+      // 从 URL 提取第一条有意义的描述作为 contentTitle
+      const contentTitle = extractFirstMeaningfulLine(classification.normalizedContent) || hostTitle
+      const title = contentTitle
       return {
-        slug: `link-${Date.now()}-${slugify(title)}`,
+        slug: `link-${Date.now()}-${slugify(hostTitle)}`,
         frontmatter: baseFrontmatter({
           type: 'link',
           title,
+          contentTitle,
+          titleSource: 'content',
           today,
           source,
           rawInputType: classification.rawInputType,
@@ -189,15 +201,11 @@ function createDraft(classification: ClassificationResult, input: PipelineInput,
           aiProvider,
         }),
         body: [
-          '## Content',
+          `# ${title}`,
           '',
-          `来源链接：${classification.normalizedContent}`,
+          '## 原文',
           '',
-          `域名：${parsed.hostname}`,
-          '',
-          '## Raw',
-          '',
-          `[打开原文](${classification.normalizedContent})`,
+          classification.normalizedContent,
         ].join('\n'),
       }
     }
@@ -206,28 +214,19 @@ function createDraft(classification: ClassificationResult, input: PipelineInput,
       if (!classification.normalizedContent) {
         throw new Error('输入内容不能为空')
       }
-      const title = classification.normalizedContent.split('\n')[0].slice(0, 50)
+      // 尝试从内容提取 H1 或第一条有效文本作为 contentTitle
+      const h1 = extractMarkdownH1(classification.normalizedContent)
+      const firstLine = extractFirstMeaningfulLine(classification.normalizedContent)
+      let contentTitle = h1 || firstLine || ''
+      contentTitle = contentTitle.slice(0, 80)
+      const title = contentTitle || 'Untitled'
       return {
         slug: `${classification.documentType}-${Date.now()}-${slugify(title)}`,
         frontmatter: baseFrontmatter({
           type: classification.documentType,
           title,
-          today,
-          source,
-          rawInputType: classification.rawInputType,
-          enrichStatus,
-          aiProvider,
-        }),
-        body: ['## Content', '', classification.normalizedContent].join('\n'),
-      }
-    }
-    case 'image': {
-      const title = classification.normalizedContent.slice(0, 50) || `Image ${today}`
-      return {
-        slug: `image-${Date.now()}-${slugify(title)}`,
-        frontmatter: baseFrontmatter({
-          type: 'image',
-          title,
+          contentTitle,
+          titleSource: contentTitle ? 'content' : 'fallback',
           today,
           source,
           rawInputType: classification.rawInputType,
@@ -235,7 +234,34 @@ function createDraft(classification: ClassificationResult, input: PipelineInput,
           aiProvider,
         }),
         body: [
-          '## Content',
+          `# ${title}`,
+          '',
+          '## 原文',
+          '',
+          classification.normalizedContent,
+        ].join('\n'),
+      }
+    }
+    case 'image': {
+      const contentTitle = classification.normalizedContent.slice(0, 50) || `Image ${today}`
+      const title = contentTitle
+      return {
+        slug: `image-${Date.now()}-${slugify(title)}`,
+        frontmatter: baseFrontmatter({
+          type: 'image',
+          title,
+          contentTitle,
+          titleSource: 'fallback',
+          today,
+          source,
+          rawInputType: classification.rawInputType,
+          enrichStatus,
+          aiProvider,
+        }),
+        body: [
+          `# ${title}`,
+          '',
+          '## 原文',
           '',
           classification.normalizedContent || '图片已收件，等待后续 OCR/描述增强。',
         ].join('\n'),
@@ -248,12 +274,15 @@ function createFallbackDraft(input: PipelineInput, now: Date, error: unknown): P
   const today = formatDate(now)
   const message = error instanceof Error ? error.message : 'Unknown pipeline error'
   const rawContent = input.content.trim() || 'Untitled'
+  const title = rawContent.split('\n')[0].slice(0, 50) || 'Untitled'
 
   return {
     slug: `note-${Date.now()}-${slugify(rawContent)}`,
     frontmatter: baseFrontmatter({
       type: 'note',
-      title: rawContent.split('\n')[0].slice(0, 50) || 'Untitled',
+      title,
+      contentTitle: title,
+      titleSource: 'fallback',
       today,
       source: input.source || 'app',
       rawInputType: detectRawInputType(input.type, input.content),
@@ -262,7 +291,13 @@ function createFallbackDraft(input: PipelineInput, now: Date, error: unknown): P
       aiProvider: 'none',
       enrichError: message,
     }),
-    body: ['## Content', '', input.content].join('\n'),
+    body: [
+      `# ${title}`,
+      '',
+      '## 原文',
+      '',
+      input.content,
+    ].join('\n'),
   }
 }
 
