@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, globalShortcut } from 'electron'
 import { basename, dirname, extname, join, relative, resolve } from 'path'
 import * as fs from 'fs'
+import * as http from 'http'
 import { spawn, ChildProcess } from 'child_process'
 import { randomUUID } from 'crypto'
 import Store from 'electron-store'
@@ -79,18 +80,30 @@ let mcpRequestId = 0
 const mcpPendingRequests = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>()
 let mcpLastError: string | null = null
 
+// MCP HTTP Server
+let httpMcpServer: http.Server | null = null
+let httpMcpLastError: string | null = null
+
 function getMcpServerPath(): string {
-  // Try built-in path first, fall back to external installation
-  const appPath = app.isPackaged
-    ? join(process.resourcesPath, 'mcp-child.js')
-    : join(app.getPath('home'), 'ai-inbox-mcp', 'dist', 'index.js')
-  return appPath
+  if (app.isPackaged) {
+    // 打包模式：使用 app resources 中的内置 MCP
+    return join(process.resourcesPath, 'mcp-child.js')
+  }
+  // 开发模式：优先使用项目内 resources/mcp-child.js
+  const projectLocal = join(app.getAppPath(), 'resources', 'mcp-child.js')
+  if (fs.existsSync(projectLocal)) {
+    return projectLocal
+  }
+  // Fallback：外部安装路径
+  return join(app.getPath('home'), 'ai-inbox-mcp', 'dist', 'index.js')
 }
 
 function getMcpStatus() {
   return {
-    running: Boolean(mcpProcess),
-    error: mcpLastError
+    stdioRunning: Boolean(mcpProcess),
+    httpRunning: httpMcpServer !== null,
+    httpPort: store.get('mcpHttpPort') as number,
+    error: mcpLastError || httpMcpLastError
   }
 }
 
@@ -171,10 +184,289 @@ function callMcpTool(toolName: string, args: Record<string, unknown>): Promise<u
   })
 }
 
-// MCP HTTP Server (Phase 2.1: basic placeholder - full implementation in later phase)
-function setupHttpMcpServer() {
-  // TODO: Implement HTTP MCP server on port from settings
-  // This requires implementing the MCP HTTP endpoint handler
+// ─── HTTP MCP 工具处理 ────────────────────────────────────────────────────────
+
+function httpMcpExpandTilde(filepath: string): string {
+  if (filepath.startsWith('~/')) {
+    return join(app.getPath('home'), filepath.slice(2))
+  }
+  return filepath
+}
+
+function httpMcpGetConfig() {
+  return {
+    inboxPath: store.get('inboxPath') as string || '~/ai-inbox',
+    archivePath: store.get('archivePath') as string || '~/lzm/llm-wiki/MyNote',
+    mcpHttpPort: store.get('mcpHttpPort') as number || 3100,
+    aiProcessingMode: store.get('aiProcessingMode') as string || 'off',
+  }
+}
+
+function httpMcpSlugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40) || 'item'
+}
+
+function httpMcpDetectIntent(content: string): { rawInputType: string; documentType: string; normalizedContent: string } {
+  const trimmed = content.trim()
+  if (/^https?:\/\//i.test(trimmed)) {
+    return { rawInputType: 'url', documentType: 'link', normalizedContent: trimmed }
+  }
+  if (/^todo\s+/i.test(trimmed)) {
+    return { rawInputType: 'text', documentType: 'todo', normalizedContent: trimmed.replace(/^todo\s+/i, '').trim() }
+  }
+  return { rawInputType: 'text', documentType: 'note', normalizedContent: trimmed }
+}
+
+async function httpMcpHandleTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
+  try {
+    const result = (() => {
+      const config = httpMcpGetConfig()
+      const inboxPath = httpMcpExpandTilde(config.inboxPath)
+
+      switch (name) {
+        case 'process_note':
+        case 'process_todo': {
+          const content = (args.content as string) || ''
+          const now = new Date()
+          const today = now.toISOString().split('T')[0]
+          const classification = httpMcpDetectIntent(content)
+          const { rawInputType, documentType, normalizedContent } = classification
+
+          if (documentType === 'todo') {
+            if (!normalizedContent) throw new Error('TODO 内容不能为空')
+            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+            const slug = `todo-${month}`
+            const line = `- [ ] ${normalizedContent}`
+            if (!fs.existsSync(inboxPath)) fs.mkdirSync(inboxPath, { recursive: true })
+            const todoPath = join(inboxPath, `${slug}.md`)
+            if (fs.existsSync(todoPath)) {
+              const raw = fs.readFileSync(todoPath, 'utf-8')
+              const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+              if (match) {
+                const body = match[2] || ''
+                const newRaw = raw.replace(/^---\n[\s\S]*?\n---\n?/, '').trim()
+                const updatedRaw = `---\nupdated: ${today}\n---\n\n${newRaw}${newRaw ? '\n' : ''}${line}\n`
+                fs.writeFileSync(todoPath, updatedRaw, 'utf-8')
+              }
+            } else {
+              const body = `## Content\n\n${line}\n`
+              fs.writeFileSync(todoPath, `---\ntype: todo\ntitle: "Todo ${month}"\ncreated: ${today}\nupdated: ${today}\nbucket: inbox\nsource: mcp\n---\n\n${body}`, 'utf-8')
+            }
+            return { ok: true, slug, documentType: 'todo', action: 'appended' }
+          }
+
+          // note
+          if (!normalizedContent) throw new Error('输入内容不能为空')
+          const firstLine = normalizedContent.split('\n')[0]?.trim() || ''
+          const contentTitle = firstLine.slice(0, 80)
+          const title = contentTitle || 'Untitled'
+          const slug = `note-${Date.now()}-${httpMcpSlugify(title)}`
+          if (!fs.existsSync(inboxPath)) fs.mkdirSync(inboxPath, { recursive: true })
+          const filepath = join(inboxPath, `${slug}.md`)
+          const frontmatter = `type: note\ntitle: ${JSON.stringify(title)}\ncontentTitle: ${JSON.stringify(contentTitle)}\ncreated: ${today}\nupdated: ${today}\nbucket: inbox\nsource: mcp\n`
+          const bodyContent = `# ${title}\n\n## 原文\n\n${normalizedContent}`
+          fs.writeFileSync(filepath, `---\n${frontmatter}---\n\n${bodyContent}`, 'utf-8')
+          return { ok: true, slug, documentType: 'note', action: 'created' }
+        }
+
+        case 'process_link': {
+          let url = (args.url as string) || ''
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url
+          if (!fs.existsSync(inboxPath)) fs.mkdirSync(inboxPath, { recursive: true })
+          const now = new Date()
+          const today = now.toISOString().split('T')[0]
+          let hostTitle = url
+          try { hostTitle = new URL(url).hostname.replace(/^www\./, '') } catch {}
+          const slug = `link-${Date.now()}-${httpMcpSlugify(hostTitle)}`
+          const filepath = join(inboxPath, `${slug}.md`)
+          const title = hostTitle
+          const frontmatter = `type: link\ntitle: ${JSON.stringify(title)}\ncontentTitle: ${JSON.stringify(title)}\ncreated: ${today}\nupdated: ${today}\nbucket: inbox\nsource: mcp\nrawInputType: url\n`
+          fs.writeFileSync(filepath, `---\n${frontmatter}---\n\n# ${title}\n\n## 原文\n\n${url}`, 'utf-8')
+          return { ok: true, slug, documentType: 'link', action: 'created' }
+        }
+
+        case 'process_image': {
+          const content = (args.content as string) || ''
+          const now = new Date()
+          const today = now.toISOString().split('T')[0]
+          const contentTitle = content.slice(0, 50) || `Image ${today}`
+          const title = contentTitle
+          const slug = `image-${Date.now()}-${httpMcpSlugify(title)}`
+          if (!fs.existsSync(inboxPath)) fs.mkdirSync(inboxPath, { recursive: true })
+          const filepath = join(inboxPath, `${slug}.md`)
+          const frontmatter = `type: image\ntitle: ${JSON.stringify(title)}\ncontentTitle: ${JSON.stringify(contentTitle)}\ncreated: ${today}\nupdated: ${today}\nbucket: inbox\nsource: mcp\nrawInputType: image\n`
+          fs.writeFileSync(filepath, `---\n${frontmatter}---\n\n# ${title}\n\n## 原文\n\n图片已收件。`, 'utf-8')
+          return { ok: true, slug, documentType: 'image', action: 'created' }
+        }
+
+        case 'detect_intent': {
+          const content = (args.content as string) || ''
+          const classification = httpMcpDetectIntent(content)
+          return { ...classification, normalizedContent: classification.rawInputType === 'url' ? content : content.slice(0, 200) }
+        }
+
+        case 'list_inbox': {
+          if (!fs.existsSync(inboxPath)) return { items: [], total: 0 }
+          const files = fs.readdirSync(inboxPath).filter(f => f.endsWith('.md'))
+          const items = files.map(filename => {
+            const filepath = join(inboxPath, filename)
+            const content = fs.readFileSync(filepath, 'utf-8')
+            const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+            const frontmatter: Record<string, string> = {}
+            if (match) {
+              for (const line of match[1].split('\n')) {
+                const [key, ...rest] = line.split(':')
+                if (key && rest.length) frontmatter[key.trim()] = rest.join(':').trim().replace(/^"|"$/g, '')
+              }
+            }
+            return {
+              slug: filename.replace('.md', ''),
+              filename,
+              type: frontmatter.type || 'note',
+              title: frontmatter.title || filename,
+              created: frontmatter.created || '',
+              updated: frontmatter.updated || '',
+              bucket: frontmatter.bucket || 'inbox',
+            }
+          })
+          return { items, total: items.length }
+        }
+
+        case 'get_config': {
+          return httpMcpGetConfig()
+        }
+
+        case 'init_config':
+        case 'reload_config': {
+          return httpMcpGetConfig()
+        }
+
+        default:
+          throw new Error(`Unknown tool: ${name}`)
+      }
+    })()
+    return { content: [{ type: 'text', text: JSON.stringify(result) }] }
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }) }],
+      isError: true,
+    }
+  }
+}
+
+// ─── HTTP MCP 服务器 ──────────────────────────────────────────────────────────
+
+function setupHttpMcpServer(): { httpRunning: boolean; error?: string } {
+  if (httpMcpServer) {
+    return { httpRunning: true }
+  }
+
+  const port = store.get('mcpHttpPort') as number || 3100
+
+  httpMcpServer = http.createServer((req, res) => {
+    // CORS headers for external clients
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Content-Type', 'application/json')
+
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, mcprpc-trace-id')
+      res.writeHead(204)
+      res.end()
+      return
+    }
+
+    if (req.method !== 'POST' || req.url !== '/mcp') {
+      res.writeHead(req.method === 'GET' && req.url === '/mcp' ? 200 : 405)
+      res.end(req.method === 'GET' && req.url === '/mcp'
+        ? JSON.stringify({ name: 'ai-inbox-mcp', version: '1.0.0' })
+        : JSON.stringify({ error: 'Method not allowed' }))
+      return
+    }
+
+    let body = ''
+    req.on('data', chunk => { body += chunk.toString() })
+    req.on('end', async () => {
+      try {
+        const request = JSON.parse(body)
+        // Handle tools/list
+        if (request.method === 'tools/list') {
+          res.writeHead(200)
+          res.end(JSON.stringify({
+            jsonrpc: '2.0',
+            id: request.id,
+            result: {
+              tools: [
+                { name: 'process_note', description: '将文本存为笔记', inputSchema: { type: 'object', properties: { content: { type: 'string' }, type: { type: 'string' } }, required: ['content'] } },
+                { name: 'process_todo', description: '追加 TODO', inputSchema: { type: 'object', properties: { content: { type: 'string' } }, required: ['content'] } },
+                { name: 'process_link', description: '将 URL 存为链接', inputSchema: { type: 'object', properties: { url: { type: 'string' }, description: { type: 'string' } }, required: ['url'] } },
+                { name: 'process_image', description: '将图片存为记录', inputSchema: { type: 'object', properties: { content: { type: 'string' } }, required: ['content'] } },
+                { name: 'detect_intent', description: '分析内容意图', inputSchema: { type: 'object', properties: { content: { type: 'string' } }, required: ['content'] } },
+                { name: 'list_inbox', description: '列出 inbox 文档', inputSchema: { type: 'object', properties: {} } },
+                { name: 'get_config', description: '获取配置', inputSchema: { type: 'object', properties: {} } },
+                { name: 'init_config', description: '初始化配置', inputSchema: { type: 'object', properties: {} } },
+                { name: 'reload_config', description: '重载配置', inputSchema: { type: 'object', properties: {} } },
+              ]
+            }
+          }))
+          return
+        }
+        // Handle tools/call
+        if (request.method === 'tools/call') {
+          const { name, arguments: args = {} } = request.params || {}
+          const result = await httpMcpHandleTool(name, args)
+          res.writeHead(200)
+          res.end(JSON.stringify({ jsonrpc: '2.0', id: request.id, result }))
+          return
+        }
+        // Unknown method
+        res.writeHead(200)
+        res.end(JSON.stringify({ jsonrpc: '2.0', id: request.id, error: { code: -32601, message: 'Method not found' } }))
+      } catch {
+        res.writeHead(400)
+        res.end(JSON.stringify({ error: 'Invalid JSON' }))
+      }
+    })
+  })
+
+  httpMcpServer.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      httpMcpLastError = `端口 ${port} 已被占用`
+    } else {
+      httpMcpLastError = err.message
+    }
+    httpMcpServer = null
+  })
+
+  httpMcpServer.on('close', () => {
+    httpMcpServer = null
+  })
+
+  httpMcpServer.listen(port, '127.0.0.1', () => {
+    httpMcpLastError = null
+  })
+
+  return { httpRunning: true }
+}
+
+function stopHttpMcpServer() {
+  if (httpMcpServer) {
+    httpMcpServer.close()
+    httpMcpServer = null
+  }
+  return { httpRunning: false }
+}
+
+function startHttpMcpServer() {
+  if (httpMcpServer) {
+    httpMcpLastError = null
+    return { httpRunning: true }
+  }
+  return setupHttpMcpServer()
 }
 
 // Helper functions
@@ -1065,8 +1357,16 @@ function setupIPC() {
   })
 
   ipcMain.handle('mcp:status', () => getMcpStatus())
-  ipcMain.handle('mcp:start', () => startMcpProcess())
-  ipcMain.handle('mcp:stop', () => stopMcpProcess())
+  ipcMain.handle('mcp:start', () => {
+    const stdioResult = startMcpProcess()
+    const httpResult = startHttpMcpServer()
+    return { ...getMcpStatus(), httpError: httpResult.error }
+  })
+  ipcMain.handle('mcp:stop', () => {
+    const stdioResult = stopMcpProcess()
+    const httpResult = stopHttpMcpServer()
+    return { ...getMcpStatus() }
+  })
 
   // Inbox file operations
   ipcMain.handle('inbox:list', () => {
