@@ -165,7 +165,6 @@ import {
   getAiTitle,
   getContentTitle,
   getDocumentBucket,
-  getTitleSource,
   parseFrontmatter,
   splitRawDocument,
   syncFrontmatterBucket,
@@ -213,6 +212,7 @@ function refreshResolvedThemeTokens() {
 
 const frontmatterText = ref('')
 const bodyMarkdown = ref('')
+const documentHadFrontmatter = ref(false)
 const activeThemeId = ref<string>('light')
 const editorCodeTheme = ref<EditorCodeTheme>('github')
 const lastSavedRawDocument = ref('')
@@ -276,7 +276,9 @@ async function applyLocalTheme() {
   refreshResolvedThemeTokens()
 }
 
-const currentRawDocument = computed(() => buildRawDocument(frontmatterText.value, bodyMarkdown.value))
+const currentRawDocument = computed(() =>
+  documentHadFrontmatter.value ? buildRawDocument(frontmatterText.value, bodyMarkdown.value) : bodyMarkdown.value
+)
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
 
 const frontmatterSyntaxError = computed(() =>
@@ -290,7 +292,9 @@ const frontmatterSyntaxError = computed(() =>
 )
 
 const parsedDocument = computed(() => splitRawDocument(currentRawDocument.value))
-const frontmatterParseError = computed(() => parsedDocument.value.parseError || frontmatterSyntaxError.value)
+const frontmatterParseError = computed(() =>
+  documentHadFrontmatter.value && (parsedDocument.value.parseError || frontmatterSyntaxError.value)
+)
 const currentFrontmatter = computed(() =>
   frontmatterParseError.value ? ({} as InboxFrontmatter) : parsedDocument.value.frontmatter
 )
@@ -299,7 +303,7 @@ const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value)
 const documentTitle = computed(() =>
   typeof currentFrontmatter.value.title === 'string' && currentFrontmatter.value.title.trim()
     ? currentFrontmatter.value.title
-    : slug
+    : extractMarkdownH1(bodyMarkdown.value) || slug
 )
 const saveIndicatorLabel = computed(() => {
   if (saveState.value === 'saving') return '保存中'
@@ -363,11 +367,12 @@ function applyRawDocument(raw: string, options?: { markAsSaved?: boolean; autoEx
   const parts = splitRawDocument(raw)
 
   suppressDirtyTracking = true
+  documentHadFrontmatter.value = parts.hasFrontmatter
   frontmatterText.value = parts.frontmatterText
   bodyMarkdown.value = parts.body
 
   if (options?.markAsSaved) {
-    lastSavedRawDocument.value = buildRawDocument(parts.frontmatterText, parts.body)
+    lastSavedRawDocument.value = parts.hasFrontmatter ? buildRawDocument(parts.frontmatterText, parts.body) : parts.body
     saveState.value = 'saved'
     hasExternalChange.value = false
     pendingExternalRaw.value = null
@@ -415,6 +420,7 @@ async function loadEditorAppearanceSettings() {
 }
 
 function syncBodyH1ToFrontmatter() {
+  if (!documentHadFrontmatter.value) return
   const { frontmatter } = parseFrontmatter(buildRawDocument(frontmatterText.value, bodyMarkdown.value))
   const h1 = extractMarkdownH1(bodyMarkdown.value)
   if (!h1) return
@@ -423,7 +429,7 @@ function syncBodyH1ToFrontmatter() {
   const existingAiTitle = getAiTitle(frontmatter)
 
   if (h1 !== existingContentTitle) {
-    const updated = { ...frontmatter, contentTitle: h1 }
+    const updated: InboxFrontmatter = { ...frontmatter, contentTitle: h1 }
     if (!existingAiTitle) {
       updated.title = h1
       updated.titleSource = 'content'
@@ -540,6 +546,11 @@ function getToday() {
 function patchFrontmatter(
   updater: (frontmatter: InboxFrontmatter) => InboxFrontmatter
 ) {
+  if (!documentHadFrontmatter.value) {
+    message.info('V2 纯 Markdown 文件的卡片状态将在 Home 中通过 metadata 管理。')
+    return false
+  }
+
   if (frontmatterParseError.value) {
     frontmatterExpanded.value = true
     message.error('frontmatter 解析失败，请先修复文档属性。')

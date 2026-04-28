@@ -1,13 +1,24 @@
 import { app, BrowserWindow, ipcMain, dialog, globalShortcut } from 'electron'
-import { join } from 'path'
+import { basename, join } from 'path'
 import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 import Store from 'electron-store'
 import chokidar from 'chokidar'
-import { buildFrontmatter, parseFrontmatter, syncFrontmatterBucket, toInboxDocument } from '../src/shared/inbox-document'
-import { processInputPipeline } from '../src/shared/input-pipeline'
+import { buildFrontmatter, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from '../src/shared/ai-enrichment'
 import { defaultThemeConfigs } from '../src/styles/theme-presets'
+import {
+  createDefaultCardMetadata,
+  createEmptyCardMetadataFile,
+  normalizeCardMetadataFile,
+} from '../src/shared/v2-card-metadata'
+import {
+  createInboxFilename,
+  detectCaptureKind,
+  extractMarkdownCardTitle,
+  extractMarkdownPreview,
+} from '../src/shared/v2-markdown'
+import type { CardMetadataFile, V2CardBucket, V2CardKind, V2InboxCard } from '../src/shared/v2-types'
 
 let win: BrowserWindow | null = null
 
@@ -142,6 +153,34 @@ function getInboxPath(): string {
   return p.startsWith('~/') ? join(app.getPath('home'), p.slice(2)) : p
 }
 
+function getAiInboxRoot(): string {
+  return getInboxPath()
+}
+
+function getV2InboxPath(): string {
+  return join(getAiInboxRoot(), 'inbox')
+}
+
+function getMetadataPath(): string {
+  return join(getAiInboxRoot(), 'metadata')
+}
+
+function getCardsMetadataPath(): string {
+  return join(getMetadataPath(), 'cards.json')
+}
+
+function getEnrichOutputsPath(): string {
+  return join(getAiInboxRoot(), 'enrich', 'outputs')
+}
+
+function ensureV2Directories() {
+  for (const dirPath of [getAiInboxRoot(), getV2InboxPath(), getMetadataPath(), getEnrichOutputsPath()]) {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true })
+    }
+  }
+}
+
 function getArchivePath(): string {
   const p = store.get('archivePath') as string
   return p.startsWith('~/') ? join(app.getPath('home'), p.slice(2)) : p
@@ -159,7 +198,157 @@ function getAiSettings(): AiSettings {
 }
 
 function getInboxFilePath(slug: string) {
-  return join(getInboxPath(), `${slug}.md`)
+  const filename = slug.endsWith('.md') ? slug : `${slug}.md`
+  const v2Path = join(getV2InboxPath(), filename)
+  if (fs.existsSync(v2Path)) return v2Path
+
+  const legacyPath = join(getAiInboxRoot(), filename)
+  if (fs.existsSync(legacyPath)) return legacyPath
+
+  return v2Path
+}
+
+function readCardMetadataFile(): CardMetadataFile {
+  ensureV2Directories()
+  const filepath = getCardsMetadataPath()
+  if (!fs.existsSync(filepath)) return createEmptyCardMetadataFile()
+
+  try {
+    return normalizeCardMetadataFile(JSON.parse(fs.readFileSync(filepath, 'utf-8')))
+  } catch {
+    return createEmptyCardMetadataFile()
+  }
+}
+
+function writeCardMetadataFile(file: CardMetadataFile) {
+  ensureV2Directories()
+  fs.writeFileSync(getCardsMetadataPath(), JSON.stringify(file, null, 2), 'utf-8')
+}
+
+function getMetadataKey(filename: string) {
+  return basename(filename)
+}
+
+function ensureCardMetadataForFile(params: {
+  filename: string
+  createdAt: string
+  updatedAt: string
+  kind?: V2CardKind
+}) {
+  const metadata = readCardMetadataFile()
+  const key = getMetadataKey(params.filename)
+  if (!metadata.items[key]) {
+    metadata.items[key] = createDefaultCardMetadata({
+      kind: params.kind,
+      createdAt: params.createdAt,
+      updatedAt: params.updatedAt,
+    })
+    writeCardMetadataFile(metadata)
+  }
+  return metadata.items[key]
+}
+
+function updateCardMetadata(filename: string, patch: Partial<{ kind: V2CardKind; bucket: V2CardBucket }>) {
+  const filepath = getInboxFilePath(filename)
+  if (!fs.existsSync(filepath)) return
+
+  const stats = fs.statSync(filepath)
+  const key = getMetadataKey(basename(filepath))
+  const metadata = readCardMetadataFile()
+  const current = metadata.items[key] || createDefaultCardMetadata({
+    createdAt: stats.birthtime.toISOString(),
+    updatedAt: stats.mtime.toISOString(),
+  })
+
+  metadata.items[key] = {
+    ...current,
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  }
+  writeCardMetadataFile(metadata)
+}
+
+function toV2InboxCard(params: {
+  filepath: string
+  filename: string
+  raw: string
+  createdAt: string
+  updatedAt: string
+}): V2InboxCard {
+  const title = extractMarkdownCardTitle(params.raw)
+  const metadata = ensureCardMetadataForFile({
+    filename: params.filename,
+    createdAt: params.createdAt,
+    updatedAt: params.updatedAt,
+  })
+  const slug = params.filename.replace(/\.md$/, '')
+
+  return {
+    id: params.filename,
+    slug,
+    filename: params.filename,
+    path: params.filepath,
+    title,
+    hasTitle: Boolean(title),
+    preview: extractMarkdownPreview(params.raw),
+    kind: metadata.kind,
+    type: metadata.kind,
+    bucket: metadata.bucket,
+    createdAt: metadata.createdAt || params.createdAt,
+    updatedAt: metadata.updatedAt || params.updatedAt,
+    created: (metadata.createdAt || params.createdAt).split('T')[0],
+    raw: params.raw,
+    tags: [],
+    enrichStatus: 'none',
+  }
+}
+
+function listInboxFiles() {
+  ensureV2Directories()
+  const entries: Array<{ filepath: string; filename: string }> = []
+  const seen = new Set<string>()
+
+  for (const dirPath of [getV2InboxPath(), getAiInboxRoot()]) {
+    if (!fs.existsSync(dirPath)) continue
+    for (const filename of fs.readdirSync(dirPath).filter((file) => file.endsWith('.md'))) {
+      if (seen.has(filename)) continue
+      seen.add(filename)
+      entries.push({ filepath: join(dirPath, filename), filename })
+    }
+  }
+
+  return entries
+}
+
+function captureV2InboxMarkdown(type: string | undefined, content: string) {
+  const raw = content.trim()
+  if (!raw) {
+    throw new Error('输入内容不能为空')
+  }
+
+  ensureV2Directories()
+  const filename = createInboxFilename()
+  const filepath = join(getV2InboxPath(), filename)
+  const kind = detectCaptureKind(type, raw)
+  fs.writeFileSync(filepath, raw, 'utf-8')
+
+  const now = new Date().toISOString()
+  const metadata = readCardMetadataFile()
+  metadata.items[getMetadataKey(filename)] = createDefaultCardMetadata({
+    kind,
+    createdAt: now,
+    updatedAt: now,
+  })
+  writeCardMetadataFile(metadata)
+
+  return {
+    slug: filename.replace(/\.md$/, ''),
+    filename,
+    path: filepath,
+    documentType: kind,
+    enrichStatus: 'none' as const,
+    parseMode: 'deterministic' as const,
+  }
 }
 
 function getScratchpadPath() {
@@ -171,7 +360,7 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
   if (!fs.existsSync(filepath)) return
   const raw = fs.readFileSync(filepath, 'utf-8')
   const { frontmatter, body } = parseFrontmatter(raw)
-  const nextFrontmatter = {
+  const nextFrontmatter: Record<string, unknown> = {
     ...frontmatter,
     updated: new Date().toISOString().split('T')[0],
     enrichStatus: status,
@@ -185,21 +374,7 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
 }
 
 function setDocumentBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted') {
-  const filepath = getInboxFilePath(slug)
-  if (!fs.existsSync(filepath)) return
-  const raw = fs.readFileSync(filepath, 'utf-8')
-  const { frontmatter, body } = parseFrontmatter(raw)
-  fs.writeFileSync(
-    filepath,
-    buildFrontmatter(
-      syncFrontmatterBucket({
-        ...frontmatter,
-        updated: new Date().toISOString().split('T')[0],
-      }, bucket),
-      body
-    ),
-    'utf-8'
-  )
+  updateCardMetadata(slug, { bucket })
 }
 
 function readScratchpad() {
@@ -242,16 +417,6 @@ async function enrichDocumentBySlug(slug: string) {
   }
 }
 
-function scheduleAutoEnrich(slug: string) {
-  queueMicrotask(async () => {
-    try {
-      await enrichDocumentBySlug(slug)
-    } catch (error) {
-      console.error('[ai-inbox] auto enrich failed:', error)
-    }
-  })
-}
-
 function createWindow() {
   win = new BrowserWindow({
     width: 1400,
@@ -286,12 +451,12 @@ function createWindow() {
 let watcher: chokidar.FSWatcher | null = null
 
 function setupWatcher() {
-  const inboxPath = getInboxPath()
-  if (!fs.existsSync(inboxPath)) {
-    fs.mkdirSync(inboxPath, { recursive: true })
-  }
+  ensureV2Directories()
 
-  watcher = chokidar.watch(inboxPath, { ignoreInitial: true })
+  watcher = chokidar.watch([getV2InboxPath(), getMetadataPath(), getAiInboxRoot()], {
+    ignoreInitial: true,
+    ignored: (path) => path.includes('/enrich/outputs') || path.includes('/enrich/tasks.json'),
+  })
   watcher.on('all', () => {
     win?.webContents.send('inbox:updated')
   })
@@ -338,27 +503,22 @@ function setupIPC() {
 
   // Inbox file operations
   ipcMain.handle('inbox:list', () => {
-    const inboxPath = getInboxPath()
-    if (!fs.existsSync(inboxPath)) return []
-    const files = fs.readdirSync(inboxPath).filter(f => f.endsWith('.md'))
-    return files.map((filename: string) => {
-      const filepath = join(inboxPath, filename)
+    return listInboxFiles().map(({ filepath, filename }) => {
       const stats = fs.statSync(filepath)
       const content = fs.readFileSync(filepath, 'utf-8')
-      const slug = filename.replace('.md', '')
-      return toInboxDocument({
-        slug,
+      return toV2InboxCard({
+        filepath,
         filename,
-        content,
-        created: stats.birthtime.toISOString()
+        raw: content,
+        createdAt: stats.birthtime.toISOString(),
+        updatedAt: stats.mtime.toISOString(),
       })
     }).sort((a: any, b: any) => (b.created > a.created ? 1 : -1))
   })
 
   ipcMain.handle('inbox:read', (_, slug: string) => {
-    const inboxPath = getInboxPath()
     const filename = slug.endsWith('.md') ? slug : `${slug}.md`
-    const filepath = join(inboxPath, filename)
+    const filepath = getInboxFilePath(filename)
     if (!fs.existsSync(filepath)) return null
     const stats = fs.statSync(filepath)
     const content = fs.readFileSync(filepath, 'utf-8')
@@ -377,8 +537,7 @@ function setupIPC() {
   })
 
   ipcMain.handle('inbox:write', (_, slug: string, data: { frontmatter?: Record<string, unknown>; body?: string }) => {
-    const inboxPath = getInboxPath()
-    const filepath = join(inboxPath, `${slug}.md`)
+    const filepath = getInboxFilePath(slug)
     if (!fs.existsSync(filepath)) return
     const current = fs.readFileSync(filepath, 'utf-8')
     const { frontmatter, body } = parseFrontmatter(current)
@@ -397,16 +556,53 @@ function setupIPC() {
     setDocumentBucket(slug, bucket)
   })
 
+  ipcMain.handle('v2:inbox:capture', (_, { type, content }: { type?: string; content: string }) => {
+    return captureV2InboxMarkdown(type, content)
+  })
+
+  ipcMain.handle('v2:cards:list', () => {
+    return listInboxFiles().map(({ filepath, filename }) => {
+      const stats = fs.statSync(filepath)
+      const content = fs.readFileSync(filepath, 'utf-8')
+      return toV2InboxCard({
+        filepath,
+        filename,
+        raw: content,
+        createdAt: stats.birthtime.toISOString(),
+        updatedAt: stats.mtime.toISOString(),
+      })
+    }).sort((a: any, b: any) => (b.created > a.created ? 1 : -1))
+  })
+
+  ipcMain.handle('v2:cards:set-bucket', (_, filename: string, bucket: 'inbox' | 'collected' | 'deleted') => {
+    updateCardMetadata(filename, { bucket })
+  })
+
+  ipcMain.handle('v2:cards:set-kind', (_, filename: string, kind: V2CardKind) => {
+    updateCardMetadata(filename, { kind })
+  })
+
+  ipcMain.handle('v2:file:read-inbox', (_, filename: string) => {
+    const filepath = getInboxFilePath(filename)
+    if (!fs.existsSync(filepath)) return null
+    return fs.readFileSync(filepath, 'utf-8')
+  })
+
+  ipcMain.handle('v2:file:write-inbox', (_, filename: string, raw: string) => {
+    const filepath = getInboxFilePath(filename)
+    if (!fs.existsSync(filepath)) return
+    fs.writeFileSync(filepath, raw, 'utf-8')
+  })
+
   ipcMain.handle('inbox:delete', (_, slug: string) => {
     setDocumentBucket(slug, 'deleted')
   })
 
   ipcMain.handle('inbox:archive', (_, slug: string) => {
-    const inboxPath = getInboxPath()
     const archivePath = getArchivePath()
-    const src = join(inboxPath, `${slug}.md`)
+    const src = getInboxFilePath(slug)
     if (!fs.existsSync(src)) return
-    const dest = join(archivePath, `${slug}.md`)
+    const dest = join(archivePath, basename(src))
     if (!fs.existsSync(archivePath)) {
       fs.mkdirSync(archivePath, { recursive: true })
     }
@@ -421,27 +617,7 @@ function setupIPC() {
 
   // MCP process input - call the MCP child process
   ipcMain.handle('mcp:process-input', async (_, { type, content }: { type: string; content: string }) => {
-    const result = await processInputPipeline(
-      { type, content, source: 'app' },
-      {
-        settings: getAiSettings(),
-        readDocument: (slug: string) => {
-          const filepath = getInboxFilePath(slug)
-          return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null
-        },
-        writeDocument: (slug: string, raw: string) => {
-          const inboxPath = getInboxPath()
-          if (!fs.existsSync(inboxPath)) {
-            fs.mkdirSync(inboxPath, { recursive: true })
-          }
-          fs.writeFileSync(getInboxFilePath(slug), raw, 'utf-8')
-        }
-      }
-    )
-    if (result.enrichStatus === 'fetching') {
-      scheduleAutoEnrich(result.slug)
-    }
-    return result
+    return captureV2InboxMarkdown(type, content)
   })
 
   // ─── Theme IPC ──────────────────────────────────────────────────────────────

@@ -11,6 +11,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   archiveFile: (slug: string) => ipcRenderer.invoke('inbox:archive', slug),
   deleteFile: (slug: string) => ipcRenderer.invoke('inbox:delete', slug),
   setBucket: (slug: string, bucket: 'inbox' | 'collected' | 'deleted') => ipcRenderer.invoke('inbox:set-bucket', slug, bucket),
+  v2: {
+    captureInbox: (content: string, type?: string) => ipcRenderer.invoke('v2:inbox:capture', { type, content }),
+    listCards: () => ipcRenderer.invoke('v2:cards:list'),
+    setCardBucket: (filename: string, bucket: 'inbox' | 'collected' | 'deleted') =>
+      ipcRenderer.invoke('v2:cards:set-bucket', filename, bucket),
+    setCardKind: (filename: string, kind: 'note' | 'todo') =>
+      ipcRenderer.invoke('v2:cards:set-kind', filename, kind),
+    readInboxFile: (filename: string) => ipcRenderer.invoke('v2:file:read-inbox', filename),
+    writeInboxFile: (filename: string, raw: string) => ipcRenderer.invoke('v2:file:write-inbox', filename, raw),
+  },
 
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:get'),

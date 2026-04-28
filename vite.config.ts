@@ -2,13 +2,24 @@ import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
-import { resolve, join } from 'path'
+import { basename, resolve, join } from 'path'
 import { homedir } from 'os'
 import fs from 'fs'
 import chokidar, { type FSWatcher } from 'chokidar'
 import { buildFrontmatter, parseFrontmatter, toInboxDocument } from './src/shared/inbox-document'
-import { processInputPipeline } from './src/shared/input-pipeline'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from './src/shared/ai-enrichment'
+import {
+  createDefaultCardMetadata,
+  createEmptyCardMetadataFile,
+  normalizeCardMetadataFile,
+} from './src/shared/v2-card-metadata'
+import {
+  createInboxFilename,
+  detectCaptureKind,
+  extractMarkdownCardTitle,
+  extractMarkdownPreview,
+} from './src/shared/v2-markdown'
+import type { CardMetadataFile, V2CardKind, V2InboxCard } from './src/shared/v2-types'
 
 type AppSettings = {
   inboxPath: string
@@ -63,6 +74,26 @@ function getInboxPath(): string {
   return resolveHomePath(getSettings().inboxPath)
 }
 
+function getAiInboxRoot(): string {
+  return getInboxPath()
+}
+
+function getV2InboxPath(): string {
+  return join(getAiInboxRoot(), 'inbox')
+}
+
+function getMetadataPath(): string {
+  return join(getAiInboxRoot(), 'metadata')
+}
+
+function getCardsMetadataPath(): string {
+  return join(getMetadataPath(), 'cards.json')
+}
+
+function getEnrichOutputsPath(): string {
+  return join(getAiInboxRoot(), 'enrich', 'outputs')
+}
+
 function getArchivePath(): string {
   return resolveHomePath(getSettings().archivePath)
 }
@@ -89,6 +120,52 @@ function ensureDir(dirPath: string) {
   }
 }
 
+function ensureV2Directories() {
+  for (const dirPath of [getAiInboxRoot(), getV2InboxPath(), getMetadataPath(), getEnrichOutputsPath()]) {
+    ensureDir(dirPath)
+  }
+}
+
+function readCardMetadataFile(): CardMetadataFile {
+  ensureV2Directories()
+  const filepath = getCardsMetadataPath()
+  if (!fs.existsSync(filepath)) return createEmptyCardMetadataFile()
+
+  try {
+    return normalizeCardMetadataFile(JSON.parse(fs.readFileSync(filepath, 'utf-8')))
+  } catch {
+    return createEmptyCardMetadataFile()
+  }
+}
+
+function writeCardMetadataFile(file: CardMetadataFile) {
+  ensureV2Directories()
+  fs.writeFileSync(getCardsMetadataPath(), JSON.stringify(file, null, 2), 'utf-8')
+}
+
+function getMetadataKey(filename: string) {
+  return basename(filename)
+}
+
+function ensureCardMetadataForFile(params: {
+  filename: string
+  createdAt: string
+  updatedAt: string
+  kind?: V2CardKind
+}) {
+  const metadata = readCardMetadataFile()
+  const key = getMetadataKey(params.filename)
+  if (!metadata.items[key]) {
+    metadata.items[key] = createDefaultCardMetadata({
+      kind: params.kind,
+      createdAt: params.createdAt,
+      updatedAt: params.updatedAt,
+    })
+    writeCardMetadataFile(metadata)
+  }
+  return metadata.items[key]
+}
+
 function readScratchpad() {
   const filepath = getScratchpadPath()
   if (!fs.existsSync(filepath)) return ''
@@ -100,29 +177,54 @@ function writeScratchpad(content: string) {
 }
 
 function listInbox() {
-  const inboxPath = getInboxPath()
-  ensureDir(inboxPath)
+  ensureV2Directories()
+  const seen = new Set<string>()
+  const entries: Array<{ filepath: string; filename: string }> = []
 
-  return fs
-    .readdirSync(inboxPath)
-    .filter((filename) => filename.endsWith('.md'))
-    .map((filename) => {
-      const filepath = join(inboxPath, filename)
+  for (const dirPath of [getV2InboxPath(), getAiInboxRoot()]) {
+    if (!fs.existsSync(dirPath)) continue
+    for (const filename of fs.readdirSync(dirPath).filter((file) => file.endsWith('.md'))) {
+      if (seen.has(filename)) continue
+      seen.add(filename)
+      entries.push({ filepath: join(dirPath, filename), filename })
+    }
+  }
+
+  return entries
+    .map(({ filepath, filename }) => {
       const stats = fs.statSync(filepath)
-      const content = fs.readFileSync(filepath, 'utf-8')
+      const raw = fs.readFileSync(filepath, 'utf-8')
       const slug = filename.replace('.md', '')
-      return toInboxDocument({
+      const title = extractMarkdownCardTitle(raw)
+      const metadata = ensureCardMetadataForFile({
+        filename,
+        createdAt: stats.birthtime.toISOString(),
+        updatedAt: stats.mtime.toISOString(),
+      })
+      return {
+        id: filename,
         slug,
         filename,
-        content,
-        created: stats.birthtime.toISOString(),
-      })
+        path: filepath,
+        title,
+        hasTitle: Boolean(title),
+        preview: extractMarkdownPreview(raw),
+        kind: metadata.kind,
+        type: metadata.kind,
+        bucket: metadata.bucket,
+        createdAt: metadata.createdAt,
+        updatedAt: metadata.updatedAt,
+        created: metadata.createdAt.split('T')[0],
+        raw,
+        tags: [],
+        enrichStatus: 'none',
+      } satisfies V2InboxCard
     })
     .sort((a, b) => (b.created > a.created ? 1 : -1))
 }
 
 function readInboxFile(slug: string) {
-  const filepath = join(getInboxPath(), slug.endsWith('.md') ? slug : `${slug}.md`)
+  const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return null
   const stats = fs.statSync(filepath)
   const filename = filepath.split('/').pop() || `${slug}.md`
@@ -136,13 +238,20 @@ function readInboxFile(slug: string) {
 }
 
 function readInboxRawFile(slug: string) {
-  const filepath = join(getInboxPath(), slug.endsWith('.md') ? slug : `${slug}.md`)
+  const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return null
   return fs.readFileSync(filepath, 'utf-8')
 }
 
 function getInboxFilePath(slug: string) {
-  return join(getInboxPath(), `${slug}.md`)
+  const filename = slug.endsWith('.md') ? slug : `${slug}.md`
+  const v2Path = join(getV2InboxPath(), filename)
+  if (fs.existsSync(v2Path)) return v2Path
+
+  const legacyPath = join(getAiInboxRoot(), filename)
+  if (fs.existsSync(legacyPath)) return legacyPath
+
+  return v2Path
 }
 
 function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'success' | 'failed', error?: string | null) {
@@ -150,7 +259,7 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
   if (!fs.existsSync(filepath)) return
   const raw = fs.readFileSync(filepath, 'utf-8')
   const { frontmatter, body } = parseFrontmatter(raw)
-  const nextFrontmatter = {
+  const nextFrontmatter: Record<string, unknown> = {
     ...frontmatter,
     updated: new Date().toISOString().split('T')[0],
     enrichStatus: status,
@@ -166,20 +275,19 @@ function setDocumentEnrichStatus(slug: string, status: 'none' | 'fetching' | 'su
 function setDocumentBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted') {
   const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return
-  const raw = fs.readFileSync(filepath, 'utf-8')
-  const { frontmatter, body } = parseFrontmatter(raw)
-  fs.writeFileSync(
-    filepath,
-    buildFrontmatter(
-      {
-        ...frontmatter,
-        updated: new Date().toISOString().split('T')[0],
-        bucket,
-      },
-      body
-    ),
-    'utf-8'
-  )
+  const stats = fs.statSync(filepath)
+  const key = getMetadataKey(basename(filepath))
+  const metadata = readCardMetadataFile()
+  const current = metadata.items[key] || createDefaultCardMetadata({
+    createdAt: stats.birthtime.toISOString(),
+    updatedAt: stats.mtime.toISOString(),
+  })
+  metadata.items[key] = {
+    ...current,
+    bucket,
+    updatedAt: new Date().toISOString(),
+  }
+  writeCardMetadataFile(metadata)
 }
 
 async function enrichDocumentBySlug(slug: string) {
@@ -211,7 +319,7 @@ async function enrichDocumentBySlug(slug: string) {
 }
 
 function updateInboxFile(slug: string, data: { frontmatter?: Record<string, unknown>; body?: string }) {
-  const filepath = join(getInboxPath(), `${slug}.md`)
+  const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return false
 
   const current = fs.readFileSync(filepath, 'utf-8')
@@ -225,7 +333,7 @@ function updateInboxFile(slug: string, data: { frontmatter?: Record<string, unkn
 }
 
 function writeInboxRawFile(slug: string, raw: string) {
-  const filepath = join(getInboxPath(), `${slug}.md`)
+  const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return false
 
   fs.writeFileSync(filepath, raw, 'utf-8')
@@ -233,7 +341,7 @@ function writeInboxRawFile(slug: string, raw: string) {
 }
 
 function deleteInboxFile(slug: string) {
-  const filepath = join(getInboxPath(), `${slug}.md`)
+  const filepath = getInboxFilePath(slug)
   if (!fs.existsSync(filepath)) return false
 
   setDocumentBucket(slug, 'deleted')
@@ -241,14 +349,43 @@ function deleteInboxFile(slug: string) {
 }
 
 function archiveInboxFile(slug: string) {
-  const inboxFile = join(getInboxPath(), `${slug}.md`)
+  const inboxFile = getInboxFilePath(slug)
   if (!fs.existsSync(inboxFile)) return false
 
   const archivePath = getArchivePath()
   ensureDir(archivePath)
-  fs.copyFileSync(inboxFile, join(archivePath, `${slug}.md`))
+  fs.copyFileSync(inboxFile, join(archivePath, basename(inboxFile)))
   setDocumentBucket(slug, 'collected')
   return true
+}
+
+function captureV2InboxMarkdown(type: string | undefined, content: string) {
+  const raw = content.trim()
+  if (!raw) throw new Error('输入内容不能为空')
+
+  ensureV2Directories()
+  const filename = createInboxFilename()
+  const filepath = join(getV2InboxPath(), filename)
+  const kind = detectCaptureKind(type, raw)
+  fs.writeFileSync(filepath, raw, 'utf-8')
+
+  const now = new Date().toISOString()
+  const metadata = readCardMetadataFile()
+  metadata.items[getMetadataKey(filename)] = createDefaultCardMetadata({
+    kind,
+    createdAt: now,
+    updatedAt: now,
+  })
+  writeCardMetadataFile(metadata)
+
+  return {
+    slug: filename.replace(/\.md$/, ''),
+    filename,
+    path: filepath,
+    documentType: kind,
+    enrichStatus: 'none' as const,
+    parseMode: 'deterministic' as const,
+  }
 }
 
 function devInboxPlugin(): Plugin {
@@ -264,8 +401,11 @@ function devInboxPlugin(): Plugin {
 
   const refreshWatcher = () => {
     watcher?.close()
-    ensureDir(getInboxPath())
-    watcher = chokidar.watch(getInboxPath(), { ignoreInitial: true })
+    ensureV2Directories()
+    watcher = chokidar.watch([getV2InboxPath(), getMetadataPath(), getAiInboxRoot()], {
+      ignoreInitial: true,
+      ignored: (path) => path.includes('/enrich/outputs') || path.includes('/enrich/tasks.json'),
+    })
     watcher.on('all', sendInboxUpdated)
   }
 
@@ -375,35 +515,92 @@ function devInboxPlugin(): Plugin {
           return
         }
 
-        if (url === '/__dev_api/process-input' && req.method === 'POST') {
+        if (url === '/__dev_api/v2/cards' && req.method === 'GET') {
+          sendJson(res, 200, listInbox())
+          return
+        }
+
+        if (url === '/__dev_api/v2/inbox/capture' && req.method === 'POST') {
           try {
-            const body = (await readJsonBody(req)) as { type: string; content: string }
-            const result = await processInputPipeline(
-              { type: body.type, content: body.content, source: 'app' },
-              {
-                settings: getAiSettings(),
-                readDocument: (slug: string) => {
-                  const filepath = getInboxFilePath(slug)
-                  return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null
-                },
-                writeDocument: (slug: string, raw: string) => {
-                  ensureDir(getInboxPath())
-                  fs.writeFileSync(getInboxFilePath(slug), raw, 'utf-8')
-                },
-              })
-            sendJson(res, 200, result)
-            if (result.enrichStatus === 'fetching') {
-              queueMicrotask(async () => {
-                try {
-                  await enrichDocumentBySlug(result.slug)
-                } catch {}
-              })
-            }
+            const body = (await readJsonBody(req)) as { type?: string; content: string }
+            sendJson(res, 200, captureV2InboxMarkdown(body.type, body.content))
           } catch (error) {
             sendJson(res, 400, {
               error: error instanceof Error ? error.message : '处理输入失败',
             })
           }
+          return
+        }
+
+        if (url === '/__dev_api/process-input' && req.method === 'POST') {
+          try {
+            const body = (await readJsonBody(req)) as { type: string; content: string }
+            const result = captureV2InboxMarkdown(body.type, body.content)
+            sendJson(res, 200, result)
+          } catch (error) {
+            sendJson(res, 400, {
+              error: error instanceof Error ? error.message : '处理输入失败',
+            })
+          }
+          return
+        }
+
+        const v2BucketMatch = url.match(/^\/__dev_api\/v2\/cards\/([^/]+)\/bucket$/)
+        if (v2BucketMatch && req.method === 'POST') {
+          try {
+            const body = (await readJsonBody(req)) as { bucket: 'inbox' | 'collected' | 'deleted' }
+            setDocumentBucket(decodeURIComponent(v2BucketMatch[1]), body.bucket)
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, {
+              error: error instanceof Error ? error.message : 'Bucket 更新失败',
+            })
+          }
+          return
+        }
+
+        const v2KindMatch = url.match(/^\/__dev_api\/v2\/cards\/([^/]+)\/kind$/)
+        if (v2KindMatch && req.method === 'POST') {
+          try {
+            const body = (await readJsonBody(req)) as { kind: V2CardKind }
+            const filepath = getInboxFilePath(decodeURIComponent(v2KindMatch[1]))
+            if (!fs.existsSync(filepath)) {
+              sendJson(res, 404, { error: 'File not found' })
+              return
+            }
+            const stats = fs.statSync(filepath)
+            const key = getMetadataKey(basename(filepath))
+            const metadata = readCardMetadataFile()
+            const current = metadata.items[key] || createDefaultCardMetadata({
+              createdAt: stats.birthtime.toISOString(),
+              updatedAt: stats.mtime.toISOString(),
+            })
+            metadata.items[key] = {
+              ...current,
+              kind: body.kind === 'todo' ? 'todo' : 'note',
+              updatedAt: new Date().toISOString(),
+            }
+            writeCardMetadataFile(metadata)
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, {
+              error: error instanceof Error ? error.message : 'Kind 更新失败',
+            })
+          }
+          return
+        }
+
+        const v2RawMatch = url.match(/^\/__dev_api\/v2\/inbox\/([^/]+)\/raw$/)
+        if (v2RawMatch && req.method === 'GET') {
+          const raw = readInboxRawFile(decodeURIComponent(v2RawMatch[1]))
+          sendJson(res, raw === null ? 404 : 200, raw === null ? { error: 'File not found' } : { raw })
+          return
+        }
+
+        if (v2RawMatch && req.method === 'POST') {
+          const body = (await readJsonBody(req)) as { raw: string }
+          const ok = writeInboxRawFile(decodeURIComponent(v2RawMatch[1]), body.raw || '')
+          sendJson(res, ok ? 200 : 404, ok ? { ok: true } : { error: 'File not found' })
           return
         }
 

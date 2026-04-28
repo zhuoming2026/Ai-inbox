@@ -5,6 +5,7 @@ declare module '*.vue' {
 }
 
 import type { InboxDocument } from './shared/inbox-document'
+import type { V2CaptureResult, V2InboxCard } from './shared/v2-types'
 
 interface ElectronAPI {
   getSettings(): Promise<any>
@@ -12,7 +13,7 @@ interface ElectronAPI {
   testAiConnection(settings: any): Promise<{ ok: boolean; message: string }>
   readScratchpad(): Promise<string>
   writeScratchpad(content: string): Promise<void>
-  listInbox(): Promise<InboxDocument[]>
+  listInbox(): Promise<Array<InboxDocument | V2InboxCard>>
   readFile(slug: string): Promise<InboxDocument | null>
   readRawFile(slug: string): Promise<string | null>
   updateFile(slug: string, data: any): Promise<void>
@@ -20,7 +21,15 @@ interface ElectronAPI {
   deleteFile(slug: string): Promise<void>
   archiveFile(slug: string): Promise<void>
   setBucket(slug: string, bucket: 'inbox' | 'collected' | 'deleted'): Promise<void>
-  processInput(type: string, content: string): Promise<{ slug: string; enrichStatus: string; documentType: string }>
+  v2: {
+    captureInbox(content: string, type?: string): Promise<V2CaptureResult>
+    listCards(): Promise<V2InboxCard[]>
+    setCardBucket(filename: string, bucket: 'inbox' | 'collected' | 'deleted'): Promise<void>
+    setCardKind(filename: string, kind: 'note' | 'todo'): Promise<void>
+    readInboxFile(filename: string): Promise<string | null>
+    writeInboxFile(filename: string, raw: string): Promise<void>
+  }
+  processInput(type: string, content: string): Promise<V2CaptureResult | { slug: string; enrichStatus: string; documentType: string }>
   enrichFile(slug: string): Promise<{ ok: boolean }>
   getMcpStatus(): Promise<{ running: boolean; error: string | null }>
   startMcp(): Promise<{ running: boolean; error: string | null }>

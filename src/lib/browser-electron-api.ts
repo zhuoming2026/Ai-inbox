@@ -79,6 +79,33 @@ function createBrowserElectronApi(): BrowserElectronApi {
         method: 'POST',
         body: JSON.stringify({ bucket }),
       }),
+    v2: {
+      captureInbox: (content: string, type?: string) =>
+        request('/__dev_api/v2/inbox/capture', {
+          method: 'POST',
+          body: JSON.stringify({ type, content }),
+        }),
+      listCards: () => request('/__dev_api/v2/cards'),
+      setCardBucket: (filename: string, bucket: 'inbox' | 'collected' | 'deleted') =>
+        request(`/__dev_api/v2/cards/${encodeURIComponent(filename)}/bucket`, {
+          method: 'POST',
+          body: JSON.stringify({ bucket }),
+        }),
+      setCardKind: (filename: string, kind: 'note' | 'todo') =>
+        request(`/__dev_api/v2/cards/${encodeURIComponent(filename)}/kind`, {
+          method: 'POST',
+          body: JSON.stringify({ kind }),
+        }),
+      readInboxFile: async (filename: string) => {
+        const data = await request<{ raw: string | null }>(`/__dev_api/v2/inbox/${encodeURIComponent(filename)}/raw`)
+        return data.raw
+      },
+      writeInboxFile: (filename: string, raw: string) =>
+        request(`/__dev_api/v2/inbox/${encodeURIComponent(filename)}/raw`, {
+          method: 'POST',
+          body: JSON.stringify({ raw }),
+        }),
+    },
     processInput: (type: string, content: string) =>
       request('/__dev_api/process-input', {
         method: 'POST',

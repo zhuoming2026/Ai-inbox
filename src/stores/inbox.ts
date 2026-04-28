@@ -1,24 +1,25 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { InboxDocument } from '../shared/inbox-document'
-import {
-  getDocumentBucket,
-  getDocumentTags,
-  resolveDisplayTitle,
-  getPreviewText,
-  type DocumentBucket,
-} from '../shared/inbox-document'
+import { getDocumentBucket, getPreviewText, resolveDisplayTitle, type DocumentBucket } from '../shared/inbox-document'
+import { extractMarkdownCardTitle, extractMarkdownPreview } from '../shared/v2-markdown'
+import type { V2InboxCard } from '../shared/v2-types'
 
 export interface InboxCard {
   slug: string
   type: string
   title: string
+  hasTitle: boolean
   preview: string
   tags: string[]
   enrichStatus: string
   bucket: DocumentBucket
   created: string
   raw?: string
+}
+
+function isV2InboxCard(file: InboxDocument | V2InboxCard): file is V2InboxCard {
+  return 'hasTitle' in file && 'bucket' in file && 'raw' in file
 }
 
 export const useInboxStore = defineStore('inbox', () => {
@@ -28,18 +29,38 @@ export const useInboxStore = defineStore('inbox', () => {
   async function loadCards() {
     loading.value = true
     try {
-      const files = await window.electronAPI?.listInbox()
+      const files = await (window.electronAPI?.v2?.listCards?.() ?? window.electronAPI?.listInbox())
       cards.value = (files || [])
-        .map((f: InboxDocument) => ({
-          slug: f.slug,
-          type: f.type,
-          title: resolveDisplayTitle(f.frontmatter, f.body, f.slug),
-          preview: getPreviewText(f.body).slice(0, 180),
-          tags: getDocumentTags(f.frontmatter),
-          enrichStatus: typeof f.frontmatter?.enrichStatus === 'string' ? f.frontmatter.enrichStatus : 'none',
-          bucket: getDocumentBucket(f.frontmatter),
-          created: typeof f.frontmatter?.created === 'string' ? f.frontmatter.created : (f.created?.split('T')[0] || '')
-        }))
+        .map((f: InboxDocument | V2InboxCard) => {
+          if (isV2InboxCard(f)) {
+            const title = f.title || extractMarkdownCardTitle(f.raw)
+            return {
+              slug: f.slug,
+              type: f.kind,
+              title,
+              hasTitle: Boolean(title),
+              preview: (f.preview || extractMarkdownPreview(f.raw)).slice(0, 180),
+              tags: [],
+              enrichStatus: 'none',
+              bucket: f.bucket,
+              created: f.created || f.createdAt?.split('T')[0] || '',
+              raw: f.raw,
+            }
+          }
+
+          return {
+            slug: f.slug,
+            type: f.type,
+            title: resolveDisplayTitle(f.frontmatter, f.body, f.slug),
+            hasTitle: Boolean(extractMarkdownCardTitle(f.raw || f.body)),
+            preview: getPreviewText(f.body).slice(0, 180),
+            tags: [],
+            enrichStatus: 'none',
+            bucket: getDocumentBucket(f.frontmatter),
+            created: typeof f.frontmatter?.created === 'string' ? f.frontmatter.created : (f.created?.split('T')[0] || ''),
+            raw: f.raw,
+          }
+        })
     } finally {
       loading.value = false
     }

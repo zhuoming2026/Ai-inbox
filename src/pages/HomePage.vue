@@ -98,7 +98,7 @@
               >
                 <div v-if="card.type === 'image'" class="card-image"></div>
                 <div class="card-body">
-                  <h3 class="card-title">{{ card.title }}</h3>
+                  <h3 v-if="card.hasTitle" class="card-title">{{ card.title }}</h3>
                   <div v-if="card.tags.length" class="card-tags">
                     <n-tag
                       v-for="tag in card.tags.slice(0, 3)"
@@ -110,13 +110,6 @@
                   </div>
                   <p class="card-preview">{{ card.preview }}</p>
                   <div class="card-footer">
-                    <n-tag
-                      :type="getEnrichTagType(card.enrichStatus)"
-                      :bordered="false"
-                      :strong="true"
-                      class="status-tag enrich-tag"
-                      @click.stop="handleEnrichClick(card)"
-                    >{{ getEnrichLabel(card.enrichStatus) }}</n-tag>
                     <div class="card-actions-wrap">
                       <span class="card-date">{{ formatDateShort(card.created) }}</span>
                       <div class="card-actions">
@@ -470,26 +463,6 @@ function formatDateShort(dateStr: string) {
   return dateStr
 }
 
-function getEnrichTagType(status: string): 'success' | 'info' | 'warning' | 'default' {
-  const map: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
-    none: 'default',
-    fetching: 'info',
-    success: 'success',
-    failed: 'warning',
-  }
-  return map[status] || 'default'
-}
-
-function getEnrichLabel(status: string) {
-  const map: Record<string, string> = {
-    none: 'Raw',
-    fetching: 'Fetching',
-    success: 'Success',
-    failed: 'Failed',
-  }
-  return map[status] || 'Raw'
-}
-
 function openArticle(slug: string) {
   router.push(`/article/${slug}`)
 }
@@ -504,22 +477,16 @@ async function submitInput() {
   else if (content.startsWith('http')) type = 'link'
 
   try {
-    await window.electronAPI?.processInput(type, content)
+    if (window.electronAPI?.v2?.captureInbox) {
+      await window.electronAPI.v2.captureInbox(content, type)
+    } else {
+      await window.electronAPI?.processInput(type, content)
+    }
     inputText.value = ''
     await inboxStore.loadCards()
-    message.success('已提交到 inbox')
+    message.success('已保存到 Inbox')
   } catch (error) {
     message.error(error instanceof Error ? error.message : '处理输入失败')
-  }
-}
-
-async function handleEnrichClick(card: InboxCard) {
-  if (card.enrichStatus === 'fetching' || card.enrichStatus === 'success') return
-  try {
-    await inboxStore.enrichCard(card.slug)
-    message.success('已触发 AI enrich')
-  } catch (error) {
-    message.error(error instanceof Error ? error.message : '触发 enrich 失败')
   }
 }
 
@@ -969,11 +936,6 @@ watch(scratchpadContent, (value) => {
   justify-content: space-between;
   gap: var(--space-2);
   margin-top: var(--space-3);
-}
-
-.enrich-tag {
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
 .card-footer :deep(.n-tag) {
