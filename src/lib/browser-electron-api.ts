@@ -106,6 +106,35 @@ function createBrowserElectronApi(): BrowserElectronApi {
           body: JSON.stringify({ raw }),
         }),
     },
+    workspace: {
+      list: () => request('/__dev_api/workspace'),
+      add: (input) =>
+        request('/__dev_api/workspace', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      remove: (id: string) =>
+        request(`/__dev_api/workspace/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        }),
+      update: (id: string, patch) =>
+        request(`/__dev_api/workspace/${encodeURIComponent(id)}`, {
+          method: 'POST',
+          body: JSON.stringify(patch),
+        }),
+      selectFolder: async () => null,
+      readTree: (workspaceId?: string) =>
+        request(`/__dev_api/workspace/tree${workspaceId ? `?workspaceId=${encodeURIComponent(workspaceId)}` : ''}`),
+      readFile: async (path: string) => {
+        const data = await request<{ raw: string | null }>(`/__dev_api/workspace/file?path=${encodeURIComponent(path)}`)
+        return data.raw
+      },
+      writeFile: (path: string, raw: string) =>
+        request('/__dev_api/workspace/file', {
+          method: 'POST',
+          body: JSON.stringify({ path, raw }),
+        }),
+    },
     processInput: (type: string, content: string) =>
       request('/__dev_api/process-input', {
         method: 'POST',

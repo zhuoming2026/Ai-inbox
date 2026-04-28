@@ -21,6 +21,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     readInboxFile: (filename: string) => ipcRenderer.invoke('v2:file:read-inbox', filename),
     writeInboxFile: (filename: string, raw: string) => ipcRenderer.invoke('v2:file:write-inbox', filename, raw),
   },
+  workspace: {
+    list: () => ipcRenderer.invoke('workspace:list'),
+    add: (input: { name?: string; path: string }) => ipcRenderer.invoke('workspace:add', input),
+    remove: (id: string) => ipcRenderer.invoke('workspace:remove', id),
+    update: (id: string, patch: { name?: string; path?: string; enabled?: boolean }) =>
+      ipcRenderer.invoke('workspace:update', id, patch),
+    selectFolder: () => ipcRenderer.invoke('workspace:selectFolder'),
+    readTree: (workspaceId?: string) => ipcRenderer.invoke('workspace:tree', workspaceId),
+    readFile: (path: string) => ipcRenderer.invoke('workspace:read-file', path),
+    writeFile: (path: string, raw: string) => ipcRenderer.invoke('workspace:write-file', path, raw),
+  },
 
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:get'),

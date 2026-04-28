@@ -1,7 +1,9 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <div class="home-page">
-      <div class="left-content">
+    <div class="home-layout">
+      <AppSidebar />
+      <div class="home-page">
+        <div class="left-content">
         <nav class="nav">
           <h1 class="logo">Inbox</h1>
           <div class="search-box">
@@ -205,7 +207,8 @@
             </div>
           </div>
         </n-card>
-      </aside>
+        </aside>
+      </div>
     </div>
   </n-config-provider>
 </template>
@@ -227,6 +230,7 @@ import {
   type GlobalThemeOverrides,
 } from 'naive-ui'
 import PillButton from '../components/PillButton.vue'
+import AppSidebar from '../components/AppSidebar.vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import {
   ArrowUndoOutline,
@@ -562,14 +566,22 @@ watch(scratchpadContent, (value) => {
 
 <style scoped>
 .home-page {
-  width: 100%;
-  min-width: 1180px;
+  flex: 1;
+  min-width: 0;
   height: 100vh;
   padding: var(--space-4);
   background: var(--bg-primary);
   display: flex;
   gap: var(--space-4);
   overflow: hidden;
+}
+
+.home-layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: var(--bg-primary);
 }
 
 .left-content {
@@ -1205,7 +1217,7 @@ watch(scratchpadContent, (value) => {
 
 @media (max-width: 1320px) {
   .home-page {
-    min-width: 1100px;
+    min-width: 0;
   }
 
   .cards-grid {

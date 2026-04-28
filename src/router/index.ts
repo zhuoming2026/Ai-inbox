@@ -9,6 +9,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: HomePage },
     { path: '/article/:slug', name: 'article', component: ArticlePage },
+    { path: '/article-path/:encodedPath', name: 'article-path', component: ArticlePage },
     { path: '/settings', name: 'settings', component: SettingsPage },
     { path: '/demo-naive', name: 'demo-naive', component: DemoNaivePage }
   ]

@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog, globalShortcut } from 'electron'
-import { basename, join } from 'path'
+import { basename, extname, join, relative, resolve } from 'path'
 import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
+import { randomUUID } from 'crypto'
 import Store from 'electron-store'
 import chokidar from 'chokidar'
 import { buildFrontmatter, parseFrontmatter, toInboxDocument } from '../src/shared/inbox-document'
@@ -19,6 +20,18 @@ import {
   extractMarkdownPreview,
 } from '../src/shared/v2-markdown'
 import type { CardMetadataFile, V2CardBucket, V2CardKind, V2InboxCard } from '../src/shared/v2-types'
+import type {
+  WorkspaceAddInput,
+  WorkspaceConfig,
+  WorkspaceFileTreeNode,
+  WorkspaceListResult,
+  WorkspaceTreeResult,
+  WorkspaceUpdateInput,
+} from '../src/shared/v2-workspace'
+import {
+  BUILTIN_ENRICH_OUTPUTS_WORKSPACE_ID,
+  BUILTIN_INBOX_WORKSPACE_ID,
+} from '../src/shared/v2-workspace'
 
 let win: BrowserWindow | null = null
 
@@ -40,6 +53,8 @@ const store = new Store({
     editorCodeTheme: 'github',
     activeThemeId: 'light',
     customThemes: defaultThemeConfigs,
+    activeWorkspaceId: BUILTIN_INBOX_WORKSPACE_ID,
+    workspaces: [],
   }
 })
 
@@ -171,6 +186,223 @@ function getCardsMetadataPath(): string {
 
 function getEnrichOutputsPath(): string {
   return join(getAiInboxRoot(), 'enrich', 'outputs')
+}
+
+function createBuiltinWorkspaces(): WorkspaceConfig[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: BUILTIN_INBOX_WORKSPACE_ID,
+      name: 'Inbox',
+      path: getV2InboxPath(),
+      kind: 'builtin',
+      enabled: true,
+      readonly: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: BUILTIN_ENRICH_OUTPUTS_WORKSPACE_ID,
+      name: 'Enrich Output',
+      path: getEnrichOutputsPath(),
+      kind: 'builtin',
+      enabled: true,
+      readonly: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
+}
+
+function normalizeWorkspacePath(input: string): string {
+  return input.startsWith('~/') ? join(app.getPath('home'), input.slice(2)) : resolve(input)
+}
+
+function readUserWorkspaces(): WorkspaceConfig[] {
+  const raw = store.get('workspaces') as unknown
+  if (!Array.isArray(raw)) return []
+
+  return raw
+    .filter((item): item is Partial<WorkspaceConfig> => Boolean(item) && typeof item === 'object')
+    .filter((item) => typeof item.id === 'string' && typeof item.path === 'string')
+    .map((item) => ({
+      id: item.id!,
+      name: typeof item.name === 'string' && item.name.trim() ? item.name.trim() : basename(item.path!),
+      path: normalizeWorkspacePath(item.path!),
+      kind: 'user',
+      enabled: item.enabled !== false,
+      readonly: false,
+      createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString(),
+    }))
+}
+
+function writeUserWorkspaces(workspaces: WorkspaceConfig[]) {
+  store.set('workspaces', workspaces.filter((workspace) => workspace.kind === 'user'))
+}
+
+function listWorkspaces(): WorkspaceListResult {
+  ensureV2Directories()
+  const items = [...createBuiltinWorkspaces(), ...readUserWorkspaces()]
+  const activeWorkspaceId = (store.get('activeWorkspaceId') as string) || BUILTIN_INBOX_WORKSPACE_ID
+  const activeExists = items.some((workspace) => workspace.id === activeWorkspaceId)
+  return {
+    items,
+    activeWorkspaceId: activeExists ? activeWorkspaceId : BUILTIN_INBOX_WORKSPACE_ID,
+  }
+}
+
+function addWorkspace(input: WorkspaceAddInput): WorkspaceConfig {
+  const workspacePath = normalizeWorkspacePath(input.path)
+  if (!fs.existsSync(workspacePath) || !fs.statSync(workspacePath).isDirectory()) {
+    throw new Error('请选择有效的 Markdown 文件夹')
+  }
+
+  const now = new Date().toISOString()
+  const workspace: WorkspaceConfig = {
+    id: `user:${randomUUID()}`,
+    name: input.name?.trim() || basename(workspacePath) || 'Workspace',
+    path: workspacePath,
+    kind: 'user',
+    enabled: true,
+    readonly: false,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  const next = [...readUserWorkspaces(), workspace]
+  writeUserWorkspaces(next)
+  store.set('activeWorkspaceId', workspace.id)
+  return workspace
+}
+
+function updateWorkspace(id: string, patch: WorkspaceUpdateInput): WorkspaceConfig {
+  const userWorkspaces = readUserWorkspaces()
+  const current = userWorkspaces.find((workspace) => workspace.id === id)
+  if (!current) {
+    throw new Error('内置 workspace 不支持修改')
+  }
+
+  const nextPath = patch.path ? normalizeWorkspacePath(patch.path) : current.path
+  if (patch.path && (!fs.existsSync(nextPath) || !fs.statSync(nextPath).isDirectory())) {
+    throw new Error('请选择有效的 Markdown 文件夹')
+  }
+
+  const nextWorkspace: WorkspaceConfig = {
+    ...current,
+    name: patch.name?.trim() || current.name,
+    path: nextPath,
+    enabled: patch.enabled ?? current.enabled,
+    updatedAt: new Date().toISOString(),
+  }
+
+  writeUserWorkspaces(userWorkspaces.map((workspace) => workspace.id === id ? nextWorkspace : workspace))
+  return nextWorkspace
+}
+
+function removeWorkspace(id: string) {
+  const userWorkspaces = readUserWorkspaces()
+  if (!userWorkspaces.some((workspace) => workspace.id === id)) {
+    throw new Error('内置 workspace 不支持移除')
+  }
+
+  writeUserWorkspaces(userWorkspaces.filter((workspace) => workspace.id !== id))
+  if (store.get('activeWorkspaceId') === id) {
+    store.set('activeWorkspaceId', BUILTIN_INBOX_WORKSPACE_ID)
+  }
+}
+
+function isSafeMarkdownFile(filepath: string) {
+  return extname(filepath).toLowerCase() === '.md'
+}
+
+function isPathInside(parentPath: string, childPath: string) {
+  const rel = relative(resolve(parentPath), resolve(childPath))
+  return rel === '' || (!!rel && !rel.startsWith('..') && !rel.startsWith('/'))
+}
+
+function findWorkspaceForPath(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  return listWorkspaces().items.find((workspace) =>
+    workspace.enabled && isPathInside(workspace.path, resolvedPath)
+  )
+}
+
+function readWorkspaceTree(workspaceId?: string): WorkspaceTreeResult[] {
+  const workspaces = listWorkspaces().items.filter((workspace) =>
+    workspace.enabled && (!workspaceId || workspace.id === workspaceId)
+  )
+
+  return workspaces.map((workspace) => ({
+    workspaceId: workspace.id,
+    rootPath: workspace.path,
+    nodes: readWorkspaceDirectory(workspace.path, workspace.path, 0),
+  }))
+}
+
+function readWorkspaceDirectory(rootPath: string, dirPath: string, depth: number): WorkspaceFileTreeNode[] {
+  if (!fs.existsSync(dirPath) || depth > 8) return []
+
+  const nodes: WorkspaceFileTreeNode[] = []
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+  for (const entry of entries) {
+    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+
+    const filepath = join(dirPath, entry.name)
+    const relPath = relative(rootPath, filepath)
+    if (entry.isDirectory()) {
+      const children = readWorkspaceDirectory(rootPath, filepath, depth + 1)
+      if (children.length) {
+        nodes.push({
+          id: filepath,
+          name: entry.name,
+          path: filepath,
+          relativePath: relPath,
+          type: 'directory',
+          children,
+        })
+      }
+      continue
+    }
+
+    if (!entry.isFile() || !isSafeMarkdownFile(filepath)) continue
+    const stats = fs.statSync(filepath)
+    nodes.push({
+      id: filepath,
+      name: entry.name,
+      path: filepath,
+      relativePath: relPath,
+      type: 'file',
+      updatedAt: stats.mtime.toISOString(),
+    })
+  }
+
+  return nodes.sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'directory' ? -1 : 1
+    return a.name.localeCompare(b.name)
+  })
+}
+
+function readWorkspaceMarkdownFile(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  const workspace = findWorkspaceForPath(resolvedPath)
+  if (!workspace || !isSafeMarkdownFile(resolvedPath)) {
+    throw new Error('文件不属于已启用 workspace')
+  }
+  if (!fs.existsSync(resolvedPath)) return null
+  return fs.readFileSync(resolvedPath, 'utf-8')
+}
+
+function writeWorkspaceMarkdownFile(filepath: string, raw: string) {
+  const resolvedPath = resolve(filepath)
+  const workspace = findWorkspaceForPath(resolvedPath)
+  if (!workspace || !isSafeMarkdownFile(resolvedPath)) {
+    throw new Error('文件不属于已启用 workspace')
+  }
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error('文件不存在')
+  }
+  fs.writeFileSync(resolvedPath, raw, 'utf-8')
 }
 
 function ensureV2Directories() {
@@ -451,11 +683,15 @@ function createWindow() {
 let watcher: chokidar.FSWatcher | null = null
 
 function setupWatcher() {
+  watcher?.close()
   ensureV2Directories()
+  const workspacePaths = listWorkspaces().items
+    .filter((workspace) => workspace.enabled)
+    .map((workspace) => workspace.path)
 
-  watcher = chokidar.watch([getV2InboxPath(), getMetadataPath(), getAiInboxRoot()], {
+  watcher = chokidar.watch(Array.from(new Set([getV2InboxPath(), getMetadataPath(), getAiInboxRoot(), ...workspacePaths])), {
     ignoreInitial: true,
-    ignored: (path) => path.includes('/enrich/outputs') || path.includes('/enrich/tasks.json'),
+    ignored: (path) => path.includes('/enrich/tasks.json'),
   })
   watcher.on('all', () => {
     win?.webContents.send('inbox:updated')
@@ -495,6 +731,31 @@ function setupIPC() {
   ipcMain.handle('scratchpad:read', () => readScratchpad())
   ipcMain.handle('scratchpad:write', (_, content: string) => {
     writeScratchpad(content)
+  })
+
+  ipcMain.handle('workspace:list', () => listWorkspaces())
+  ipcMain.handle('workspace:add', (_, input: WorkspaceAddInput) => {
+    const workspace = addWorkspace(input)
+    setupWatcher()
+    return workspace
+  })
+  ipcMain.handle('workspace:remove', (_, id: string) => {
+    removeWorkspace(id)
+    setupWatcher()
+  })
+  ipcMain.handle('workspace:update', (_, id: string, patch: WorkspaceUpdateInput) => {
+    const workspace = updateWorkspace(id, patch)
+    setupWatcher()
+    return workspace
+  })
+  ipcMain.handle('workspace:selectFolder', async () => {
+    const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+    return result.canceled ? null : result.filePaths[0]
+  })
+  ipcMain.handle('workspace:tree', (_, workspaceId?: string) => readWorkspaceTree(workspaceId))
+  ipcMain.handle('workspace:read-file', (_, filepath: string) => readWorkspaceMarkdownFile(resolve(filepath)))
+  ipcMain.handle('workspace:write-file', (_, filepath: string, raw: string) => {
+    writeWorkspaceMarkdownFile(resolve(filepath), raw)
   })
 
   ipcMain.handle('mcp:status', () => getMcpStatus())

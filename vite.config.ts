@@ -2,10 +2,11 @@ import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
-import { basename, resolve, join } from 'path'
+import { basename, extname, relative, resolve, join } from 'path'
 import { homedir } from 'os'
 import fs from 'fs'
 import chokidar, { type FSWatcher } from 'chokidar'
+import { randomUUID } from 'crypto'
 import { buildFrontmatter, parseFrontmatter, toInboxDocument } from './src/shared/inbox-document'
 import { applyEnrichmentToRaw, enrichDocumentContent, testAiConnection, type AiSettings } from './src/shared/ai-enrichment'
 import {
@@ -20,6 +21,18 @@ import {
   extractMarkdownPreview,
 } from './src/shared/v2-markdown'
 import type { CardMetadataFile, V2CardKind, V2InboxCard } from './src/shared/v2-types'
+import type {
+  WorkspaceAddInput,
+  WorkspaceConfig,
+  WorkspaceFileTreeNode,
+  WorkspaceListResult,
+  WorkspaceTreeResult,
+  WorkspaceUpdateInput,
+} from './src/shared/v2-workspace'
+import {
+  BUILTIN_ENRICH_OUTPUTS_WORKSPACE_ID,
+  BUILTIN_INBOX_WORKSPACE_ID,
+} from './src/shared/v2-workspace'
 
 type AppSettings = {
   inboxPath: string
@@ -32,6 +45,8 @@ type AppSettings = {
   aiProcessingMode: 'off' | 'enhance'
   aiConnectionVerified: boolean
   theme: string
+  activeWorkspaceId: string
+  workspaces: WorkspaceConfig[]
 }
 
 const settingsFile = join(homedir(), '.ai-inbox-app.dev.json')
@@ -47,6 +62,8 @@ const defaultSettings: AppSettings = {
   aiProcessingMode: 'off',
   aiConnectionVerified: false,
   theme: 'system',
+  activeWorkspaceId: BUILTIN_INBOX_WORKSPACE_ID,
+  workspaces: [],
 }
 
 function resolveHomePath(input: string): string {
@@ -92,6 +109,191 @@ function getCardsMetadataPath(): string {
 
 function getEnrichOutputsPath(): string {
   return join(getAiInboxRoot(), 'enrich', 'outputs')
+}
+
+function createBuiltinWorkspaces(): WorkspaceConfig[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: BUILTIN_INBOX_WORKSPACE_ID,
+      name: 'Inbox',
+      path: getV2InboxPath(),
+      kind: 'builtin',
+      enabled: true,
+      readonly: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: BUILTIN_ENRICH_OUTPUTS_WORKSPACE_ID,
+      name: 'Enrich Output',
+      path: getEnrichOutputsPath(),
+      kind: 'builtin',
+      enabled: true,
+      readonly: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
+}
+
+function readUserWorkspaces(): WorkspaceConfig[] {
+  return getSettings().workspaces
+    .filter((workspace) => workspace.kind === 'user')
+    .map((workspace) => ({
+      ...workspace,
+      path: resolveHomePath(workspace.path),
+      kind: 'user',
+      enabled: workspace.enabled !== false,
+      readonly: false,
+    }))
+}
+
+function writeUserWorkspaces(workspaces: WorkspaceConfig[]) {
+  saveSettings({ workspaces: workspaces.filter((workspace) => workspace.kind === 'user') })
+}
+
+function listWorkspaces(): WorkspaceListResult {
+  ensureV2Directories()
+  const items = [...createBuiltinWorkspaces(), ...readUserWorkspaces()]
+  const activeWorkspaceId = getSettings().activeWorkspaceId || BUILTIN_INBOX_WORKSPACE_ID
+  return {
+    items,
+    activeWorkspaceId: items.some((workspace) => workspace.id === activeWorkspaceId)
+      ? activeWorkspaceId
+      : BUILTIN_INBOX_WORKSPACE_ID,
+  }
+}
+
+function addWorkspace(input: WorkspaceAddInput): WorkspaceConfig {
+  const workspacePath = resolveHomePath(input.path)
+  if (!fs.existsSync(workspacePath) || !fs.statSync(workspacePath).isDirectory()) {
+    throw new Error('请选择有效的 Markdown 文件夹')
+  }
+
+  const now = new Date().toISOString()
+  const workspace: WorkspaceConfig = {
+    id: `user:${randomUUID()}`,
+    name: input.name?.trim() || basename(workspacePath) || 'Workspace',
+    path: workspacePath,
+    kind: 'user',
+    enabled: true,
+    readonly: false,
+    createdAt: now,
+    updatedAt: now,
+  }
+  writeUserWorkspaces([...readUserWorkspaces(), workspace])
+  saveSettings({ activeWorkspaceId: workspace.id })
+  return workspace
+}
+
+function updateWorkspace(id: string, patch: WorkspaceUpdateInput): WorkspaceConfig {
+  const workspaces = readUserWorkspaces()
+  const current = workspaces.find((workspace) => workspace.id === id)
+  if (!current) throw new Error('内置 workspace 不支持修改')
+
+  const nextPath = patch.path ? resolveHomePath(patch.path) : current.path
+  if (patch.path && (!fs.existsSync(nextPath) || !fs.statSync(nextPath).isDirectory())) {
+    throw new Error('请选择有效的 Markdown 文件夹')
+  }
+
+  const nextWorkspace = {
+    ...current,
+    name: patch.name?.trim() || current.name,
+    path: nextPath,
+    enabled: patch.enabled ?? current.enabled,
+    updatedAt: new Date().toISOString(),
+  }
+  writeUserWorkspaces(workspaces.map((workspace) => workspace.id === id ? nextWorkspace : workspace))
+  return nextWorkspace
+}
+
+function removeWorkspace(id: string) {
+  const workspaces = readUserWorkspaces()
+  if (!workspaces.some((workspace) => workspace.id === id)) {
+    throw new Error('内置 workspace 不支持移除')
+  }
+  writeUserWorkspaces(workspaces.filter((workspace) => workspace.id !== id))
+  if (getSettings().activeWorkspaceId === id) {
+    saveSettings({ activeWorkspaceId: BUILTIN_INBOX_WORKSPACE_ID })
+  }
+}
+
+function isPathInside(parentPath: string, childPath: string) {
+  const rel = relative(resolve(parentPath), resolve(childPath))
+  return rel === '' || (!!rel && !rel.startsWith('..') && !rel.startsWith('/'))
+}
+
+function isSafeMarkdownFile(filepath: string) {
+  return extname(filepath).toLowerCase() === '.md'
+}
+
+function findWorkspaceForPath(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  return listWorkspaces().items.find((workspace) =>
+    workspace.enabled && isPathInside(workspace.path, resolvedPath)
+  )
+}
+
+function readWorkspaceDirectory(rootPath: string, dirPath: string, depth: number): WorkspaceFileTreeNode[] {
+  if (!fs.existsSync(dirPath) || depth > 8) return []
+
+  const nodes: WorkspaceFileTreeNode[] = []
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+    const filepath = join(dirPath, entry.name)
+    const relativePath = relative(rootPath, filepath)
+
+    if (entry.isDirectory()) {
+      const children = readWorkspaceDirectory(rootPath, filepath, depth + 1)
+      if (children.length) {
+        nodes.push({ id: filepath, name: entry.name, path: filepath, relativePath, type: 'directory', children })
+      }
+      continue
+    }
+
+    if (!entry.isFile() || !isSafeMarkdownFile(filepath)) continue
+    const stats = fs.statSync(filepath)
+    nodes.push({
+      id: filepath,
+      name: entry.name,
+      path: filepath,
+      relativePath,
+      type: 'file',
+      updatedAt: stats.mtime.toISOString(),
+    })
+  }
+
+  return nodes.sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'directory' ? -1 : 1
+    return a.name.localeCompare(b.name)
+  })
+}
+
+function readWorkspaceTree(workspaceId?: string): WorkspaceTreeResult[] {
+  return listWorkspaces().items
+    .filter((workspace) => workspace.enabled && (!workspaceId || workspace.id === workspaceId))
+    .map((workspace) => ({
+      workspaceId: workspace.id,
+      rootPath: workspace.path,
+      nodes: readWorkspaceDirectory(workspace.path, workspace.path, 0),
+    }))
+}
+
+function readWorkspaceMarkdownFile(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  const workspace = findWorkspaceForPath(resolvedPath)
+  if (!workspace || !isSafeMarkdownFile(resolvedPath)) throw new Error('文件不属于已启用 workspace')
+  if (!fs.existsSync(resolvedPath)) return null
+  return fs.readFileSync(resolvedPath, 'utf-8')
+}
+
+function writeWorkspaceMarkdownFile(filepath: string, raw: string) {
+  const resolvedPath = resolve(filepath)
+  const workspace = findWorkspaceForPath(resolvedPath)
+  if (!workspace || !isSafeMarkdownFile(resolvedPath)) throw new Error('文件不属于已启用 workspace')
+  if (!fs.existsSync(resolvedPath)) throw new Error('文件不存在')
+  fs.writeFileSync(resolvedPath, raw, 'utf-8')
 }
 
 function getArchivePath(): string {
@@ -402,9 +604,12 @@ function devInboxPlugin(): Plugin {
   const refreshWatcher = () => {
     watcher?.close()
     ensureV2Directories()
-    watcher = chokidar.watch([getV2InboxPath(), getMetadataPath(), getAiInboxRoot()], {
+    const workspacePaths = listWorkspaces().items
+      .filter((workspace) => workspace.enabled)
+      .map((workspace) => workspace.path)
+    watcher = chokidar.watch(Array.from(new Set([getV2InboxPath(), getMetadataPath(), getAiInboxRoot(), ...workspacePaths])), {
       ignoreInitial: true,
-      ignored: (path) => path.includes('/enrich/outputs') || path.includes('/enrich/tasks.json'),
+      ignored: (path) => path.includes('/enrich/tasks.json'),
     })
     watcher.on('all', sendInboxUpdated)
   }
@@ -430,7 +635,8 @@ function devInboxPlugin(): Plugin {
       refreshWatcher()
 
       server.middlewares.use(async (req, res, next) => {
-        const url = req.url || ''
+        const parsedUrl = new URL(req.url || '/', 'http://localhost')
+        const url = parsedUrl.pathname
 
         if (url === '/__dev_api/events') {
           res.writeHead(200, {
@@ -479,6 +685,75 @@ function devInboxPlugin(): Plugin {
             sendJson(res, 400, {
               error: error instanceof Error ? error.message : 'AI 测试失败',
             })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/workspace' && req.method === 'GET') {
+          sendJson(res, 200, listWorkspaces())
+          return
+        }
+
+        if (url === '/__dev_api/workspace' && req.method === 'POST') {
+          try {
+            const workspace = addWorkspace((await readJsonBody(req)) as WorkspaceAddInput)
+            refreshWatcher()
+            sendJson(res, 200, workspace)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 添加失败' })
+          }
+          return
+        }
+
+        const workspaceMatch = url.match(/^\/__dev_api\/workspace\/([^/]+)$/)
+        if (workspaceMatch && req.method === 'POST') {
+          try {
+            const workspace = updateWorkspace(
+              decodeURIComponent(workspaceMatch[1]),
+              (await readJsonBody(req)) as WorkspaceUpdateInput
+            )
+            refreshWatcher()
+            sendJson(res, 200, workspace)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 更新失败' })
+          }
+          return
+        }
+
+        if (workspaceMatch && req.method === 'DELETE') {
+          try {
+            removeWorkspace(decodeURIComponent(workspaceMatch[1]))
+            refreshWatcher()
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 移除失败' })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/workspace/tree' && req.method === 'GET') {
+          sendJson(res, 200, readWorkspaceTree(parsedUrl.searchParams.get('workspaceId') || undefined))
+          return
+        }
+
+        if (url === '/__dev_api/workspace/file' && req.method === 'GET') {
+          try {
+            const filepath = parsedUrl.searchParams.get('path') || ''
+            const raw = readWorkspaceMarkdownFile(filepath)
+            sendJson(res, raw === null ? 404 : 200, raw === null ? { error: 'File not found' } : { raw })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '文件读取失败' })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/workspace/file' && req.method === 'POST') {
+          try {
+            const body = (await readJsonBody(req)) as { path: string; raw: string }
+            writeWorkspaceMarkdownFile(body.path, body.raw || '')
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '文件保存失败' })
           }
           return
         }

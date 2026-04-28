@@ -6,6 +6,13 @@ declare module '*.vue' {
 
 import type { InboxDocument } from './shared/inbox-document'
 import type { V2CaptureResult, V2InboxCard } from './shared/v2-types'
+import type {
+  WorkspaceAddInput,
+  WorkspaceConfig,
+  WorkspaceListResult,
+  WorkspaceTreeResult,
+  WorkspaceUpdateInput,
+} from './shared/v2-workspace'
 
 interface ElectronAPI {
   getSettings(): Promise<any>
@@ -28,6 +35,16 @@ interface ElectronAPI {
     setCardKind(filename: string, kind: 'note' | 'todo'): Promise<void>
     readInboxFile(filename: string): Promise<string | null>
     writeInboxFile(filename: string, raw: string): Promise<void>
+  }
+  workspace: {
+    list(): Promise<WorkspaceListResult>
+    add(input: WorkspaceAddInput): Promise<WorkspaceConfig>
+    remove(id: string): Promise<void>
+    update(id: string, patch: WorkspaceUpdateInput): Promise<WorkspaceConfig>
+    selectFolder(): Promise<string | null>
+    readTree(workspaceId?: string): Promise<WorkspaceTreeResult[]>
+    readFile(path: string): Promise<string | null>
+    writeFile(path: string, raw: string): Promise<void>
   }
   processInput(type: string, content: string): Promise<V2CaptureResult | { slug: string; enrichStatus: string; documentType: string }>
   enrichFile(slug: string): Promise<{ ok: boolean }>

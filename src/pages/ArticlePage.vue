@@ -1,7 +1,9 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <div class="article-page">
-      <header class="header">
+    <div class="article-layout">
+      <AppSidebar />
+      <div class="article-page">
+        <header class="header">
         <div class="header-main">
           <button class="back-btn" type="button" @click="goBack">
             <n-icon><ArrowBackOutline /></n-icon>
@@ -139,7 +141,8 @@
             </div>
           </div>
         </section>
-      </main>
+        </main>
+      </div>
     </div>
   </n-config-provider>
 </template>
@@ -157,6 +160,7 @@ import {
 } from 'naive-ui'
 import { ArrowBackOutline, ColorPaletteOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
+import AppSidebar from '../components/AppSidebar.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
 import {
   buildFrontmatter,
@@ -180,8 +184,21 @@ const LOCAL_WRITE_ECHO_TTL_MS = 5000
 
 const route = useRoute()
 const router = useRouter()
-const slug = route.params.slug as string
+const slug = computed(() => route.params.slug as string)
+const workspaceFilePath = computed(() => {
+  const param = route.params.encodedPath
+  return typeof param === 'string' ? safeDecode(param) : ''
+})
+const documentKey = computed(() => workspaceFilePath.value || slug.value)
 const message = useMessage()
+
+function safeDecode(value: string) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
 
 const resolvedThemeTokens = ref({
   primaryColor: '#f2c94c',
@@ -303,7 +320,7 @@ const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value)
 const documentTitle = computed(() =>
   typeof currentFrontmatter.value.title === 'string' && currentFrontmatter.value.title.trim()
     ? currentFrontmatter.value.title
-    : extractMarkdownH1(bodyMarkdown.value) || slug
+    : extractMarkdownH1(bodyMarkdown.value) || (workspaceFilePath.value ? workspaceFilePath.value.split('/').pop()?.replace(/\.md$/i, '') : slug.value)
 )
 const saveIndicatorLabel = computed(() => {
   if (saveState.value === 'saving') return '保存中'
@@ -388,7 +405,9 @@ function applyRawDocument(raw: string, options?: { markAsSaved?: boolean; autoEx
 }
 
 async function loadRawDocument() {
-  const raw = await window.electronAPI?.readRawFile(slug)
+  const raw = workspaceFilePath.value
+    ? await window.electronAPI?.workspace?.readFile(workspaceFilePath.value)
+    : await window.electronAPI?.readRawFile(slug.value)
   if (typeof raw !== 'string') {
     message.error('内容不存在或已被移除')
     router.replace('/')
@@ -473,7 +492,11 @@ async function saveNow(showSuccessMessage = false): Promise<boolean> {
 
   savePromise = (async () => {
     try {
-      await api.writeRawFile(slug, snapshot)
+      if (workspaceFilePath.value) {
+        await api.workspace.writeFile(workspaceFilePath.value, snapshot)
+      } else {
+        await api.writeRawFile(slug.value, snapshot)
+      }
       lastSavedRawDocument.value = snapshot
       markRecentLocalWrite(snapshot)
       pendingExternalRaw.value = null
@@ -502,7 +525,9 @@ async function saveNow(showSuccessMessage = false): Promise<boolean> {
 }
 
 async function handleExternalFileUpdate() {
-  const raw = await window.electronAPI?.readRawFile(slug)
+  const raw = workspaceFilePath.value
+    ? await window.electronAPI?.workspace?.readFile(workspaceFilePath.value)
+    : await window.electronAPI?.readRawFile(slug.value)
   if (typeof raw !== 'string') return
 
   if (raw === lastSavedRawDocument.value || raw === activeSaveSnapshot || isRecentLocalWrite(raw)) {
@@ -645,6 +670,10 @@ onMounted(() => {
   window.addEventListener('settings-changed', handleSettingsChanged)
 })
 
+watch(documentKey, () => {
+  void loadRawDocument()
+})
+
 onBeforeRouteLeave(async () => {
   if (!isDirty.value) return true
   return saveNow(false)
@@ -660,12 +689,21 @@ onUnmounted(() => {
 
 <style scoped>
 .article-page {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 100vh;
   overflow: hidden;
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
+}
+
+.article-layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: var(--bg-primary);
 }
 
 .header {
