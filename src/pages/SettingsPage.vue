@@ -110,8 +110,7 @@
               <div class="appearance-row">
                 <span class="appearance-label">强调色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.system.accent" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.system.accent" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.system.accent" @update:model-value="setColorToken('system.accent', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
@@ -128,27 +127,26 @@
               <div class="appearance-row">
                 <span class="appearance-label">按钮背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.bg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.bg" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.bg" @update:model-value="setColorToken('app.actions.primary.bg', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">按钮悬停背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.bgHover" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.bgHover" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.bgHover" @update:model-value="setColorToken('app.actions.primary.bgHover', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">按钮文字</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.actions.primary.text" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.text" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.text" @update:model-value="setColorToken('app.actions.primary.text', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">按钮边框</span>
-                <input class="form-input appearance-input" type="text" v-model="selectedPresetConfig.tokens.app.actions.primary.border" @change="persistAppearanceSettings(false)" />
+                <div class="color-input appearance-input">
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.border" @update:model-value="setColorToken('app.actions.primary.border', $event)" />
+                </div>
               </div>
               <div class="appearance-row preview-row">
                 <span class="appearance-label">主色预览</span>
@@ -164,29 +162,25 @@
               <div class="appearance-row">
                 <span class="appearance-label">背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.page" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.page" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.surfaces.page" @update:model-value="setColorToken('app.surfaces.page', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">前景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.text.primary" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.text.primary" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.text.primary" @update:model-value="setColorToken('app.text.primary', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">面板色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.panel" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.panel" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.surfaces.panel" @update:model-value="setColorToken('app.surfaces.panel', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">控件色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.app.surfaces.control" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.app.surfaces.control" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.surfaces.control" @update:model-value="setColorToken('app.surfaces.control', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
@@ -232,43 +226,37 @@
               <div class="appearance-row">
                 <span class="appearance-label">标题颜色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.article.heading" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.article.heading" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.article.heading" @update:model-value="setColorToken('article.heading', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">链接色</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.article.link" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.article.link" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.article.link" @update:model-value="setColorToken('article.link', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">引用背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.blockquoteBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.blockquoteBg" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.blockquoteBg" @update:model-value="setColorToken('blocks.blockquoteBg', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">引用边框</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.blockquoteBorder" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.blockquoteBorder" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.blockquoteBorder" @update:model-value="setColorToken('blocks.blockquoteBorder', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">表格边框</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.tableBorder" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.tableBorder" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.tableBorder" @update:model-value="setColorToken('blocks.tableBorder', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">表头背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.blocks.tableHeaderBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.blocks.tableHeaderBg" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.tableHeaderBg" @update:model-value="setColorToken('blocks.tableHeaderBg', $event)" />
                 </div>
               </div>
 
@@ -279,29 +267,25 @@
               <div class="appearance-row">
                 <span class="appearance-label">inline 代码背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.inlineBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.inlineBg" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.inlineBg" @update:model-value="setColorToken('code.inlineBg', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">inline 代码文字</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.inlineText" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.inlineText" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.inlineText" @update:model-value="setColorToken('code.inlineText', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码块背景</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.blockBg" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.blockBg" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.blockBg" @update:model-value="setColorToken('code.blockBg', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
                 <span class="appearance-label">代码块文字</span>
                 <div class="color-input appearance-input">
-                  <input class="color-swatch" type="color" v-model="selectedPresetConfig.tokens.code.blockText" @input="persistAppearanceSettings(false)" />
-                  <input class="form-input" type="text" v-model="selectedPresetConfig.tokens.code.blockText" @change="persistAppearanceSettings(false)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.blockText" @update:model-value="setColorToken('code.blockText', $event)" />
                 </div>
               </div>
 
@@ -478,7 +462,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, defineComponent, h, onMounted, ref, shallowRef, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { ChevronBackOutline } from '@vicons/ionicons5'
 import { useTheme } from '../composables/useTheme'
@@ -578,6 +562,298 @@ const monoFonts = [
 
 const { applyThemeFromSettings } = useTheme()
 const { previewTypora } = useImportedThemes()
+
+interface RgbaColor {
+  r: number
+  g: number
+  b: number
+  a: number
+}
+
+interface HsvaColor {
+  h: number
+  s: number
+  v: number
+  a: number
+}
+
+const fallbackColor: RgbaColor = { r: 250, g: 187, b: 24, a: 1 }
+const editableColorTokenPaths = [
+  'system.accent',
+  'app.actions.primary.bg',
+  'app.actions.primary.bgHover',
+  'app.actions.primary.text',
+  'app.actions.primary.border',
+  'app.surfaces.page',
+  'app.text.primary',
+  'app.surfaces.panel',
+  'app.surfaces.control',
+  'article.heading',
+  'article.link',
+  'blocks.blockquoteBg',
+  'blocks.blockquoteBorder',
+  'blocks.tableBorder',
+  'blocks.tableHeaderBg',
+  'code.inlineBg',
+  'code.inlineText',
+  'code.blockBg',
+  'code.blockText',
+]
+
+function clampChannel(value: number) {
+  return Math.min(255, Math.max(0, Math.round(value)))
+}
+
+function clampAlpha(value: number) {
+  return Math.min(1, Math.max(0, value))
+}
+
+function formatAlpha(value: number) {
+  return String(Number(clampAlpha(value).toFixed(2)))
+}
+
+function formatRgba(color: RgbaColor) {
+  return `rgba(${clampChannel(color.r)}, ${clampChannel(color.g)}, ${clampChannel(color.b)}, ${formatAlpha(color.a)})`
+}
+
+function parseHexColor(value: string): RgbaColor | null {
+  const cleaned = value.trim().replace(/^#/, '')
+  if (!/^[0-9a-fA-F]{3,8}$/.test(cleaned)) return null
+
+  if (cleaned.length === 3 || cleaned.length === 4) {
+    const [r, g, b, a = 'f'] = cleaned.split('')
+    return {
+      r: parseInt(`${r}${r}`, 16),
+      g: parseInt(`${g}${g}`, 16),
+      b: parseInt(`${b}${b}`, 16),
+      a: parseInt(`${a}${a}`, 16) / 255,
+    }
+  }
+
+  if (cleaned.length === 6 || cleaned.length === 8) {
+    return {
+      r: parseInt(cleaned.slice(0, 2), 16),
+      g: parseInt(cleaned.slice(2, 4), 16),
+      b: parseInt(cleaned.slice(4, 6), 16),
+      a: cleaned.length === 8 ? parseInt(cleaned.slice(6, 8), 16) / 255 : 1,
+    }
+  }
+
+  return null
+}
+
+function parseRgbColor(value: string): RgbaColor | null {
+  const match = value.trim().match(/^rgba?\(\s*([.\d]+)\s*,\s*([.\d]+)\s*,\s*([.\d]+)(?:\s*,\s*([.\d]+)\s*)?\)$/i)
+  if (!match) return null
+  const r = Number(match[1])
+  const g = Number(match[2])
+  const b = Number(match[3])
+  const a = match[4] === undefined ? 1 : Number(match[4])
+  if (![r, g, b, a].every(Number.isFinite)) return null
+  return {
+    r,
+    g,
+    b,
+    a,
+  }
+}
+
+function parseCssColor(value: string): RgbaColor | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  return trimmed.startsWith('#') ? parseHexColor(trimmed) : parseRgbColor(trimmed)
+}
+
+function normalizeColorValue(value: string, fallback = fallbackColor) {
+  return formatRgba(parseCssColor(value) || fallback)
+}
+
+function rgbaToHsva(color: RgbaColor): HsvaColor {
+  const r = clampChannel(color.r) / 255
+  const g = clampChannel(color.g) / 255
+  const b = clampChannel(color.b) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const delta = max - min
+  let h = 0
+
+  if (delta !== 0) {
+    if (max === r) h = ((g - b) / delta) % 6
+    else if (max === g) h = (b - r) / delta + 2
+    else h = (r - g) / delta + 4
+    h *= 60
+    if (h < 0) h += 360
+  }
+
+  return {
+    h,
+    s: max === 0 ? 0 : delta / max,
+    v: max,
+    a: clampAlpha(color.a),
+  }
+}
+
+function hsvaToRgba(color: HsvaColor): RgbaColor {
+  const h = ((color.h % 360) + 360) % 360
+  const s = clampAlpha(color.s)
+  const v = clampAlpha(color.v)
+  const c = v * s
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1))
+  const m = v - c
+  let r = 0
+  let g = 0
+  let b = 0
+
+  if (h < 60) [r, g, b] = [c, x, 0]
+  else if (h < 120) [r, g, b] = [x, c, 0]
+  else if (h < 180) [r, g, b] = [0, c, x]
+  else if (h < 240) [r, g, b] = [0, x, c]
+  else if (h < 300) [r, g, b] = [x, 0, c]
+  else [r, g, b] = [c, 0, x]
+
+  return {
+    r: (r + m) * 255,
+    g: (g + m) * 255,
+    b: (b + m) * 255,
+    a: clampAlpha(color.a),
+  }
+}
+
+function getTokenAtPath(tokens: ThemePresetConfig['tokens'], path: string) {
+  const parts = path.split('.')
+  let obj: any = tokens
+  for (const part of parts) {
+    obj = obj?.[part]
+  }
+  return obj
+}
+
+function setTokenAtPath(tokens: ThemePresetConfig['tokens'], path: string, value: string) {
+  const parts = path.split('.')
+  let obj: any = tokens
+  for (let i = 0; i < parts.length - 1; i++) {
+    obj = obj[parts[i]]
+  }
+  obj[parts[parts.length - 1]] = value
+}
+
+function normalizeEditableColorTokens(config: ThemePresetConfig) {
+  for (const path of editableColorTokenPaths) {
+    const value = getTokenAtPath(config.tokens, path)
+    if (typeof value !== 'string') continue
+    const parsed = parseCssColor(value)
+    if (parsed) {
+      setTokenAtPath(config.tokens, path, formatRgba(parsed))
+    }
+  }
+}
+
+const ColorField = defineComponent({
+  name: 'ColorField',
+  props: {
+    modelValue: {
+      type: String,
+      required: true,
+    },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const pickerOpen = ref(false)
+    const parsedColor = computed(() => parseCssColor(props.modelValue) || fallbackColor)
+    const hsvaColor = computed(() => rgbaToHsva(parsedColor.value))
+    const alphaPercent = computed(() => Math.round(hsvaColor.value.a * 100))
+    const hueColor = computed(() => formatRgba(hsvaToRgba({ h: hsvaColor.value.h, s: 1, v: 1, a: 1 })))
+    const pickerStyle = computed(() => ({
+      '--picker-hue-color': hueColor.value,
+      '--picker-thumb-x': `${hsvaColor.value.s * 100}%`,
+      '--picker-thumb-y': `${(1 - hsvaColor.value.v) * 100}%`,
+    }))
+
+    const emitColor = (color: RgbaColor) => {
+      emit('update:modelValue', formatRgba(color))
+    }
+
+    const emitHsva = (next: Partial<HsvaColor>) => {
+      emitColor(hsvaToRgba({ ...hsvaColor.value, ...next }))
+    }
+
+    const updateSaturationValue = (event: PointerEvent) => {
+      const target = event.currentTarget as HTMLElement
+      const rect = target.getBoundingClientRect()
+      emitHsva({
+        s: clampAlpha((event.clientX - rect.left) / rect.width),
+        v: 1 - clampAlpha((event.clientY - rect.top) / rect.height),
+      })
+    }
+
+    return () => h('div', { class: 'color-field' }, [
+      h('button', {
+        class: 'color-swatch',
+        type: 'button',
+        style: { background: formatRgba(parsedColor.value) },
+        onClick: () => {
+          pickerOpen.value = !pickerOpen.value
+        },
+      }),
+      h('input', {
+        class: 'form-input color-text-input',
+        type: 'text',
+        value: normalizeColorValue(props.modelValue),
+        onChange: (event: Event) => {
+          emit('update:modelValue', normalizeColorValue((event.target as HTMLInputElement).value, parsedColor.value))
+        },
+      }),
+      pickerOpen.value && h('div', { class: 'color-popover', style: pickerStyle.value }, [
+        h('div', {
+          class: 'color-plane',
+          onPointerdown: (event: PointerEvent) => {
+            ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+            updateSaturationValue(event)
+          },
+          onPointermove: (event: PointerEvent) => {
+            if (event.buttons === 1) updateSaturationValue(event)
+          },
+        }, [
+          h('span', { class: 'color-plane-thumb' }),
+        ]),
+        h('div', { class: 'color-popover-row' }, [
+          h('span', { class: 'color-popover-label' }, '色相'),
+          h('input', {
+            class: 'color-hue-slider',
+            type: 'range',
+            min: '0',
+            max: '360',
+            step: '1',
+            value: Math.round(hsvaColor.value.h),
+            onInput: (event: Event) => {
+              emitHsva({ h: Number((event.target as HTMLInputElement).value) })
+            },
+          }),
+        ]),
+        h('div', { class: 'color-popover-row' }, [
+          h('span', { class: 'color-popover-label' }, '透明度'),
+          h('input', {
+            class: 'color-alpha-slider',
+            type: 'range',
+            min: '0',
+            max: '100',
+            step: '1',
+            value: alphaPercent.value,
+            onInput: (event: Event) => {
+              emitHsva({ a: Number((event.target as HTMLInputElement).value) / 100 })
+            },
+          }),
+          h('span', { class: 'color-alpha-value' }, `${alphaPercent.value}%`),
+        ]),
+      ]),
+    ])
+  },
+})
+
+function setColorToken(path: string, value: string) {
+  setTokenAtPath(selectedPresetConfig.value.tokens, path, normalizeColorValue(value))
+  persistAppearanceSettings(false)
+}
 
 onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
@@ -704,14 +980,16 @@ function serializeSettings(current: AppSettings) {
 }
 
 function serializeThemeSource(config: ThemePresetConfig) {
-  return JSON.stringify({
+  const source = JSON.parse(JSON.stringify({
     name: config.name,
     variant: config.variant,
     codeThemeId: config.codeThemeId,
     tokens: config.tokens,
     articleCss: config.articleCss || '',
     codeCss: config.codeCss || '',
-  }, null, 2)
+  })) as ThemePresetConfig
+  normalizeEditableColorTokens(source)
+  return JSON.stringify(source, null, 2)
 }
 
 function loadThemeSourceFromSelected() {
@@ -781,6 +1059,7 @@ async function updateAppearance(patch: Partial<Pick<AppSettings, 'themeMode' | '
 
 async function persistAppearanceSettings(showMessage = false) {
   if (!settings.value) return
+  normalizeEditableColorTokens(selectedPresetConfig.value)
   await applyThemeFromSettings(settings.value)
   await saveSettings(showMessage)
 }
@@ -1369,38 +1648,105 @@ async function stopMcp() {
   align-items: start;
 }
 
-.color-input {
+.color-field {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
   gap: var(--space-3);
   align-items: center;
+  position: relative;
+  justify-self: end;
+  width: min(100%, 360px);
 }
 
-.color-swatch {
+.color-field :deep(.color-swatch) {
+  display: block;
   width: 44px;
   height: 44px;
   padding: 0;
   border: 1px solid var(--border-control);
   border-radius: 12px;
-  background: transparent;
   cursor: pointer;
   overflow: hidden;
-  appearance: none;
-  -webkit-appearance: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
-.color-swatch::-webkit-color-swatch-wrapper {
-  padding: 0;
+.color-field :deep(.color-popover) {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 236px;
+  padding: 10px;
+  border: 1px solid var(--border-control);
+  border-radius: 12px;
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-popover);
 }
 
-.color-swatch::-webkit-color-swatch {
-  border: none;
-  border-radius: 10px;
+.color-field :deep(.color-plane) {
+  position: relative;
+  height: 150px;
+  border: 1px solid var(--border-control);
+  border-radius: 8px;
+  background:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, var(--picker-hue-color));
+  cursor: crosshair;
 }
 
-.color-swatch::-moz-color-swatch {
-  border: none;
-  border-radius: 10px;
+.color-field :deep(.color-plane-thumb) {
+  position: absolute;
+  left: var(--picker-thumb-x);
+  top: var(--picker-thumb-y);
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.color-field :deep(.color-popover-row) {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 10px;
+}
+
+.color-field :deep(.color-popover-row:first-of-type) {
+  grid-template-columns: 48px minmax(0, 1fr) 38px;
+}
+
+.color-field :deep(.color-popover-label) {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.color-field :deep(.color-hue-slider),
+.color-field :deep(.color-alpha-slider) {
+  width: 100%;
+  grid-column: 2;
+}
+
+.color-field :deep(.color-hue-slider) {
+  accent-color: var(--picker-hue-color);
+}
+
+.color-field :deep(.color-alpha-slider) {
+  accent-color: var(--color-primary);
+}
+
+.color-field :deep(.color-alpha-value) {
+  grid-column: 3;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .accent-preview,

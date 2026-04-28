@@ -1,8 +1,19 @@
 # 文章解析与标题流转优化任务清单
 
+> 现状复核：2026-04-28
+>
+> 这份清单的产品方向仍然成立，但执行时必须避开近期已经推进的 UI 改动。当前 ArticlePage 已经有新的主题弹窗、编辑器外观主题绑定、frontmatter 浮层样式变量等改动；本任务只处理文章解析、标题流转、正文结构和 AI enrich 写回策略，不重做 ArticlePage 视觉布局。
+
 ## 背景
 
 当前文章页的标题主要来自 frontmatter 的 `title` 字段，编辑区只编辑 body，因此新文章打开后经常直接从 `## Content` 开始。这个结构更像内部存储格式，不像一篇可直接阅读和继续编辑的 markdown 文章。
+
+截至 2026-04-28，核心数据流仍是旧模型：
+
+- `src/shared/input-pipeline.ts` 仍在为 note / link / image / fallback 生成 `## Content`。
+- `src/shared/inbox-document.ts` 仍通过 `getEditableBody()` 兼容清理旧的 `## Content`。
+- `src/shared/ai-enrichment.ts` 仍让 AI 返回 `title/tags/body`，并用 AI body 替换整篇 body。
+- `src/pages/ArticlePage.vue` 当前仍拆成 `frontmatterText + bodyMarkdown` 保存，但已经承载了新的主题 UI；执行本任务时不要重构页面视觉。
 
 本轮目标是把文章数据流调整为：
 
@@ -107,6 +118,19 @@ displayTitle = aiTitle || contentTitle || fallbackTitle || slug
 
 ## 任务清单
 
+### 执行保护规则
+
+1. 不要回退或重写近期 UI 改动：
+   - ArticlePage header actions
+   - 主题 popover
+   - `activeThemeId` / `editorCodeTheme` 绑定
+   - frontmatter panel 的浮层样式和主题变量
+2. ArticlePage 只允许做标题同步和保存前 raw 组装相关的最小改动。
+3. 优先把文章解析能力放到 `src/shared/inbox-document.ts` 或独立 shared helper 中。
+4. 不要把解析逻辑写进 Vue template。
+5. 不要批量迁移用户已有 markdown 文件。
+6. 保持 `readRawFile/writeRawFile` 这条保存链路，不重新回到 `{ frontmatter, body }` 的主保存模型。
+
 ### 任务 1：梳理并移除默认 `## Content` 写入
 
 涉及区域：
@@ -120,7 +144,8 @@ displayTitle = aiTitle || contentTitle || fallbackTitle || slug
 1. 新建 note / research / link / image 文档时，不再默认生成 `## Content`。
 2. 新文档正文第一段应从 `# 标题` 开始。
 3. 原始输入统一放入 `## 原文` 区块。
-4. 保留 todo 月度聚合的现有行为，todo 可以暂不纳入本轮文章化改造。
+4. 保留 todo 月度聚合的现有行为，todo 暂不纳入本轮文章化改造。
+5. 旧文档兼容逻辑可以继续保留 `getEditableBody()`，但新写入路径不能再依赖它。
 
 验收：
 
@@ -182,11 +207,13 @@ displayTitle = aiTitle || contentTitle || fallbackTitle || slug
 2. 如果没有 `aiTitle`，同步更新 `title` 为新的 `contentTitle`。
 3. 如果已有 `aiTitle`，默认不覆盖 `title`，除非后续明确设计手动标题策略。
 4. 不要在用户编辑 frontmatter `title` 时反向修改正文 H1。
+5. 在当前 ArticlePage 中，只在 `saveNow()` 生成 snapshot 前或 `currentRawDocument` 计算前做同步；不要移动主题 popover、header actions、编辑器组件结构。
 
 验收：
 
 - 修改正文第一行 `# 新标题` 后保存，首页卡片标题可更新。
 - 只改 frontmatter `title` 时，正文 H1 不被自动改写。
+- ArticlePage 的主题弹窗和编辑器主题选择不受影响。
 
 ### 任务 5：改造 AI enrich 写回策略
 
@@ -208,6 +235,7 @@ displayTitle = aiTitle || contentTitle || fallbackTitle || slug
    - 不破坏已有正文
    - 只更新 `enrichStatus: failed`
    - 写入 `enrichError`
+4. 不再用 AI 返回的 body 直接替换整篇 body；只更新目标区块和 frontmatter 相关字段。
 
 验收：
 
@@ -308,5 +336,16 @@ displayTitle = aiTitle || contentTitle || fallbackTitle || slug
 3. 然后统一首页和文章页标题解析。
 4. 接着做保存时正文 H1 到 `contentTitle` 的同步。
 5. 最后改 AI enrich，把总结写入 `## AI 总结`。
+
+## 当前版本建议
+
+这份任务现在仍然可以继续执行，但建议按“数据流小步走”执行，不要把它和 UI 主题改造混在一起。第一轮最小闭环可以只做：
+
+1. 新增标题提取和 display title 解析纯函数。
+2. 改新建文章结构：`# 标题 + ## 原文`。
+3. 首页/文章页标题统一走 display title。
+4. 保持 enrich 暂不动或只做最小区块插入。
+
+等这个闭环稳定后，再做 AI enrich 的 `## AI 总结` upsert。这样风险最低，也不会踩到最近 UI 改动。
 
 这一轮的判断标准很简单：新建一篇文章后，它看起来应该像一篇自然的 markdown 文章，而不是内部数据结构的展开。
