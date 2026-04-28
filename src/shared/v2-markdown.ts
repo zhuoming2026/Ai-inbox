@@ -4,15 +4,19 @@ export function normalizeMarkdownText(raw: string) {
   return raw.replace(/\r\n/g, '\n')
 }
 
+export function stripLeadingFrontmatterForDisplay(raw: string) {
+  return normalizeMarkdownText(raw).replace(/^---\n[\s\S]*?\n---\n?/, '')
+}
+
 export function extractMarkdownCardTitle(raw: string) {
-  const normalized = normalizeMarkdownText(raw)
+  const normalized = stripLeadingFrontmatterForDisplay(raw)
   const firstLine = normalized.split('\n')[0]?.trim() || ''
   const match = firstLine.match(/^#\s+(.+)$/)
   return match?.[1]?.trim() || ''
 }
 
 export function extractMarkdownPreview(raw: string) {
-  const normalized = normalizeMarkdownText(raw)
+  const normalized = stripLeadingFrontmatterForDisplay(raw)
   const lines = normalized.split('\n')
   const previewLines = lines[0]?.trim().match(/^#\s+.+$/) ? lines.slice(1) : lines
 

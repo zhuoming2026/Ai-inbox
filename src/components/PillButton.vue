@@ -4,7 +4,7 @@ import { NButton, NIcon } from 'naive-ui'
 
 const props = defineProps({
   text: String,
-  icon: Function,
+  icon: [Function, Object],
   bgColor: String,
   textColor: {
     type: String,

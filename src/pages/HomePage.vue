@@ -108,7 +108,6 @@
                 }"
                 @click="openArticle(card.slug)"
               >
-                <div v-if="card.type === 'image'" class="card-image"></div>
                 <div class="card-body">
                   <h3 v-if="card.hasTitle" class="card-title">{{ card.title }}</h3>
                   <div v-if="card.tags.length" class="card-tags">
@@ -945,11 +944,6 @@ watch(scratchpadContent, (value) => {
 
 .card.deleted:hover {
   box-shadow: var(--shadow-deleted-hover);
-}
-
-.card-image {
-  height: 140px;
-  background: var(--surface-image);
 }
 
 .card-body {

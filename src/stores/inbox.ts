@@ -1,25 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { InboxDocument } from '../shared/inbox-document'
-import { getDocumentBucket, getPreviewText, resolveDisplayTitle, type DocumentBucket } from '../shared/inbox-document'
 import { extractMarkdownCardTitle, extractMarkdownPreview } from '../shared/v2-markdown'
-import type { V2InboxCard } from '../shared/v2-types'
+import type { V2CardBucket, V2CardKind, V2InboxCard } from '../shared/v2-types'
 
 export interface InboxCard {
   slug: string
-  type: string
+  filename: string
+  type: V2CardKind
   title: string
   hasTitle: boolean
   preview: string
   tags: string[]
-  enrichStatus: string
-  bucket: DocumentBucket
+  bucket: V2CardBucket
   created: string
   raw?: string
-}
-
-function isV2InboxCard(file: InboxDocument | V2InboxCard): file is V2InboxCard {
-  return 'hasTitle' in file && 'bucket' in file && 'raw' in file
 }
 
 export const useInboxStore = defineStore('inbox', () => {
@@ -30,34 +24,19 @@ export const useInboxStore = defineStore('inbox', () => {
     loading.value = true
     try {
       const files = await (window.electronAPI?.v2?.listCards?.() ?? window.electronAPI?.listInbox())
-      cards.value = (files || [])
-        .map((f: InboxDocument | V2InboxCard) => {
-          if (isV2InboxCard(f)) {
-            const title = f.title || extractMarkdownCardTitle(f.raw)
-            return {
-              slug: f.slug,
-              type: f.kind,
-              title,
-              hasTitle: Boolean(title),
-              preview: (f.preview || extractMarkdownPreview(f.raw)).slice(0, 180),
-              tags: [],
-              enrichStatus: 'none',
-              bucket: f.bucket,
-              created: f.created || f.createdAt?.split('T')[0] || '',
-              raw: f.raw,
-            }
-          }
-
+      cards.value = ((files || []) as V2InboxCard[])
+        .map((f) => {
+          const title = extractMarkdownCardTitle(f.raw)
           return {
             slug: f.slug,
-            type: f.type,
-            title: resolveDisplayTitle(f.frontmatter, f.body, f.slug),
-            hasTitle: Boolean(extractMarkdownCardTitle(f.raw || f.body)),
-            preview: getPreviewText(f.body).slice(0, 180),
+            filename: f.filename || `${f.slug}.md`,
+            type: f.kind,
+            title,
+            hasTitle: Boolean(title),
+            preview: extractMarkdownPreview(f.raw).slice(0, 180),
             tags: [],
-            enrichStatus: 'none',
-            bucket: getDocumentBucket(f.frontmatter),
-            created: typeof f.frontmatter?.created === 'string' ? f.frontmatter.created : (f.created?.split('T')[0] || ''),
+            bucket: f.bucket,
+            created: f.created || f.createdAt?.split('T')[0] || '',
             raw: f.raw,
           }
         })
@@ -66,7 +45,7 @@ export const useInboxStore = defineStore('inbox', () => {
     }
   }
 
-  async function readCard(slug: string): Promise<InboxDocument | null> {
+  async function readCard(slug: string) {
     return await window.electronAPI?.readFile(slug) ?? null
   }
 
@@ -80,13 +59,13 @@ export const useInboxStore = defineStore('inbox', () => {
     await loadCards()
   }
 
-  async function enrichCard(slug: string) {
-    await window.electronAPI?.enrichFile(slug)
-    await loadCards()
-  }
-
-  async function setCardBucket(slug: string, bucket: DocumentBucket) {
-    await window.electronAPI?.setBucket(slug, bucket)
+  async function setCardBucket(slug: string, bucket: V2CardBucket) {
+    const filename = slug.endsWith('.md') ? slug : `${slug}.md`
+    if (window.electronAPI?.v2?.setCardBucket) {
+      await window.electronAPI.v2.setCardBucket(filename, bucket)
+    } else {
+      await window.electronAPI?.setBucket(slug, bucket)
+    }
     await loadCards()
   }
 
@@ -109,7 +88,6 @@ export const useInboxStore = defineStore('inbox', () => {
     readCard,
     updateCard,
     archiveCard,
-    enrichCard,
     setCardBucket,
     toggleCollected,
     restoreCard,

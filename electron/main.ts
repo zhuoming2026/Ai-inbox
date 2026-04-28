@@ -1101,7 +1101,6 @@ function toV2InboxCard(params: {
     created: (metadata.createdAt || params.createdAt).split('T')[0],
     raw: params.raw,
     tags: [],
-    enrichStatus: 'none',
   }
 }
 
@@ -1148,7 +1147,6 @@ function captureV2InboxMarkdown(type: string | undefined, content: string) {
     filename,
     path: filepath,
     documentType: kind,
-    enrichStatus: 'none' as const,
     parseMode: 'deterministic' as const,
   }
 }

@@ -697,7 +697,6 @@ function listInbox() {
         created: metadata.createdAt.split('T')[0],
         raw,
         tags: [],
-        enrichStatus: 'none',
       } satisfies V2InboxCard
     })
     .sort((a, b) => (b.created > a.created ? 1 : -1))
@@ -863,7 +862,6 @@ function captureV2InboxMarkdown(type: string | undefined, content: string) {
     filename,
     path: filepath,
     documentType: kind,
-    enrichStatus: 'none' as const,
     parseMode: 'deterministic' as const,
   }
 }

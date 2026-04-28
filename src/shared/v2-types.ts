@@ -29,7 +29,6 @@ export interface V2InboxCard {
   created: string
   raw: string
   tags: string[]
-  enrichStatus: 'none'
 }
 
 export interface V2CaptureResult {
@@ -37,6 +36,5 @@ export interface V2CaptureResult {
   filename: string
   path: string
   documentType: V2CardKind
-  enrichStatus: 'none'
   parseMode: 'deterministic'
 }
