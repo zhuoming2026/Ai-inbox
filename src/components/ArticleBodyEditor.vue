@@ -1,6 +1,7 @@
 <template>
   <div class="article-body-editor">
     <RichEditor
+      ref="richEditorRef"
       v-model="model"
       content-type="markdown"
       :typography-theme="resolvedTypographyTheme"
@@ -9,6 +10,7 @@
       min-height="100%"
       max-width="100%"
       :on-insert-image="handleInsertImage"
+      @selection-change="handleSelectionChange"
     >
       <template #toolbar-end>
         <slot name="toolbar-end" />
@@ -19,6 +21,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import type { Editor } from '@tiptap/core'
 import { useMessage } from 'naive-ui'
 import { RichEditor, type EditorCodeTheme, type TypographyTheme } from '../modules/rich-editor'
 import { isBuiltInTypographyTheme } from '../modules/rich-editor/types/editor'
@@ -28,12 +31,65 @@ const props = defineProps<{
   codeTheme?: EditorCodeTheme
 }>()
 
+const emit = defineEmits<{
+  (e: 'selectionChange', selection: { from: number; to: number }): void
+}>()
+
 const model = defineModel<string>({ default: '' })
 const message = useMessage()
+const richEditorRef = ref<InstanceType<typeof RichEditor> | null>(null)
 const typographyTheme = ref<TypographyTheme>('typora-github')
 const codeTheme = ref<EditorCodeTheme>('github')
 const resolvedTypographyTheme = computed(() => props.typographyTheme ?? typographyTheme.value)
 const resolvedCodeTheme = computed(() => props.codeTheme ?? codeTheme.value)
+
+function getEditorInstance(): Editor | null {
+  const exposed = richEditorRef.value as unknown as { editor?: Editor | { value?: Editor | null } } | null
+  if (!exposed?.editor) return null
+  const maybeRef = exposed.editor as { value?: Editor | null }
+  return maybeRef.value ?? exposed.editor as Editor
+}
+
+function extractUrlFromText(text: string) {
+  return text.match(/https?:\/\/[^\s<>)"']+/)?.[0]?.replace(/[),.;]+$/, '') || ''
+}
+
+function getSelectedLinkCandidate() {
+  const editor = getEditorInstance()
+  if (!editor) return null
+
+  const { from, to, empty } = editor.state.selection
+  const urls = new Set<string>()
+  const activeHref = editor.getAttributes('link')?.href
+  if (typeof activeHref === 'string' && activeHref.trim()) {
+    urls.add(activeHref.trim())
+  }
+
+  if (!empty) {
+    editor.state.doc.nodesBetween(from, to, (node) => {
+      for (const mark of node.marks) {
+        if (mark.type.name === 'link' && typeof mark.attrs.href === 'string') {
+          urls.add(mark.attrs.href.trim())
+        }
+      }
+    })
+  }
+
+  const selectedText = empty ? '' : editor.state.doc.textBetween(from, to, ' ').trim()
+  const textUrl = extractUrlFromText(selectedText)
+  if (textUrl) urls.add(textUrl)
+
+  const url = [...urls].find(Boolean)
+  if (!url) return null
+  return {
+    url,
+    text: selectedText,
+  }
+}
+
+function handleSelectionChange(selection: { from: number; to: number }) {
+  emit('selectionChange', selection)
+}
 
 async function syncTypographyThemeFromSettings() {
   const settings = await window.electronAPI?.getSettings()
@@ -86,6 +142,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('settings-changed', handleSettingsChanged as EventListener)
+})
+
+defineExpose({
+  getSelectedLinkCandidate,
 })
 </script>
 

@@ -18,6 +18,19 @@
           </n-button>
 
           <n-button
+            size="small"
+            secondary
+            :disabled="!selectedLinkCandidate || enrichTaskCreating"
+            :loading="enrichTaskCreating"
+            @click="createEnrichTaskFromSelection"
+          >
+            <template #icon>
+              <n-icon><SparklesOutline /></n-icon>
+            </template>
+            Enrich Link
+          </n-button>
+
+          <n-button
             v-if="!isWorkspaceArticle && articleBucket === 'deleted'"
             round
             secondary
@@ -129,9 +142,11 @@
             <div class="editor-workspace" :data-frontmatter-open="showFrontmatterOverlay">
               <section class="editor-canvas">
                 <ArticleBodyEditor
+                  ref="bodyEditorRef"
                   v-model="bodyMarkdown"
                   :typography-theme="activeThemeId"
                   :code-theme="editorCodeTheme"
+                  @selection-change="handleEditorSelectionChange"
                 />
               </section>
             </div>
@@ -163,7 +178,7 @@ import {
   useMessage,
   type GlobalThemeOverrides,
 } from 'naive-ui'
-import { ArrowBackOutline, ColorPaletteOutline } from '@vicons/ionicons5'
+import { ArrowBackOutline, ColorPaletteOutline, SparklesOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 import AppSidebar from '../components/AppSidebar.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
@@ -253,8 +268,11 @@ const saveState = ref<SaveState>('saved')
 const hasExternalChange = ref(false)
 const pendingExternalRaw = ref<string | null>(null)
 const themePopupRef = ref<InstanceType<typeof NPopover> | null>(null)
+const bodyEditorRef = ref<InstanceType<typeof ArticleBodyEditor> | null>(null)
 const localThemeConfig = ref<ThemePresetConfig | null>(null)
 const localThemeId = ref<ThemePresetId>('light')
+const selectedLinkCandidate = ref<{ url: string; text: string } | null>(null)
+const enrichTaskCreating = ref(false)
 
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 let inboxUnsubscribe: (() => void) | null = null
@@ -723,6 +741,46 @@ async function restoreToInbox() {
   const saved = await saveNow(false)
   if (saved) {
     message.success('已恢复到 Inbox')
+  }
+}
+
+function getSourcePathForEnrichTask() {
+  return workspaceFilePath.value || (slug.value ? `inbox:${slug.value}` : undefined)
+}
+
+function refreshSelectedLinkCandidate() {
+  selectedLinkCandidate.value = bodyEditorRef.value?.getSelectedLinkCandidate() || null
+}
+
+function handleEditorSelectionChange() {
+  refreshSelectedLinkCandidate()
+}
+
+async function createEnrichTaskFromSelection() {
+  refreshSelectedLinkCandidate()
+  const candidate = selectedLinkCandidate.value
+  if (!candidate?.url) {
+    message.info('请先选中正文中的链接')
+    return
+  }
+
+  enrichTaskCreating.value = true
+  try {
+    const task = await window.electronAPI?.enrich?.createTask({
+      url: candidate.url,
+      instruction: `From article: ${documentTitle.value}`,
+      fromPath: getSourcePathForEnrichTask(),
+    })
+    if (task?.id) {
+      void window.electronAPI?.enrich?.runTask(task.id)
+    }
+    message.success('已创建 Enrich task')
+    window.dispatchEvent(new Event('inbox-updated'))
+    void router.push({ name: 'ai-enrich' })
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '创建 Enrich task 失败')
+  } finally {
+    enrichTaskCreating.value = false
   }
 }
 
