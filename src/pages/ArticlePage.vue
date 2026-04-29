@@ -5,10 +5,6 @@
       <div class="article-page">
         <header class="header">
         <div class="header-main">
-          <button class="back-btn" type="button" @click="goBack">
-            <n-icon><ArrowBackOutline /></n-icon>
-          </button>
-
           <div class="header-meta" :title="workspaceFilePath || documentTitle">
             <span class="document-chip">{{ documentTitle }}</span>
           </div>
@@ -730,11 +726,7 @@ async function restoreToInbox() {
   }
 }
 
-function goBack() {
-  router.back()
-}
-
-async function saveBeforeRouteChange() {
+function saveBeforeRouteChange() {
   if (!isDirty.value) return true
   return saveNow(false)
 }
@@ -930,26 +922,6 @@ onUnmounted(() => {
 
 .save-indicator[data-state='error'] {
   color: var(--status-danger-text);
-}
-
-.back-btn {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid rgba(66, 60, 44, 0.12);
-  background: rgba(255, 254, 250, 0.78);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-base);
-  color: var(--text-primary);
-}
-
-.back-btn:hover {
-  background: var(--surface-control-hover);
-  transform: translateX(-1px);
 }
 
 .editor-area {

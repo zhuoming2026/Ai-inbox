@@ -1,11 +1,5 @@
 <template>
   <aside class="app-sidebar">
-    <div class="traffic-light-space" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-
     <nav class="primary-nav" aria-label="Primary">
       <button
         type="button"
@@ -42,6 +36,11 @@
         <div v-else-if="!workspaceStore.enabledWorkspaces.length" class="workspace-status">暂无 workspace</div>
         <div v-for="workspace in workspaceStore.enabledWorkspaces" :key="workspace.id" class="workspace-block">
           <div class="workspace-title-row">
+            <button type="button" class="collapse-btn" @click.stop="toggleWorkspaceCollapse(workspace.id)">
+              <n-icon class="collapse-icon" :class="{ collapsed: isWorkspaceCollapsed(workspace.id) }">
+                <ChevronForwardOutline />
+              </n-icon>
+            </button>
             <button type="button" class="workspace-title" :title="workspace.path">
               <n-icon><FolderOutline /></n-icon>
               <span>{{ workspace.name }}</span>
@@ -66,18 +65,20 @@
             </button>
           </div>
 
-          <AppSidebarTree
-            v-if="workspaceStore.getTree(workspace.id).length"
-            :nodes="workspaceStore.getTree(workspace.id)"
-            :active-path="activeWorkspacePath"
-            :editable="canManageWorkspaceFiles(workspace)"
-            :collapsed-paths="collapsedFolderPaths"
-            @open-file="openWorkspaceFile"
-            @toggle-folder="toggleFolder"
-            @rename-file="renameWorkspaceFile"
-            @delete-file="deleteWorkspaceFile"
-          />
-          <p v-else class="workspace-empty">暂无 Markdown 文件</p>
+          <div v-show="!isWorkspaceCollapsed(workspace.id)">
+            <AppSidebarTree
+              v-if="workspaceStore.getTree(workspace.id).length"
+              :nodes="workspaceStore.getTree(workspace.id)"
+              :active-path="activeWorkspacePath"
+              :editable="canManageWorkspaceFiles(workspace)"
+              :collapsed-paths="collapsedFolderPaths"
+              @open-file="openWorkspaceFile"
+              @toggle-folder="toggleFolder"
+              @rename-file="renameWorkspaceFile"
+              @delete-file="deleteWorkspaceFile"
+            />
+            <p v-else class="workspace-empty">暂无 Markdown 文件</p>
+          </div>
         </div>
       </div>
     </section>
@@ -100,6 +101,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
 import {
   AddOutline,
+  ChevronForwardOutline,
   CloseOutline,
   DocumentTextOutline,
   FileTrayFullOutline,
@@ -116,7 +118,9 @@ const route = useRoute()
 const message = useMessage()
 const workspaceStore = useWorkspaceStore()
 const COLLAPSED_STORAGE_KEY = 'ai-inbox:v2:collapsed-workspace-folders'
+const COLLAPSED_WORKSPACES_KEY = 'ai-inbox:v2:collapsed-workspace-ids'
 const collapsedFolderPaths = ref<string[]>([])
+const collapsedWorkspaceIds = ref<string[]>([])
 
 const activeWorkspacePath = computed(() => {
   const param = route.params.encodedPath
@@ -143,6 +147,35 @@ function readCollapsedFolderPaths() {
 
 function saveCollapsedFolderPaths(paths: string[]) {
   window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(paths))
+}
+
+function readCollapsedWorkspaceIds(): string[] {
+  try {
+    const stored = window.localStorage.getItem(COLLAPSED_WORKSPACES_KEY)
+    const parsed = stored ? JSON.parse(stored) : []
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveCollapsedWorkspaceIds(ids: string[]) {
+  window.localStorage.setItem(COLLAPSED_WORKSPACES_KEY, JSON.stringify(ids))
+}
+
+function isWorkspaceCollapsed(id: string): boolean {
+  return collapsedWorkspaceIds.value.includes(id)
+}
+
+function toggleWorkspaceCollapse(id: string) {
+  const next = new Set(collapsedWorkspaceIds.value)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  collapsedWorkspaceIds.value = Array.from(next)
+  saveCollapsedWorkspaceIds(collapsedWorkspaceIds.value)
 }
 
 async function addWorkspaceFromFolder() {
@@ -244,6 +277,7 @@ function handleInboxUpdated() {
 
 onMounted(() => {
   collapsedFolderPaths.value = readCollapsedFolderPaths()
+  collapsedWorkspaceIds.value = readCollapsedWorkspaceIds()
   expandActiveFileAncestors(activeWorkspacePath.value)
   void workspaceStore.refresh()
   window.addEventListener('inbox-updated', handleInboxUpdated)
@@ -270,39 +304,11 @@ watch(activeWorkspacePath, (path) => {
   flex-direction: column;
   overflow: hidden;
   color: var(--text-primary);
-}
-
-.traffic-light-space {
-  height: 48px;
-  flex: 0 0 48px;
-  -webkit-app-region: drag;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 18px;
-}
-
-.traffic-light-space span {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-.traffic-light-space span:nth-child(1) {
-  background: #ff5f57;
-}
-
-.traffic-light-space span:nth-child(2) {
-  background: #ffbd2e;
-}
-
-.traffic-light-space span:nth-child(3) {
-  background: #28c840;
+  padding: 0;
 }
 
 .primary-nav {
-  padding: 0 12px 12px;
+  padding: 12px;
   border-bottom: 1px solid rgba(42, 37, 24, 0.08);
   display: flex;
   flex-direction: column;
@@ -312,6 +318,7 @@ watch(activeWorkspacePath, (path) => {
 .primary-nav-item,
 .workspace-title,
 .icon-button,
+.collapse-btn,
 .workspace-action,
 .remove-workspace {
   border: 0;
@@ -325,8 +332,9 @@ watch(activeWorkspacePath, (path) => {
   color: var(--text-secondary);
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
-  padding: 0 10px;
+  padding: 0 8px;
   font-size: 13px;
   font-weight: 560;
   cursor: pointer;
@@ -370,6 +378,7 @@ watch(activeWorkspacePath, (path) => {
 }
 
 .icon-button,
+.collapse-btn,
 .workspace-action,
 .remove-workspace {
   width: 24px;
@@ -381,13 +390,23 @@ watch(activeWorkspacePath, (path) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  padding: 0;
 }
 
 .icon-button:hover,
+.collapse-btn:hover,
 .workspace-action:hover,
 .remove-workspace:hover {
   background: rgba(42, 37, 24, 0.055);
   color: var(--text-primary);
+}
+
+.collapse-icon {
+  transition: transform 0.2s ease;
+}
+
+.collapse-icon.collapsed {
+  transform: rotate(90deg);
 }
 
 .workspace-list {
@@ -490,18 +509,6 @@ watch(activeWorkspacePath, (path) => {
   .app-sidebar {
     width: 64px;
     flex-basis: 64px;
-  }
-
-  .traffic-light-space {
-    height: 42px;
-    flex-basis: 42px;
-    gap: 5px;
-    padding: 0 10px;
-  }
-
-  .traffic-light-space span {
-    width: 9px;
-    height: 9px;
   }
 
   .primary-nav {

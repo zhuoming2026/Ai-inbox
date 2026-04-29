@@ -1,9 +1,6 @@
 <template>
   <div class="settings-page">
     <header class="header">
-      <button class="back-btn" type="button" aria-label="返回" @click="$router.back()">
-        <n-icon><ChevronBackOutline /></n-icon>
-      </button>
       <h1 class="title">设置</h1>
       <button class="save-btn" @click="handleSaveClick">保存更改</button>
     </header>
@@ -464,7 +461,6 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, onMounted, ref, shallowRef, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
-import { ChevronBackOutline } from '@vicons/ionicons5'
 import { useTheme } from '../composables/useTheme'
 import { useImportedThemes } from '../composables/useImportedThemes'
 import {
@@ -1388,31 +1384,11 @@ async function stopMcp() {
   flex-shrink: 0;
 }
 
-.back-btn,
 .save-btn,
 .segment-btn,
 .theme-card,
 .sidebar-item {
   transition: all var(--transition-base);
-}
-
-.back-btn {
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border-control);
-  background: var(--surface-control);
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--text-body);
-  border-radius: 999px;
-}
-
-.back-btn:hover {
-  background: var(--surface-control-hover);
-  border-color: var(--border-control-hover);
 }
 
 .title {
