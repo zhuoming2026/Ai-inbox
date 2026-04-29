@@ -22,7 +22,7 @@
           </n-button>
 
           <n-button
-            v-if="articleBucket === 'deleted'"
+            v-if="!isWorkspaceArticle && articleBucket === 'deleted'"
             round
             secondary
             type="warning"
@@ -32,7 +32,7 @@
             Restore
           </n-button>
           <n-button
-            v-else
+            v-else-if="!isWorkspaceArticle"
             round
             secondary
             type="warning"
@@ -43,7 +43,7 @@
           </n-button>
 
           <n-button
-            v-if="articleBucket !== 'deleted'"
+            v-if="!isWorkspaceArticle && articleBucket !== 'deleted'"
             round
             tertiary
             type="error"
@@ -107,7 +107,7 @@
       <main class="editor-area">
         <section class="edit-panel">
           <div class="editor-shell">
-            <div v-if="frontmatterParseError" class="notice notice-warning">
+            <div v-if="!isWorkspaceArticle && frontmatterParseError" class="notice notice-warning">
               frontmatter 解析失败，部分属性 UI 不可用。
             </div>
             <div v-else-if="hasExternalChange" class="notice notice-info">
@@ -115,7 +115,7 @@
             </div>
 
             <!-- frontmatter-panel 提升到 editor-shell 层，作为真浮层 -->
-            <section class="frontmatter-panel" :data-open="frontmatterExpanded">
+            <section v-if="!isWorkspaceArticle" class="frontmatter-panel" :data-open="frontmatterExpanded">
               <button class="frontmatter-toggle" type="button" @click="toggleFrontmatterExpanded">
                 <span class="frontmatter-toggle-title">文档属性</span>
               </button>
@@ -189,7 +189,14 @@ const workspaceFilePath = computed(() => {
   const param = route.params.encodedPath
   return typeof param === 'string' ? safeDecode(param) : ''
 })
+const isWorkspaceArticle = computed(() => !!workspaceFilePath.value)
 const documentKey = computed(() => workspaceFilePath.value || slug.value)
+const documentFilename = computed(() => {
+  if (workspaceFilePath.value) {
+    return workspaceFilePath.value.split('/').pop()?.replace(/\.md$/i, '') || 'Untitled'
+  }
+  return slug.value || 'Untitled'
+})
 const message = useMessage()
 
 function safeDecode(value: string) {
@@ -293,9 +300,7 @@ async function applyLocalTheme() {
   refreshResolvedThemeTokens()
 }
 
-const currentRawDocument = computed(() =>
-  documentHadFrontmatter.value ? buildRawDocument(frontmatterText.value, bodyMarkdown.value) : bodyMarkdown.value
-)
+const currentRawDocument = computed(() => composeRawDocument())
 const isDirty = computed(() => currentRawDocument.value !== lastSavedRawDocument.value)
 
 const frontmatterSyntaxError = computed(() =>
@@ -317,11 +322,16 @@ const currentFrontmatter = computed(() =>
 )
 
 const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value))
-const documentTitle = computed(() =>
-  typeof currentFrontmatter.value.title === 'string' && currentFrontmatter.value.title.trim()
+const documentTitle = computed(() => {
+  const bodyTitle = extractMarkdownH1(bodyMarkdown.value)
+  if (isWorkspaceArticle.value) {
+    return bodyTitle || documentFilename.value
+  }
+
+  return typeof currentFrontmatter.value.title === 'string' && currentFrontmatter.value.title.trim()
     ? currentFrontmatter.value.title
-    : extractMarkdownH1(bodyMarkdown.value) || (workspaceFilePath.value ? workspaceFilePath.value.split('/').pop()?.replace(/\.md$/i, '') : slug.value)
-)
+    : bodyTitle || documentFilename.value
+})
 const saveIndicatorLabel = computed(() => {
   if (saveState.value === 'saving') return '保存中'
   if (saveState.value === 'error') return '保存失败'
@@ -380,7 +390,34 @@ function isRecentLocalWrite(raw: string) {
     && Date.now() - recentLocalWrite.timestamp < LOCAL_WRITE_ECHO_TTL_MS
 }
 
+function composeRawDocument() {
+  return documentHadFrontmatter.value
+    ? buildRawDocument(frontmatterText.value, bodyMarkdown.value)
+    : bodyMarkdown.value
+}
+
 function applyRawDocument(raw: string, options?: { markAsSaved?: boolean; autoExpand?: boolean }) {
+  if (isWorkspaceArticle.value) {
+    suppressDirtyTracking = true
+    documentHadFrontmatter.value = false
+    frontmatterText.value = ''
+    bodyMarkdown.value = raw.replace(/\r\n/g, '\n')
+
+    if (options?.markAsSaved) {
+      lastSavedRawDocument.value = bodyMarkdown.value
+      saveState.value = 'saved'
+      hasExternalChange.value = false
+      pendingExternalRaw.value = null
+    }
+
+    frontmatterExpanded.value = false
+
+    queueMicrotask(() => {
+      suppressDirtyTracking = false
+    })
+    return
+  }
+
   const parts = splitRawDocument(raw)
 
   suppressDirtyTracking = true
@@ -474,8 +511,10 @@ async function saveNow(showSuccessMessage = false): Promise<boolean> {
     return savePromise
   }
 
-  syncBodyH1ToFrontmatter()
-  const snapshot = buildRawDocument(frontmatterText.value, bodyMarkdown.value)
+  if (!isWorkspaceArticle.value) {
+    syncBodyH1ToFrontmatter()
+  }
+  const snapshot = composeRawDocument()
   if (!isDirty.value) {
     saveState.value = 'saved'
     return true

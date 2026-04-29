@@ -705,32 +705,6 @@ function devInboxPlugin(): Plugin {
           return
         }
 
-        const workspaceMatch = url.match(/^\/__dev_api\/workspace\/([^/]+)$/)
-        if (workspaceMatch && req.method === 'POST') {
-          try {
-            const workspace = updateWorkspace(
-              decodeURIComponent(workspaceMatch[1]),
-              (await readJsonBody(req)) as WorkspaceUpdateInput
-            )
-            refreshWatcher()
-            sendJson(res, 200, workspace)
-          } catch (error) {
-            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 更新失败' })
-          }
-          return
-        }
-
-        if (workspaceMatch && req.method === 'DELETE') {
-          try {
-            removeWorkspace(decodeURIComponent(workspaceMatch[1]))
-            refreshWatcher()
-            sendJson(res, 200, { ok: true })
-          } catch (error) {
-            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 移除失败' })
-          }
-          return
-        }
-
         if (url === '/__dev_api/workspace/tree' && req.method === 'GET') {
           sendJson(res, 200, readWorkspaceTree(parsedUrl.searchParams.get('workspaceId') || undefined))
           return
@@ -754,6 +728,32 @@ function devInboxPlugin(): Plugin {
             sendJson(res, 200, { ok: true })
           } catch (error) {
             sendJson(res, 400, { error: error instanceof Error ? error.message : '文件保存失败' })
+          }
+          return
+        }
+
+        const workspaceMatch = url.match(/^\/__dev_api\/workspace\/([^/]+)$/)
+        if (workspaceMatch && req.method === 'POST') {
+          try {
+            const workspace = updateWorkspace(
+              decodeURIComponent(workspaceMatch[1]),
+              (await readJsonBody(req)) as WorkspaceUpdateInput
+            )
+            refreshWatcher()
+            sendJson(res, 200, workspace)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 更新失败' })
+          }
+          return
+        }
+
+        if (workspaceMatch && req.method === 'DELETE') {
+          try {
+            removeWorkspace(decodeURIComponent(workspaceMatch[1]))
+            refreshWatcher()
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 移除失败' })
           }
           return
         }
