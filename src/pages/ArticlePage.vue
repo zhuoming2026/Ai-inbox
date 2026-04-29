@@ -141,7 +141,16 @@
             </div>
           </div>
         </section>
-        </main>
+      </main>
+
+      <footer v-if="isWorkspaceArticle" class="article-status-bar">
+        <span class="status-item status-path" :title="workspaceFilePath">{{ workspaceStatusPath }}</span>
+        <span class="status-item">Markdown</span>
+        <span class="status-item">{{ markdownLineCount }} 行</span>
+        <span class="status-item">{{ markdownWordCount }} 字</span>
+        <span class="status-item">{{ saveIndicatorLabel }}</span>
+        <span class="status-item">更新 {{ workspaceUpdatedLabel }}</span>
+      </footer>
       </div>
     </div>
   </n-config-provider>
@@ -162,6 +171,8 @@ import { ArrowBackOutline, ColorPaletteOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 import AppSidebar from '../components/AppSidebar.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
+import { useWorkspaceStore } from '../stores/workspace'
+import type { WorkspaceFileTreeNode } from '../shared/v2-workspace'
 import {
   buildFrontmatter,
   buildRawDocument,
@@ -184,6 +195,7 @@ const LOCAL_WRITE_ECHO_TTL_MS = 5000
 
 const route = useRoute()
 const router = useRouter()
+const workspaceStore = useWorkspaceStore()
 const slug = computed(() => route.params.slug as string)
 const workspaceFilePath = computed(() => {
   const param = route.params.encodedPath
@@ -323,6 +335,32 @@ const currentFrontmatter = computed(() =>
 const showFrontmatterOverlay = computed(() => !isWorkspaceArticle.value && frontmatterExpanded.value)
 
 const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value))
+const currentWorkspaceNode = computed(() => {
+  if (!workspaceFilePath.value) return null
+  for (const tree of workspaceStore.trees) {
+    const match = findWorkspaceNode(tree.nodes, workspaceFilePath.value)
+    if (match) return match
+  }
+  return null
+})
+const workspaceStatusPath = computed(() => currentWorkspaceNode.value?.relativePath || documentFilename.value)
+const workspaceUpdatedLabel = computed(() => {
+  const updatedAt = currentWorkspaceNode.value?.updatedAt
+  if (!updatedAt) return '未记录'
+  const timestamp = Date.parse(updatedAt)
+  if (Number.isNaN(timestamp)) return '未记录'
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp))
+})
+const markdownLineCount = computed(() => {
+  if (!bodyMarkdown.value) return 0
+  return bodyMarkdown.value.replace(/(?:\r\n|\r|\n)+$/, '').split(/\r\n|\r|\n/).length
+})
+const markdownWordCount = computed(() => countMarkdownWords(bodyMarkdown.value))
 const documentTitle = computed(() => {
   const bodyTitle = extractMarkdownH1(bodyMarkdown.value)
   if (isWorkspaceArticle.value) {
@@ -389,6 +427,30 @@ function isRecentLocalWrite(raw: string) {
   return !!recentLocalWrite
     && recentLocalWrite.raw === raw
     && Date.now() - recentLocalWrite.timestamp < LOCAL_WRITE_ECHO_TTL_MS
+}
+
+function findWorkspaceNode(nodes: WorkspaceFileTreeNode[], path: string): WorkspaceFileTreeNode | null {
+  for (const node of nodes) {
+    if (node.path === path) return node
+    if (node.children?.length) {
+      const child = findWorkspaceNode(node.children, path)
+      if (child) return child
+    }
+  }
+  return null
+}
+
+function countMarkdownWords(markdown: string) {
+  const text = markdown
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/[#>*_\-[\]()~]/g, ' ')
+
+  const cjk = text.match(/[\u3400-\u9fff]/g)?.length || 0
+  const words = text.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g)?.length || 0
+  return cjk + words
 }
 
 function composeRawDocument() {
@@ -534,6 +596,7 @@ async function saveNow(showSuccessMessage = false): Promise<boolean> {
     try {
       if (workspaceFilePath.value) {
         await api.workspace.writeFile(workspaceFilePath.value, snapshot)
+        void workspaceStore.loadTrees()
       } else {
         await api.writeRawFile(slug.value, snapshot)
       }
@@ -705,6 +768,7 @@ async function loadThemeSettings() {
 
 onMounted(() => {
   refreshResolvedThemeTokens()
+  void workspaceStore.refresh()
   void loadRawDocument()
   void loadEditorAppearanceSettings()
   void loadThemeSettings()
@@ -887,6 +951,33 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: flex;
+}
+
+.article-status-bar {
+  min-height: 28px;
+  flex: 0 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 18px;
+  border-top: 1px solid var(--border-soft);
+  background: var(--app-header-bg);
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status-item {
+  flex: 0 0 auto;
+}
+
+.status-path {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
 }
 
 .edit-panel {
