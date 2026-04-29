@@ -459,7 +459,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { useTheme } from '../composables/useTheme'
 import { useImportedThemes } from '../composables/useImportedThemes'
@@ -573,6 +573,8 @@ interface HsvaColor {
   a: number
 }
 
+type ColorInputMode = 'hex' | 'rgb' | 'hsv'
+
 const fallbackColor: RgbaColor = { r: 250, g: 187, b: 24, a: 1 }
 const editableColorTokenPaths = [
   'system.accent',
@@ -610,6 +612,13 @@ function formatAlpha(value: number) {
 
 function formatRgba(color: RgbaColor) {
   return `rgba(${clampChannel(color.r)}, ${clampChannel(color.g)}, ${clampChannel(color.b)}, ${formatAlpha(color.a)})`
+}
+
+function formatHex(color: RgbaColor) {
+  const toHex = (value: number) => clampChannel(value).toString(16).padStart(2, '0')
+  const alpha = clampAlpha(color.a)
+  const alphaHex = alpha < 1 ? Math.round(alpha * 255).toString(16).padStart(2, '0') : ''
+  return `#${toHex(color.r)}${toHex(color.g)}${toHex(color.b)}${alphaHex}`
 }
 
 function parseHexColor(value: string): RgbaColor | null {
@@ -661,7 +670,7 @@ function parseCssColor(value: string): RgbaColor | null {
 }
 
 function normalizeColorValue(value: string, fallback = fallbackColor) {
-  return formatRgba(parseCssColor(value) || fallback)
+  return formatHex(parseCssColor(value) || fallback)
 }
 
 function rgbaToHsva(color: RgbaColor): HsvaColor {
@@ -739,7 +748,7 @@ function normalizeEditableColorTokens(config: ThemePresetConfig) {
     if (typeof value !== 'string') continue
     const parsed = parseCssColor(value)
     if (parsed) {
-      setTokenAtPath(config.tokens, path, formatRgba(parsed))
+      setTokenAtPath(config.tokens, path, formatHex(parsed))
     }
   }
 }
@@ -754,7 +763,9 @@ const ColorField = defineComponent({
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
+    const fieldRef = ref<HTMLElement | null>(null)
     const pickerOpen = ref(false)
+    const inputMode = ref<ColorInputMode>('hex')
     const parsedColor = computed(() => parseCssColor(props.modelValue) || fallbackColor)
     const hsvaColor = computed(() => rgbaToHsva(parsedColor.value))
     const alphaPercent = computed(() => Math.round(hsvaColor.value.a * 100))
@@ -764,9 +775,14 @@ const ColorField = defineComponent({
       '--picker-thumb-x': `${hsvaColor.value.s * 100}%`,
       '--picker-thumb-y': `${(1 - hsvaColor.value.v) * 100}%`,
     }))
+    const modeOptions: Array<{ label: string; value: ColorInputMode }> = [
+      { label: 'HEX', value: 'hex' },
+      { label: 'RGB', value: 'rgb' },
+      { label: 'HSV', value: 'hsv' },
+    ]
 
     const emitColor = (color: RgbaColor) => {
-      emit('update:modelValue', formatRgba(color))
+      emit('update:modelValue', formatHex(color))
     }
 
     const emitHsva = (next: Partial<HsvaColor>) => {
@@ -782,7 +798,99 @@ const ColorField = defineComponent({
       })
     }
 
-    return () => h('div', { class: 'color-field' }, [
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target as Node | null
+      if (target && !fieldRef.value?.contains(target)) pickerOpen.value = false
+    }
+
+    onMounted(() => {
+      document.addEventListener('pointerdown', closeOnOutsidePointer)
+    })
+
+    onBeforeUnmount(() => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointer)
+    })
+
+    const openEyeDropper = async () => {
+      const EyeDropperCtor = (window as any).EyeDropper
+      if (!EyeDropperCtor) return
+      try {
+        const result = await new EyeDropperCtor().open()
+        const picked = parseHexColor(result.sRGBHex)
+        if (picked) emitColor({ ...picked, a: parsedColor.value.a })
+      } catch {
+        // User canceled the picker.
+      }
+    }
+
+    const renderModeInput = () => {
+      if (inputMode.value === 'rgb') {
+        return h('div', { class: 'color-channel-grid color-channel-grid--rgb' }, [
+          ...(['r', 'g', 'b'] as const).map((key) => h('label', { class: 'color-channel-field' }, [
+            h('span', null, key.toUpperCase()),
+            h('input', {
+              class: 'form-input color-channel-input',
+              type: 'number',
+              min: '0',
+              max: '255',
+              value: clampChannel(parsedColor.value[key]),
+              onChange: (event: Event) => {
+                emitColor({ ...parsedColor.value, [key]: Number((event.target as HTMLInputElement).value) })
+              },
+            }),
+          ])),
+        ])
+      }
+
+      if (inputMode.value === 'hsv') {
+        return h('div', { class: 'color-channel-grid color-channel-grid--hsv' }, [
+          h('label', { class: 'color-channel-field' }, [
+            h('span', null, 'H'),
+            h('input', {
+              class: 'form-input color-channel-input',
+              type: 'number',
+              min: '0',
+              max: '360',
+              value: Math.round(hsvaColor.value.h),
+              onChange: (event: Event) => emitHsva({ h: Number((event.target as HTMLInputElement).value) }),
+            }),
+          ]),
+          h('label', { class: 'color-channel-field' }, [
+            h('span', null, 'S'),
+            h('input', {
+              class: 'form-input color-channel-input',
+              type: 'number',
+              min: '0',
+              max: '100',
+              value: Math.round(hsvaColor.value.s * 100),
+              onChange: (event: Event) => emitHsva({ s: Number((event.target as HTMLInputElement).value) / 100 }),
+            }),
+          ]),
+          h('label', { class: 'color-channel-field' }, [
+            h('span', null, 'V'),
+            h('input', {
+              class: 'form-input color-channel-input',
+              type: 'number',
+              min: '0',
+              max: '100',
+              value: Math.round(hsvaColor.value.v * 100),
+              onChange: (event: Event) => emitHsva({ v: Number((event.target as HTMLInputElement).value) / 100 }),
+            }),
+          ]),
+        ])
+      }
+
+      return h('input', {
+        class: 'form-input color-popover-text-input',
+        type: 'text',
+        value: formatHex(parsedColor.value),
+        onChange: (event: Event) => {
+          emit('update:modelValue', normalizeColorValue((event.target as HTMLInputElement).value, parsedColor.value))
+        },
+      })
+    }
+
+    return () => h('div', { ref: fieldRef, class: 'color-field' }, [
       h('button', {
         class: 'color-swatch',
         type: 'button',
@@ -794,12 +902,28 @@ const ColorField = defineComponent({
       h('input', {
         class: 'form-input color-text-input',
         type: 'text',
-        value: normalizeColorValue(props.modelValue),
+        value: formatHex(parsedColor.value),
         onChange: (event: Event) => {
           emit('update:modelValue', normalizeColorValue((event.target as HTMLInputElement).value, parsedColor.value))
         },
       }),
       pickerOpen.value && h('div', { class: 'color-popover', style: pickerStyle.value }, [
+        h('div', { class: 'color-popover-toolbar' }, [
+          h('button', {
+            class: 'color-eyedropper-button',
+            type: 'button',
+            disabled: !(window as any).EyeDropper,
+            title: '取色器',
+            onClick: openEyeDropper,
+          }, '取色'),
+          h('div', { class: 'color-mode-tabs' }, modeOptions.map((mode) => h('button', {
+            class: ['color-mode-tab', { active: inputMode.value === mode.value }],
+            type: 'button',
+            onClick: () => {
+              inputMode.value = mode.value
+            },
+          }, mode.label))),
+        ]),
         h('div', {
           class: 'color-plane',
           onPointerdown: (event: PointerEvent) => {
@@ -840,6 +964,9 @@ const ColorField = defineComponent({
             },
           }),
           h('span', { class: 'color-alpha-value' }, `${alphaPercent.value}%`),
+        ]),
+        h('div', { class: 'color-input-row' }, [
+          renderModeInput(),
         ]),
       ]),
     ])
@@ -1651,18 +1778,67 @@ async function stopMcp() {
   z-index: 20;
   top: calc(100% + 8px);
   left: 0;
-  width: 236px;
-  padding: 10px;
+  width: 268px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-control-hover);
+  box-shadow: 0 14px 34px rgba(28, 22, 10, 0.16), 0 2px 8px rgba(28, 22, 10, 0.08);
+}
+
+.color-field :deep(.color-popover-toolbar) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: 10px;
+}
+
+.color-field :deep(.color-eyedropper-button),
+.color-field :deep(.color-mode-tab) {
+  height: 28px;
   border: 1px solid var(--border-control);
-  border-radius: 12px;
-  background: var(--surface-panel);
-  box-shadow: var(--shadow-popover);
+  border-radius: 999px;
+  background: var(--surface-control);
+  color: var(--text-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.color-field :deep(.color-eyedropper-button) {
+  padding: 0 10px;
+}
+
+.color-field :deep(.color-eyedropper-button:disabled) {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.color-field :deep(.color-mode-tabs) {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  background: var(--surface-neutral-faint);
+}
+
+.color-field :deep(.color-mode-tab) {
+  min-width: 44px;
+  border: 0;
+  background: transparent;
+}
+
+.color-field :deep(.color-mode-tab.active) {
+  background: var(--action-primary-bg);
+  color: var(--action-primary-text);
 }
 
 .color-field :deep(.color-plane) {
   position: relative;
   height: 150px;
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   background:
     linear-gradient(to top, #000, transparent),
@@ -1723,6 +1899,40 @@ async function stopMcp() {
   font-weight: 600;
   text-align: right;
   white-space: nowrap;
+}
+
+.color-field :deep(.color-input-row) {
+  margin-top: 10px;
+}
+
+.color-field :deep(.color-popover-text-input) {
+  width: 100%;
+  height: 34px;
+}
+
+.color-field :deep(.color-channel-grid) {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.color-field :deep(.color-channel-grid--rgb),
+.color-field :deep(.color-channel-grid--hsv) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.color-field :deep(.color-channel-field) {
+  display: grid;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.color-field :deep(.color-channel-input) {
+  height: 32px;
+  padding: 0 6px;
+  text-align: center;
 }
 
 .accent-preview,
