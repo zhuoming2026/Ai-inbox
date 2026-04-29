@@ -130,7 +130,7 @@
               </div>
             </section>
 
-            <div class="editor-workspace" :data-frontmatter-open="frontmatterExpanded">
+            <div class="editor-workspace" :data-frontmatter-open="showFrontmatterOverlay">
               <section class="editor-canvas">
                 <ArticleBodyEditor
                   v-model="bodyMarkdown"
@@ -149,7 +149,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import {
   NButton,
   NConfigProvider,
@@ -320,6 +320,7 @@ const frontmatterParseError = computed(() =>
 const currentFrontmatter = computed(() =>
   frontmatterParseError.value ? ({} as InboxFrontmatter) : parsedDocument.value.frontmatter
 )
+const showFrontmatterOverlay = computed(() => !isWorkspaceArticle.value && frontmatterExpanded.value)
 
 const articleBucket = computed(() => getDocumentBucket(currentFrontmatter.value))
 const documentTitle = computed(() => {
@@ -670,6 +671,11 @@ function goBack() {
   router.back()
 }
 
+async function saveBeforeRouteChange() {
+  if (!isDirty.value) return true
+  return saveNow(false)
+}
+
 function handleKeydown(event: KeyboardEvent) {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
     event.preventDefault()
@@ -713,9 +719,12 @@ watch(documentKey, () => {
   void loadRawDocument()
 })
 
+onBeforeRouteUpdate(async () => {
+  return saveBeforeRouteChange()
+})
+
 onBeforeRouteLeave(async () => {
-  if (!isDirty.value) return true
-  return saveNow(false)
+  return saveBeforeRouteChange()
 })
 
 onUnmounted(() => {
