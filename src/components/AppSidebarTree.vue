@@ -22,17 +22,23 @@
         </div>
       </template>
 
-      <div v-else class="tree-folder">
-        <div class="tree-node">
+      <div v-else class="tree-folder" :data-collapsed="isCollapsed(node.path)">
+        <button type="button" class="tree-node tree-folder-button" @click="$emit('toggle-folder', node.path)">
+          <n-icon class="tree-node-disclosure">
+            <ChevronForwardOutline v-if="isCollapsed(node.path)" />
+            <ChevronDownOutline v-else />
+          </n-icon>
           <n-icon class="tree-node-icon"><FolderOpenOutline /></n-icon>
           <span class="tree-node-label">{{ node.name }}</span>
-        </div>
+        </button>
         <AppSidebarTree
-          v-if="node.children?.length"
+          v-if="node.children?.length && !isCollapsed(node.path)"
           :nodes="node.children"
           :active-path="activePath"
           :editable="editable"
+          :collapsed-paths="collapsedPaths"
           @open-file="$emit('open-file', $event)"
+          @toggle-folder="$emit('toggle-folder', $event)"
           @rename-file="$emit('rename-file', $event)"
           @delete-file="$emit('delete-file', $event)"
         />
@@ -43,20 +49,33 @@
 
 <script setup lang="ts">
 import { NIcon } from 'naive-ui'
-import { CreateOutline, DocumentTextOutline, FolderOpenOutline, TrashOutline } from '@vicons/ionicons5'
+import {
+  ChevronDownOutline,
+  ChevronForwardOutline,
+  CreateOutline,
+  DocumentTextOutline,
+  FolderOpenOutline,
+  TrashOutline,
+} from '@vicons/ionicons5'
 import type { WorkspaceFileTreeNode } from '../shared/v2-workspace'
 
-defineProps<{
+const props = defineProps<{
   nodes: WorkspaceFileTreeNode[]
   activePath?: string
   editable?: boolean
+  collapsedPaths?: string[]
 }>()
 
 defineEmits<{
   (event: 'open-file', path: string): void
+  (event: 'toggle-folder', path: string): void
   (event: 'rename-file', node: WorkspaceFileTreeNode): void
   (event: 'delete-file', node: WorkspaceFileTreeNode): void
 }>()
+
+function isCollapsed(path: string) {
+  return props.collapsedPaths?.includes(path) ?? false
+}
 </script>
 
 <style scoped>
@@ -95,8 +114,13 @@ defineEmits<{
   cursor: pointer;
 }
 
+.tree-folder-button {
+  cursor: pointer;
+}
+
 .tree-file:hover,
-.tree-file.active {
+.tree-file.active,
+.tree-folder-button:hover {
   background: var(--surface-control-hover);
   color: var(--text-primary);
 }
@@ -143,6 +167,13 @@ defineEmits<{
   flex: 0 0 auto;
   font-size: 15px;
   opacity: 0.72;
+}
+
+.tree-node-disclosure {
+  flex: 0 0 auto;
+  width: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .tree-node-label {

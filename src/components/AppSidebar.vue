@@ -27,6 +27,10 @@
       </div>
 
       <div class="workspace-list">
+        <div v-if="workspaceStore.loading && !workspaceStore.enabledWorkspaces.length" class="workspace-status">
+          正在读取 workspace...
+        </div>
+        <div v-else-if="!workspaceStore.enabledWorkspaces.length" class="workspace-status">暂无 workspace</div>
         <div v-for="workspace in workspaceStore.enabledWorkspaces" :key="workspace.id" class="workspace-block">
           <div class="workspace-title-row">
             <button type="button" class="workspace-title" :title="workspace.path">
@@ -54,13 +58,17 @@
           </div>
 
           <AppSidebarTree
+            v-if="workspaceStore.getTree(workspace.id).length"
             :nodes="workspaceStore.getTree(workspace.id)"
             :active-path="activeWorkspacePath"
             :editable="canManageWorkspaceFiles(workspace)"
+            :collapsed-paths="collapsedFolderPaths"
             @open-file="openWorkspaceFile"
+            @toggle-folder="toggleFolder"
             @rename-file="renameWorkspaceFile"
             @delete-file="deleteWorkspaceFile"
           />
+          <p v-else class="workspace-empty">暂无 Markdown 文件</p>
         </div>
       </div>
     </section>
@@ -68,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
 import {
@@ -87,6 +95,8 @@ const router = useRouter()
 const route = useRoute()
 const message = useMessage()
 const workspaceStore = useWorkspaceStore()
+const COLLAPSED_STORAGE_KEY = 'ai-inbox:v2:collapsed-workspace-folders'
+const collapsedFolderPaths = ref<string[]>([])
 
 const activeWorkspacePath = computed(() => {
   const param = route.params.encodedPath
@@ -99,6 +109,20 @@ function safeDecode(value: string) {
   } catch {
     return value
   }
+}
+
+function readCollapsedFolderPaths() {
+  try {
+    const stored = window.localStorage.getItem(COLLAPSED_STORAGE_KEY)
+    const parsed = stored ? JSON.parse(stored) : []
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveCollapsedFolderPaths(paths: string[]) {
+  window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(paths))
 }
 
 async function addWorkspaceFromFolder() {
@@ -174,17 +198,43 @@ function openWorkspaceFile(path: string) {
   router.push({ name: 'article-path', params: { encodedPath: path } })
 }
 
+function toggleFolder(path: string) {
+  const next = new Set(collapsedFolderPaths.value)
+  if (next.has(path)) {
+    next.delete(path)
+  } else {
+    next.add(path)
+  }
+  collapsedFolderPaths.value = Array.from(next)
+  saveCollapsedFolderPaths(collapsedFolderPaths.value)
+}
+
+function expandActiveFileAncestors(path?: string) {
+  if (!path) return
+  const next = collapsedFolderPaths.value.filter((folderPath) => !path.startsWith(`${folderPath}/`))
+  if (next.length !== collapsedFolderPaths.value.length) {
+    collapsedFolderPaths.value = next
+    saveCollapsedFolderPaths(next)
+  }
+}
+
 function handleInboxUpdated() {
   void workspaceStore.refresh()
 }
 
 onMounted(() => {
+  collapsedFolderPaths.value = readCollapsedFolderPaths()
+  expandActiveFileAncestors(activeWorkspacePath.value)
   void workspaceStore.refresh()
   window.addEventListener('inbox-updated', handleInboxUpdated)
 })
 
 onUnmounted(() => {
   window.removeEventListener('inbox-updated', handleInboxUpdated)
+})
+
+watch(activeWorkspacePath, (path) => {
+  expandActiveFileAncestors(path)
 })
 </script>
 
@@ -296,6 +346,17 @@ onUnmounted(() => {
   min-height: 0;
   overflow: auto;
   padding: 4px 2px 24px;
+}
+
+.workspace-status,
+.workspace-empty {
+  margin: 6px 8px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.workspace-status {
+  padding-top: 4px;
 }
 
 .workspace-block {
