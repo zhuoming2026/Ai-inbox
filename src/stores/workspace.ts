@@ -3,7 +3,10 @@ import { computed, ref } from 'vue'
 import type {
   WorkspaceAddInput,
   WorkspaceConfig,
+  WorkspaceCreateFileInput,
+  WorkspaceFileMutationResult,
   WorkspaceFileTreeNode,
+  WorkspaceRenameFileInput,
   WorkspaceTreeResult,
   WorkspaceUpdateInput,
 } from '../shared/v2-workspace'
@@ -56,6 +59,23 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await refresh()
   }
 
+  async function createFile(input: WorkspaceCreateFileInput): Promise<WorkspaceFileMutationResult | null> {
+    const result = await window.electronAPI?.workspace?.createFile(input) ?? null
+    await refresh()
+    return result
+  }
+
+  async function renameFile(input: WorkspaceRenameFileInput): Promise<WorkspaceFileMutationResult | null> {
+    const result = await window.electronAPI?.workspace?.renameFile(input) ?? null
+    await refresh()
+    return result
+  }
+
+  async function deleteFile(path: string) {
+    await window.electronAPI?.workspace?.deleteFile(path)
+    await refresh()
+  }
+
   async function selectFolder() {
     return await window.electronAPI?.workspace?.selectFolder() ?? null
   }
@@ -77,6 +97,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     addWorkspace,
     removeWorkspace,
     updateWorkspace,
+    createFile,
+    renameFile,
+    deleteFile,
     selectFolder,
     getTree,
   }

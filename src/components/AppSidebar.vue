@@ -34,6 +34,15 @@
               <span>{{ workspace.name }}</span>
             </button>
             <button
+              v-if="canManageWorkspaceFiles(workspace)"
+              type="button"
+              class="workspace-action"
+              title="新建 Markdown"
+              @click="createWorkspaceFile(workspace.id)"
+            >
+              <n-icon><DocumentTextOutline /></n-icon>
+            </button>
+            <button
               v-if="workspace.kind === 'user'"
               type="button"
               class="remove-workspace"
@@ -47,7 +56,10 @@
           <AppSidebarTree
             :nodes="workspaceStore.getTree(workspace.id)"
             :active-path="activeWorkspacePath"
+            :editable="canManageWorkspaceFiles(workspace)"
             @open-file="openWorkspaceFile"
+            @rename-file="renameWorkspaceFile"
+            @delete-file="deleteWorkspaceFile"
           />
         </div>
       </div>
@@ -62,12 +74,14 @@ import { useMessage, NIcon } from 'naive-ui'
 import {
   AddOutline,
   CloseOutline,
+  DocumentTextOutline,
   FileTrayFullOutline,
   FolderOutline,
   SparklesOutline,
 } from '@vicons/ionicons5'
 import AppSidebarTree from './AppSidebarTree.vue'
 import { useWorkspaceStore } from '../stores/workspace'
+import type { WorkspaceConfig, WorkspaceFileTreeNode } from '../shared/v2-workspace'
 
 const router = useRouter()
 const route = useRoute()
@@ -104,6 +118,55 @@ async function removeWorkspace(id: string) {
     await workspaceStore.removeWorkspace(id)
   } catch (error) {
     message.error(error instanceof Error ? error.message : '移除 workspace 失败')
+  }
+}
+
+function canManageWorkspaceFiles(workspace: WorkspaceConfig) {
+  return workspace.kind === 'user' && !workspace.readonly && workspace.enabled
+}
+
+async function createWorkspaceFile(workspaceId: string) {
+  const filename = window.prompt('新建 Markdown 文件', 'Untitled.md')?.trim()
+  if (!filename) return
+
+  try {
+    const result = await workspaceStore.createFile({ workspaceId, filename })
+    if (result?.path) {
+      await router.push({ name: 'article-path', params: { encodedPath: result.path } })
+    }
+    message.success('已新建 Markdown')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '新建 Markdown 失败')
+  }
+}
+
+async function renameWorkspaceFile(node: WorkspaceFileTreeNode) {
+  const filename = window.prompt('重命名 Markdown 文件', node.name)?.trim()
+  if (!filename || filename === node.name) return
+
+  try {
+    const result = await workspaceStore.renameFile({ path: node.path, filename })
+    if (activeWorkspacePath.value === node.path && result?.path) {
+      await router.replace({ name: 'article-path', params: { encodedPath: result.path } })
+    }
+    message.success('已重命名 Markdown')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '重命名 Markdown 失败')
+  }
+}
+
+async function deleteWorkspaceFile(node: WorkspaceFileTreeNode) {
+  const confirmed = window.confirm(`删除 ${node.name}？此操作会删除 workspace 内的 Markdown 文件。`)
+  if (!confirmed) return
+
+  try {
+    await workspaceStore.deleteFile(node.path)
+    if (activeWorkspacePath.value === node.path) {
+      await router.replace('/')
+    }
+    message.success('已删除 Markdown')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '删除 Markdown 失败')
   }
 }
 
@@ -155,6 +218,7 @@ onUnmounted(() => {
 .primary-nav-item,
 .workspace-title,
 .icon-button,
+.workspace-action,
 .remove-workspace {
   border: 0;
   font: inherit;
@@ -207,6 +271,7 @@ onUnmounted(() => {
 }
 
 .icon-button,
+.workspace-action,
 .remove-workspace {
   width: 26px;
   height: 26px;
@@ -220,6 +285,7 @@ onUnmounted(() => {
 }
 
 .icon-button:hover,
+.workspace-action:hover,
 .remove-workspace:hover {
   background: var(--surface-control-hover);
   color: var(--text-primary);

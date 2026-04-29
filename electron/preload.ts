@@ -31,6 +31,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     readTree: (workspaceId?: string) => ipcRenderer.invoke('workspace:tree', workspaceId),
     readFile: (path: string) => ipcRenderer.invoke('workspace:read-file', path),
     writeFile: (path: string, raw: string) => ipcRenderer.invoke('workspace:write-file', path, raw),
+    createFile: (input: { workspaceId: string; filename: string }) =>
+      ipcRenderer.invoke('workspace:create-file', input),
+    renameFile: (input: { path: string; filename: string }) =>
+      ipcRenderer.invoke('workspace:rename-file', input),
+    deleteFile: (path: string) => ipcRenderer.invoke('workspace:delete-file', path),
   },
 
   // 设置

@@ -44,5 +44,19 @@ export interface WorkspaceUpdateInput {
   enabled?: boolean
 }
 
+export interface WorkspaceCreateFileInput {
+  workspaceId: string
+  filename: string
+}
+
+export interface WorkspaceRenameFileInput {
+  path: string
+  filename: string
+}
+
+export interface WorkspaceFileMutationResult {
+  path: string
+}
+
 export const BUILTIN_INBOX_WORKSPACE_ID = 'builtin:inbox'
 export const BUILTIN_ENRICH_OUTPUTS_WORKSPACE_ID = 'builtin:enrich-outputs'

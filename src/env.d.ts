@@ -9,7 +9,10 @@ import type { V2CaptureResult, V2InboxCard } from './shared/v2-types'
 import type {
   WorkspaceAddInput,
   WorkspaceConfig,
+  WorkspaceCreateFileInput,
+  WorkspaceFileMutationResult,
   WorkspaceListResult,
+  WorkspaceRenameFileInput,
   WorkspaceTreeResult,
   WorkspaceUpdateInput,
 } from './shared/v2-workspace'
@@ -45,6 +48,9 @@ interface ElectronAPI {
     readTree(workspaceId?: string): Promise<WorkspaceTreeResult[]>
     readFile(path: string): Promise<string | null>
     writeFile(path: string, raw: string): Promise<void>
+    createFile(input: WorkspaceCreateFileInput): Promise<WorkspaceFileMutationResult>
+    renameFile(input: WorkspaceRenameFileInput): Promise<WorkspaceFileMutationResult>
+    deleteFile(path: string): Promise<void>
   }
   processInput(type: string, content: string): Promise<V2CaptureResult | { slug: string; enrichStatus: string; documentType: string }>
   enrichFile(slug: string): Promise<{ ok: boolean }>

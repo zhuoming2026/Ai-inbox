@@ -134,6 +134,21 @@ function createBrowserElectronApi(): BrowserElectronApi {
           method: 'POST',
           body: JSON.stringify({ path, raw }),
         }),
+      createFile: (input) =>
+        request('/__dev_api/workspace/file/create', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      renameFile: (input) =>
+        request('/__dev_api/workspace/file/rename', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      deleteFile: (path: string) =>
+        request('/__dev_api/workspace/file', {
+          method: 'DELETE',
+          body: JSON.stringify({ path }),
+        }),
     },
     processInput: (type: string, content: string) =>
       request('/__dev_api/process-input', {

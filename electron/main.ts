@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, globalShortcut } from 'electron'
-import { basename, extname, join, relative, resolve } from 'path'
+import { basename, dirname, extname, join, relative, resolve } from 'path'
 import * as fs from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 import { randomUUID } from 'crypto'
@@ -23,8 +23,11 @@ import type { CardMetadataFile, V2CardBucket, V2CardKind, V2InboxCard } from '..
 import type {
   WorkspaceAddInput,
   WorkspaceConfig,
+  WorkspaceCreateFileInput,
+  WorkspaceFileMutationResult,
   WorkspaceFileTreeNode,
   WorkspaceListResult,
+  WorkspaceRenameFileInput,
   WorkspaceTreeResult,
   WorkspaceUpdateInput,
 } from '../src/shared/v2-workspace'
@@ -326,6 +329,62 @@ function findWorkspaceForPath(filepath: string) {
   return listWorkspaces().items.find((workspace) =>
     workspace.enabled && isPathInside(workspace.path, resolvedPath)
   )
+}
+
+function getWritableWorkspace(workspaceId: string): WorkspaceConfig {
+  const workspace = listWorkspaces().items.find((item) => item.id === workspaceId)
+  if (!workspace || !workspace.enabled) throw new Error('Workspace 未启用')
+  if (workspace.readonly || workspace.kind !== 'user') throw new Error('内置 workspace 暂不支持文件管理操作')
+  return workspace
+}
+
+function getWritableWorkspaceForFile(filepath: string): WorkspaceConfig {
+  const workspace = findWorkspaceForPath(filepath)
+  if (!workspace || !workspace.enabled || !isSafeMarkdownFile(filepath)) throw new Error('文件不属于已启用 workspace')
+  if (workspace.readonly || workspace.kind !== 'user') throw new Error('内置 workspace 暂不支持文件管理操作')
+  return workspace
+}
+
+function normalizeMarkdownFilename(filename: string): string {
+  const trimmed = filename.trim()
+  if (!trimmed) throw new Error('请输入文件名')
+  const withExtension = trimmed.toLowerCase().endsWith('.md') ? trimmed : `${trimmed}.md`
+  if (withExtension.startsWith('.')) throw new Error('文件名不能以 . 开头')
+  if (withExtension.includes('/') || withExtension.includes('\\') || basename(withExtension) !== withExtension) {
+    throw new Error('文件名不能包含路径')
+  }
+  if (!isSafeMarkdownFile(withExtension)) throw new Error('只支持 Markdown 文件')
+  return withExtension
+}
+
+function createWorkspaceMarkdownFile(input: WorkspaceCreateFileInput): WorkspaceFileMutationResult {
+  const workspace = getWritableWorkspace(input.workspaceId)
+  const filename = normalizeMarkdownFilename(input.filename)
+  const filepath = resolve(workspace.path, filename)
+  if (!isPathInside(workspace.path, filepath)) throw new Error('文件路径超出 workspace')
+  if (fs.existsSync(filepath)) throw new Error('文件已存在')
+  fs.writeFileSync(filepath, '', 'utf-8')
+  return { path: filepath }
+}
+
+function renameWorkspaceMarkdownFile(input: WorkspaceRenameFileInput): WorkspaceFileMutationResult {
+  const sourcePath = resolve(input.path)
+  const workspace = getWritableWorkspaceForFile(sourcePath)
+  if (!fs.existsSync(sourcePath) || !fs.statSync(sourcePath).isFile()) throw new Error('文件不存在')
+  const filename = normalizeMarkdownFilename(input.filename)
+  const nextPath = resolve(dirname(sourcePath), filename)
+  if (!isPathInside(workspace.path, nextPath) || !isSafeMarkdownFile(nextPath)) throw new Error('文件路径超出 workspace')
+  if (sourcePath === nextPath) return { path: sourcePath }
+  if (fs.existsSync(nextPath)) throw new Error('目标文件已存在')
+  fs.renameSync(sourcePath, nextPath)
+  return { path: nextPath }
+}
+
+function deleteWorkspaceMarkdownFile(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  getWritableWorkspaceForFile(resolvedPath)
+  if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) throw new Error('文件不存在')
+  fs.unlinkSync(resolvedPath)
 }
 
 function readWorkspaceTree(workspaceId?: string): WorkspaceTreeResult[] {
@@ -756,6 +815,20 @@ function setupIPC() {
   ipcMain.handle('workspace:read-file', (_, filepath: string) => readWorkspaceMarkdownFile(resolve(filepath)))
   ipcMain.handle('workspace:write-file', (_, filepath: string, raw: string) => {
     writeWorkspaceMarkdownFile(resolve(filepath), raw)
+  })
+  ipcMain.handle('workspace:create-file', (_, input: WorkspaceCreateFileInput) => {
+    const result = createWorkspaceMarkdownFile(input)
+    setupWatcher()
+    return result
+  })
+  ipcMain.handle('workspace:rename-file', (_, input: WorkspaceRenameFileInput) => {
+    const result = renameWorkspaceMarkdownFile(input)
+    setupWatcher()
+    return result
+  })
+  ipcMain.handle('workspace:delete-file', (_, filepath: string) => {
+    deleteWorkspaceMarkdownFile(filepath)
+    setupWatcher()
   })
 
   ipcMain.handle('mcp:status', () => getMcpStatus())
