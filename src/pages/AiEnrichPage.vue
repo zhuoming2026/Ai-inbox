@@ -3,46 +3,48 @@
     <AppSidebar />
     <main class="enrich-page">
       <header class="enrich-header">
-        <div>
-          <h1>AI Enrich</h1>
-          <p>Generic Link</p>
-        </div>
-        <n-button tertiary round :loading="enrichStore.loading" @click="refreshAll">
+        <h1>AI Enrich</h1>
+        <n-button size="small" secondary :loading="enrichStore.loading" @click="refreshAll">
           刷新
         </n-button>
       </header>
 
       <section class="task-composer">
-        <div class="composer-grid">
+        <div class="composer-fields">
           <label class="field">
             <span>URL</span>
-            <n-input v-model:value="url" placeholder="https://example.com/article" clearable />
+            <n-input v-model:value="url" placeholder="https://example.com/article" clearable class="url-input" />
           </label>
           <label class="field">
-            <span>Instruction</span>
+            <span>Description / Instruction</span>
             <n-input
               v-model:value="instruction"
               type="textarea"
-              placeholder="提炼关键观点、保留可引用片段"
-              :autosize="{ minRows: 3, maxRows: 5 }"
+              placeholder="Tell AI what to focus on, or leave it empty for default parsing..."
+              class="instruction-input"
             />
           </label>
         </div>
         <div class="composer-actions">
+          <div class="platform-tabs" aria-label="Platform">
+            <button type="button" class="platform-tab active">Generic Link</button>
+            <button type="button" class="platform-tab" disabled>Bilibili</button>
+            <button type="button" class="platform-tab" disabled>YouTube</button>
+            <button type="button" class="platform-tab" disabled>Douyin</button>
+          </div>
           <n-button
-            type="primary"
-            round
+            secondary
             :disabled="!url.trim() || creating"
             :loading="creating"
             @click="createAndRunTask"
           >
-            创建并运行
+            Create Task
           </n-button>
         </div>
       </section>
 
       <section class="task-toolbar">
-        <div class="task-count">{{ enrichStore.tasks.length }} tasks</div>
+        <div class="task-count">Queue</div>
         <label class="workspace-picker">
           <span>Save to</span>
           <n-select
@@ -58,75 +60,52 @@
       <section class="task-list" aria-label="Enrich tasks">
         <div v-if="enrichStore.loading && !enrichStore.tasks.length" class="empty-panel">正在读取任务...</div>
         <div v-else-if="!enrichStore.tasks.length" class="empty-panel">暂无 Enrich 任务</div>
-
-        <article v-for="task in enrichStore.tasks" :key="task.id" class="task-row">
-          <div class="task-main">
-            <div class="task-title-line">
-              <n-tag :type="statusType(task.status)" size="small" :bordered="false">
-                {{ task.status }}
-              </n-tag>
-              <h2>{{ task.outputTitle || task.url }}</h2>
-            </div>
-            <a class="task-url" :href="task.url" target="_blank" rel="noreferrer">{{ task.url }}</a>
-            <p v-if="task.instruction" class="task-instruction">{{ task.instruction }}</p>
-            <p v-if="task.error" class="task-error">{{ task.error }}</p>
-            <div class="task-meta">
-              <span>{{ formatTime(task.createdAt) }}</span>
-              <span v-if="task.outputPath" :title="task.outputPath">{{ outputName(task.outputPath) }}</span>
-            </div>
-          </div>
-
-          <div class="task-actions">
-            <n-button
-              v-if="task.status === 'queued'"
-              size="small"
-              secondary
-              :loading="enrichStore.isTaskRunning(task.id)"
-              @click="runTask(task.id)"
-            >
-              Run
-            </n-button>
-            <n-button
-              v-if="task.status === 'failed'"
-              size="small"
-              secondary
-              type="warning"
-              :loading="enrichStore.isTaskRunning(task.id)"
-              @click="retryTask(task.id)"
-            >
-              Retry
-            </n-button>
-            <n-button
-              v-if="task.outputPath"
-              size="small"
-              secondary
-              @click="openResult(task.outputPath)"
-            >
-              Open Result
-            </n-button>
-            <n-button
-              v-if="task.outputPath"
-              size="small"
-              secondary
-              @click="copyMarkdown(task.outputPath)"
-            >
-              Copy Markdown
-            </n-button>
-            <n-button
-              v-if="task.outputPath"
-              size="small"
-              secondary
-              :disabled="!selectedWorkspaceId"
-              @click="saveAsArticle(task)"
-            >
-              Save as Article
-            </n-button>
-            <n-button size="small" tertiary type="error" @click="deleteTask(task.id)">
-              Delete
-            </n-button>
-          </div>
-        </article>
+        <div v-else class="task-table-wrap">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Status</th>
+                <th>URL</th>
+                <th>Instruction</th>
+                <th>From</th>
+                <th>Output</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(task, index) in enrichStore.tasks" :key="task.id">
+                <td>{{ index + 1 }}</td>
+                <td><span class="status-pill" :data-status="task.status">{{ statusLabel(task.status) }}</span></td>
+                <td><a class="task-url" :href="task.url" target="_blank" rel="noreferrer">{{ task.url }}</a></td>
+                <td class="truncate" :title="task.error || task.instruction">{{ task.error || task.instruction || 'Default parsing' }}</td>
+                <td class="truncate" :title="task.fromPath || ''">{{ task.fromPath ? outputName(task.fromPath) : 'Direct' }}</td>
+                <td class="truncate" :title="task.outputPath || ''">{{ task.outputPath ? outputName(task.outputPath) : '—' }}</td>
+                <td>{{ formatTime(task.createdAt) }}</td>
+                <td>
+                  <div class="task-actions">
+                    <button v-if="task.status === 'queued'" type="button" class="action-btn" :disabled="enrichStore.isTaskRunning(task.id)" @click="runTask(task.id)">Run</button>
+                    <button v-if="task.status === 'failed'" type="button" class="action-btn" :disabled="enrichStore.isTaskRunning(task.id)" @click="retryTask(task.id)">Retry</button>
+                    <button v-if="task.outputPath" type="button" class="action-btn" @click="openResult(task.outputPath)">Open Result</button>
+                    <button v-if="task.outputPath" type="button" class="action-btn" @click="copyMarkdown(task.outputPath)">Copy Markdown</button>
+                    <button v-if="task.outputPath" type="button" class="action-btn" :disabled="!selectedWorkspaceId" @click="saveAsArticle(task)">Save as Article</button>
+                    <button type="button" class="action-btn danger" @click="deleteTask(task.id)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
+
+      <footer class="enrich-footer">
+        <span>{{ enrichStore.tasks.length }} tasks</span>
+        <span class="running">{{ statusCounts.running }} running</span>
+        <span class="success">{{ statusCounts.succeeded }} success</span>
+        <span class="failed">{{ statusCounts.failed }} failed</span>
+        <span class="output-path">outputs: ~/ai-inbox/enrich/outputs</span>
+      </footer>
     </main>
   </div>
 </template>
@@ -134,7 +113,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { NButton, NInput, NSelect, NTag, useMessage } from 'naive-ui'
+import { NButton, NInput, NSelect, useMessage } from 'naive-ui'
 import AppSidebar from '../components/AppSidebar.vue'
 import { useEnrichStore } from '../stores/enrich'
 import { useWorkspaceStore } from '../stores/workspace'
@@ -158,6 +137,16 @@ const userWorkspaceOptions = computed(() =>
       value: workspace.id,
     }))
 )
+
+const statusCounts = computed(() => enrichStore.tasks.reduce((counts, task) => {
+  counts[task.status] += 1
+  return counts
+}, {
+  queued: 0,
+  running: 0,
+  succeeded: 0,
+  failed: 0,
+} as Record<V2EnrichTaskStatus, number>))
 
 watch(userWorkspaceOptions, (options) => {
   if (!selectedWorkspaceId.value && options.length) {
@@ -260,11 +249,10 @@ async function saveAsArticle(task: V2EnrichTask) {
   }
 }
 
-function statusType(status: V2EnrichTaskStatus) {
-  if (status === 'succeeded') return 'success'
-  if (status === 'failed') return 'error'
-  if (status === 'running') return 'warning'
-  return 'default'
+function statusLabel(status: V2EnrichTaskStatus) {
+  if (status === 'succeeded') return 'Success'
+  if (status === 'failed') return 'Failed'
+  return status[0].toUpperCase() + status.slice(1)
 }
 
 function formatTime(value: string) {
@@ -307,70 +295,124 @@ function defaultArticleFilename(task: V2EnrichTask) {
   flex: 1;
   min-width: 0;
   height: 100vh;
-  overflow: auto;
-  padding: 28px 32px 40px;
+  overflow: hidden;
+  padding: 0 18px;
+  display: grid;
+  grid-template-rows: 44px 184px 42px minmax(0, 1fr) 28px;
+  background: var(--bg-primary);
 }
 
 .enrich-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  min-width: 0;
 }
 
 .enrich-header h1 {
   margin: 0;
   color: var(--text-primary);
   font-family: var(--font-display);
-  font-size: var(--text-2xl);
+  font-size: 22px;
+  font-weight: 680;
   line-height: 1.2;
 }
 
-.enrich-header p {
-  margin: 6px 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
-
 .task-composer,
-.task-row,
 .empty-panel {
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(42, 37, 24, 0.1);
   background: var(--surface-panel);
-  box-shadow: var(--shadow-panel);
+  box-shadow: 0 10px 26px rgba(40, 32, 16, 0.04);
 }
 
 .task-composer {
-  border-radius: 8px;
-  padding: 18px;
-  margin-bottom: 16px;
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  min-height: 0;
 }
 
-.composer-grid {
+.composer-fields {
   display: grid;
-  grid-template-columns: minmax(260px, 0.95fr) minmax(320px, 1.2fr);
-  gap: 14px;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  gap: 12px;
+  min-height: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  min-width: 0;
 }
 
 .field span,
 .workspace-picker span {
   color: var(--text-muted);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.url-input :deep(.n-input-wrapper) {
+  min-height: 36px;
+}
+
+.instruction-input :deep(.n-input-wrapper) {
+  min-height: 88px;
+  align-items: stretch;
+}
+
+.instruction-input :deep(textarea) {
+  min-height: 88px !important;
+  resize: none;
 }
 
 .composer-actions {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-tabs {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(66, 60, 44, 0.12);
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fffefa;
+}
+
+.platform-tab {
+  height: 32px;
+  border: 0;
+  border-right: 1px solid rgba(66, 60, 44, 0.1);
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0 11px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.platform-tab:last-child {
+  border-right: 0;
+}
+
+.platform-tab.active {
+  background: rgba(42, 37, 24, 0.06);
+  color: var(--text-primary);
+  font-weight: 620;
+}
+
+.platform-tab:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
 }
 
 .task-toolbar {
@@ -378,12 +420,13 @@ function defaultArticleFilename(task: V2EnrichTask) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin: 10px 0;
+  min-height: 42px;
 }
 
 .task-count {
-  color: var(--text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .workspace-picker {
@@ -395,100 +438,238 @@ function defaultArticleFilename(task: V2EnrichTask) {
 }
 
 .task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(42, 37, 24, 0.1);
+  border-radius: 12px;
+  background: var(--surface-panel);
 }
 
 .empty-panel {
-  border-radius: 8px;
+  height: 100%;
+  border: 0;
+  box-shadow: none;
   padding: 30px;
   color: var(--text-muted);
   text-align: center;
 }
 
-.task-row {
-  border-radius: 8px;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
+.task-table-wrap {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 
-.task-main {
-  min-width: 0;
+.task-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
 }
 
-.task-title-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
+.task-table th,
+.task-table td {
+  height: 32px;
+  padding: 0 8px;
+  border-bottom: 1px solid rgba(42, 37, 24, 0.06);
+  text-align: left;
+  vertical-align: middle;
+  color: var(--text-secondary);
 }
 
-.task-title-line h2 {
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  color: var(--text-primary);
-  font-size: var(--text-base);
+.task-table th {
+  color: var(--text-muted);
+  font-size: 11.5px;
   font-weight: 650;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.task-table tbody tr:hover {
+  background: rgba(42, 37, 24, 0.035);
+}
+
+.task-table th:nth-child(1),
+.task-table td:nth-child(1) {
+  width: 40px;
+}
+
+.task-table th:nth-child(2),
+.task-table td:nth-child(2) {
+  width: 90px;
+}
+
+.task-table th:nth-child(5),
+.task-table td:nth-child(5) {
+  width: 120px;
+}
+
+.task-table th:nth-child(6),
+.task-table td:nth-child(6) {
+  width: 140px;
+}
+
+.task-table th:nth-child(7),
+.task-table td:nth-child(7) {
+  width: 116px;
+}
+
+.task-table th:nth-child(8),
+.task-table td:nth-child(8) {
+  width: 340px;
 }
 
 .task-url {
   display: block;
-  width: fit-content;
-  max-width: 100%;
-  margin-top: 8px;
   overflow: hidden;
   color: var(--text-link);
-  font-size: var(--text-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.task-instruction,
-.task-error {
-  margin: 10px 0 0;
-  color: var(--text-body);
-  font-size: var(--text-sm);
-  line-height: 1.55;
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.task-error {
-  color: var(--color-danger-text);
+.status-pill {
+  min-width: 64px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 650;
+  background: rgba(42, 37, 24, 0.06);
+  color: var(--text-secondary);
 }
 
-.task-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-  color: var(--text-tertiary);
-  font-size: var(--text-xs);
+.status-pill[data-status='running'] {
+  background: rgba(31, 111, 235, 0.08);
+  color: #1f6feb;
+}
+
+.status-pill[data-status='succeeded'] {
+  background: rgba(76, 175, 90, 0.1);
+  color: #2e7d32;
+}
+
+.status-pill[data-status='failed'] {
+  background: rgba(182, 91, 91, 0.1);
+  color: #b65b5b;
 }
 
 .task-actions {
-  width: 154px;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.action-btn {
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0 5px;
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: rgba(42, 37, 24, 0.055);
+  color: var(--text-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.danger {
+  color: #b65b5b;
+}
+
+.action-btn.danger:hover {
+  background: rgba(182, 91, 91, 0.08);
+  color: #9f4343;
+}
+
+.enrich-footer {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 2px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+.enrich-footer .running {
+  color: #1f6feb;
+}
+
+.enrich-footer .success {
+  color: #2e7d32;
+}
+
+.enrich-footer .failed {
+  color: #b65b5b;
+}
+
+.output-path {
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1080px) {
-  .composer-grid,
-  .task-row {
+  .enrich-page {
+    overflow: auto;
+    grid-template-rows: auto;
+    padding: 0 10px 14px;
+  }
+
+  .composer-fields {
     grid-template-columns: 1fr;
   }
 
-  .task-actions {
-    width: auto;
-    flex-direction: row;
+  .task-composer {
+    min-height: 260px;
+  }
+
+  .composer-actions {
     flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .platform-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .workspace-picker {
+    width: min(190px, 48vw);
+  }
+
+  .task-toolbar {
+    gap: 8px;
+  }
+
+  .task-list {
+    min-height: 360px;
+    overflow-x: auto;
+  }
+
+  .task-table {
+    min-width: 980px;
   }
 }
 </style>

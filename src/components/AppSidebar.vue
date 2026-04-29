@@ -1,6 +1,10 @@
 <template>
   <aside class="app-sidebar">
-    <div class="traffic-light-space" aria-hidden="true"></div>
+    <div class="traffic-light-space" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
     <nav class="primary-nav" aria-label="Primary">
       <button
@@ -77,6 +81,16 @@
         </div>
       </div>
     </section>
+
+    <footer class="sidebar-footer">
+      <button type="button" class="settings-link" title="Settings" @click="router.push('/settings')">
+        <n-icon><SettingsOutline /></n-icon>
+      </button>
+      <div class="ai-ready" aria-label="AI Ready">
+        <span class="status-dot"></span>
+        <span>AI Ready</span>
+      </div>
+    </footer>
   </aside>
 </template>
 
@@ -90,6 +104,7 @@ import {
   DocumentTextOutline,
   FileTrayFullOutline,
   FolderOutline,
+  SettingsOutline,
   SparklesOutline,
 } from '@vicons/ionicons5'
 import AppSidebarTree from './AppSidebarTree.vue'
@@ -245,29 +260,53 @@ watch(activeWorkspacePath, (path) => {
 
 <style scoped>
 .app-sidebar {
-  width: 252px;
-  flex: 0 0 252px;
+  width: 228px;
+  flex: 0 0 228px;
   height: 100vh;
   min-height: 0;
-  border-right: 1px solid var(--border-strong);
-  background: var(--surface-panel);
+  border-right: 1px solid rgba(42, 37, 24, 0.1);
+  background: #f8f7f1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color: var(--text-primary);
 }
 
 .traffic-light-space {
-  height: 52px;
-  flex: 0 0 52px;
+  height: 48px;
+  flex: 0 0 48px;
   -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+}
+
+.traffic-light-space span {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.traffic-light-space span:nth-child(1) {
+  background: #ff5f57;
+}
+
+.traffic-light-space span:nth-child(2) {
+  background: #ffbd2e;
+}
+
+.traffic-light-space span:nth-child(3) {
+  background: #28c840;
 }
 
 .primary-nav {
-  padding: 0 12px 14px;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 0 12px 12px;
+  border-bottom: 1px solid rgba(42, 37, 24, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .primary-nav-item,
@@ -280,7 +319,7 @@ watch(activeWorkspacePath, (path) => {
 }
 
 .primary-nav-item {
-  height: 36px;
+  height: 34px;
   border-radius: 8px;
   background: transparent;
   color: var(--text-secondary);
@@ -289,13 +328,18 @@ watch(activeWorkspacePath, (path) => {
   gap: 10px;
   padding: 0 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 560;
   cursor: pointer;
 }
 
-.primary-nav-item:hover,
+.primary-nav-item:hover {
+  background: rgba(42, 37, 24, 0.045);
+  color: var(--text-primary);
+}
+
 .primary-nav-item.active {
-  background: var(--surface-control-hover);
+  background: #efede4;
+  box-shadow: inset 0 0 0 1px rgba(42, 37, 24, 0.04);
   color: var(--text-primary);
 }
 
@@ -309,11 +353,11 @@ watch(activeWorkspacePath, (path) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 10px;
+  padding: 12px 10px 8px;
 }
 
 .workspace-header {
-  height: 30px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -321,15 +365,15 @@ watch(activeWorkspacePath, (path) => {
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .icon-button,
 .workspace-action,
 .remove-workspace {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
@@ -342,7 +386,7 @@ watch(activeWorkspacePath, (path) => {
 .icon-button:hover,
 .workspace-action:hover,
 .remove-workspace:hover {
-  background: var(--surface-control-hover);
+  background: rgba(42, 37, 24, 0.055);
   color: var(--text-primary);
 }
 
@@ -350,7 +394,7 @@ watch(activeWorkspacePath, (path) => {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 4px 2px 24px;
+  padding: 2px 2px 10px;
 }
 
 .workspace-status,
@@ -365,7 +409,7 @@ watch(activeWorkspacePath, (path) => {
 }
 
 .workspace-block {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .workspace-title-row {
@@ -377,7 +421,7 @@ watch(activeWorkspacePath, (path) => {
 .workspace-title {
   flex: 1;
   min-width: 0;
-  height: 30px;
+  height: 28px;
   border-radius: 8px;
   background: transparent;
   color: var(--text-primary);
@@ -386,7 +430,7 @@ watch(activeWorkspacePath, (path) => {
   gap: 8px;
   padding: 0 8px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 620;
 }
 
 .workspace-title span {
@@ -394,5 +438,96 @@ watch(activeWorkspacePath, (path) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar-footer {
+  flex: 0 0 42px;
+  position: relative;
+  border-top: 1px solid rgba(42, 37, 24, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: rgba(248, 247, 241, 0.92);
+}
+
+.settings-link {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.settings-link:hover {
+  background: rgba(42, 37, 24, 0.055);
+  color: var(--text-primary);
+}
+
+.ai-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #4caf5a;
+  box-shadow: 0 0 0 3px rgba(76, 175, 90, 0.1);
+}
+
+@media (max-width: 720px) {
+  .app-sidebar {
+    width: 64px;
+    flex-basis: 64px;
+  }
+
+  .traffic-light-space {
+    height: 42px;
+    flex-basis: 42px;
+    gap: 5px;
+    padding: 0 10px;
+  }
+
+  .traffic-light-space span {
+    width: 9px;
+    height: 9px;
+  }
+
+  .primary-nav {
+    padding: 0 8px 10px;
+  }
+
+  .primary-nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .primary-nav-item span,
+  .workspace-section,
+  .ai-ready span {
+    display: none;
+  }
+
+  .sidebar-footer {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .ai-ready {
+    position: absolute;
+    bottom: 12px;
+    right: 8px;
+  }
 }
 </style>

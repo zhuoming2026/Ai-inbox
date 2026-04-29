@@ -86,11 +86,11 @@ function isCollapsed(path: string) {
 }
 
 .workspace-tree .workspace-tree {
-  padding-left: 14px;
+  padding-left: 12px;
 }
 
 .workspace-tree-item {
-  margin: 2px 0;
+  margin: 1px 0;
   position: relative;
 }
 
@@ -103,8 +103,8 @@ function isCollapsed(path: string) {
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
+  gap: 7px;
+  padding: 0 8px;
   font: inherit;
   font-size: 12px;
   text-align: left;
@@ -119,9 +119,14 @@ function isCollapsed(path: string) {
 }
 
 .tree-file:hover,
-.tree-file.active,
 .tree-folder-button:hover {
-  background: var(--surface-control-hover);
+  background: rgba(42, 37, 24, 0.045);
+  color: var(--text-primary);
+}
+
+.tree-file.active {
+  background: #efede4;
+  box-shadow: inset 0 0 0 1px rgba(42, 37, 24, 0.04);
   color: var(--text-primary);
 }
 
@@ -133,7 +138,7 @@ function isCollapsed(path: string) {
   align-items: center;
   gap: 2px;
   padding-left: 16px;
-  background: linear-gradient(90deg, transparent, var(--surface-panel) 28%);
+  background: linear-gradient(90deg, transparent, #f8f7f1 28%);
 }
 
 .workspace-tree-item:hover > .tree-actions,
@@ -142,8 +147,8 @@ function isCollapsed(path: string) {
 }
 
 .tree-action {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: 0;
   border-radius: 7px;
   background: transparent;
@@ -155,7 +160,7 @@ function isCollapsed(path: string) {
 }
 
 .tree-action:hover {
-  background: var(--surface-control-hover);
+  background: rgba(42, 37, 24, 0.055);
   color: var(--text-primary);
 }
 
@@ -165,7 +170,7 @@ function isCollapsed(path: string) {
 
 .tree-node-icon {
   flex: 0 0 auto;
-  font-size: 15px;
+  font-size: 14px;
   opacity: 0.72;
 }
 

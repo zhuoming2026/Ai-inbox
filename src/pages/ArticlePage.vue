@@ -9,16 +9,16 @@
             <n-icon><ArrowBackOutline /></n-icon>
           </button>
 
-          <div class="header-meta">
-            <h1 class="header-title">{{ documentTitle }}</h1>
+          <div class="header-meta" :title="workspaceFilePath || documentTitle">
+            <span class="document-chip">{{ documentTitle }}</span>
           </div>
         </div>
 
         <div class="header-actions">
           <span class="save-indicator" :data-state="saveState">{{ saveIndicatorLabel }}</span>
 
-          <n-button round tertiary :disabled="!isDirty || saveState === 'saving'" @click="saveNow(false)">
-            保存
+          <n-button size="small" secondary :disabled="!isDirty || saveState === 'saving'" @click="saveNow(false)">
+            Save
           </n-button>
 
           <n-button
@@ -822,35 +822,40 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  min-height: 76px;
-  padding: 14px var(--space-8);
-  border-bottom: 1px solid var(--app-header-border);
-  background: var(--app-header-bg);
-  backdrop-filter: blur(18px);
+  gap: 10px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border-bottom: 1px solid rgba(42, 37, 24, 0.1);
+  background: rgba(250, 249, 246, 0.92);
+  backdrop-filter: blur(14px);
   flex-shrink: 0;
 }
 
 .header-main {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 8px;
   min-width: 0;
 }
 
 .header-meta {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   min-width: 0;
 }
 
-.header-title {
-  margin: 0;
-  font-size: 1.2rem;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  max-width: 100%;
+.document-chip {
+  height: 28px;
+  max-width: min(240px, 34vw);
+  border-radius: 8px;
+  border: 1px solid rgba(66, 60, 44, 0.12);
+  background: rgba(255, 254, 250, 0.78);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -859,7 +864,7 @@ onUnmounted(() => {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -929,11 +934,11 @@ onUnmounted(() => {
 
 .back-btn {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border-control);
-  background: var(--surface-control);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(66, 60, 44, 0.12);
+  background: rgba(255, 254, 250, 0.78);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -954,14 +959,14 @@ onUnmounted(() => {
 }
 
 .article-status-bar {
-  min-height: 28px;
-  flex: 0 0 28px;
+  min-height: 26px;
+  flex: 0 0 26px;
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 0 18px;
-  border-top: 1px solid var(--border-soft);
-  background: var(--app-header-bg);
+  padding: 0 14px;
+  border-top: 1px solid rgba(42, 37, 24, 0.1);
+  background: rgba(250, 249, 246, 0.92);
   color: var(--text-tertiary);
   font-size: 11.5px;
   line-height: 1;
@@ -985,7 +990,7 @@ onUnmounted(() => {
   min-height: 0;
   display: flex;
   height: 100%;
-  padding: 18px 22px 22px;
+  padding: 0;
 }
 
 .editor-shell {
@@ -994,6 +999,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   position: relative;
+  background: #fffefa;
 }
 
 .notice {
@@ -1156,17 +1162,17 @@ onUnmounted(() => {
 }
 
 .theme-btn {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border-control);
-  background: var(--surface-control);
+  background: rgba(255, 254, 250, 0.78);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--text-body);
-  border-radius: 999px;
+  border-radius: 8px;
   transition: all var(--transition-base);
 }
 
