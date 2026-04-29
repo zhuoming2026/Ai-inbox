@@ -5,6 +5,11 @@ declare module '*.vue' {
 }
 
 import type { InboxDocument } from './shared/inbox-document'
+import type {
+  V2EnrichCreateTaskInput,
+  V2EnrichSaveAsArticleInput,
+  V2EnrichTask,
+} from './shared/v2-enrich'
 import type { V2CaptureResult, V2InboxCard } from './shared/v2-types'
 import type {
   WorkspaceAddInput,
@@ -51,6 +56,15 @@ interface ElectronAPI {
     createFile(input: WorkspaceCreateFileInput): Promise<WorkspaceFileMutationResult>
     renameFile(input: WorkspaceRenameFileInput): Promise<WorkspaceFileMutationResult>
     deleteFile(path: string): Promise<void>
+  }
+  enrich: {
+    listTasks(): Promise<V2EnrichTask[]>
+    createTask(input: V2EnrichCreateTaskInput): Promise<V2EnrichTask>
+    runTask(id: string): Promise<V2EnrichTask>
+    retryTask(id: string): Promise<V2EnrichTask>
+    deleteTask(id: string): Promise<void>
+    readOutput(path: string): Promise<string | null>
+    saveAsArticle(input: V2EnrichSaveAsArticleInput): Promise<WorkspaceFileMutationResult>
   }
   processInput(type: string, content: string): Promise<V2CaptureResult | { slug: string; enrichStatus: string; documentType: string }>
   enrichFile(slug: string): Promise<{ ok: boolean }>

@@ -150,6 +150,35 @@ function createBrowserElectronApi(): BrowserElectronApi {
           body: JSON.stringify({ path }),
         }),
     },
+    enrich: {
+      listTasks: () => request('/__dev_api/v2/enrich/tasks'),
+      createTask: (input) =>
+        request('/__dev_api/v2/enrich/tasks', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      runTask: (id: string) =>
+        request(`/__dev_api/v2/enrich/tasks/${encodeURIComponent(id)}/run`, {
+          method: 'POST',
+        }),
+      retryTask: (id: string) =>
+        request(`/__dev_api/v2/enrich/tasks/${encodeURIComponent(id)}/retry`, {
+          method: 'POST',
+        }),
+      deleteTask: (id: string) =>
+        request(`/__dev_api/v2/enrich/tasks/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        }),
+      readOutput: async (path: string) => {
+        const data = await request<{ raw: string | null }>(`/__dev_api/v2/enrich/output?path=${encodeURIComponent(path)}`)
+        return data.raw
+      },
+      saveAsArticle: (input) =>
+        request('/__dev_api/v2/enrich/save-as-article', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    },
     processInput: (type: string, content: string) =>
       request('/__dev_api/process-input', {
         method: 'POST',

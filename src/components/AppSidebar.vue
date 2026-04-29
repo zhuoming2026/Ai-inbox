@@ -12,7 +12,12 @@
         <n-icon><FileTrayFullOutline /></n-icon>
         <span>Inbox</span>
       </button>
-      <button type="button" class="primary-nav-item" disabled>
+      <button
+        type="button"
+        class="primary-nav-item"
+        :class="{ active: route.name === 'ai-enrich' }"
+        @click="router.push('/ai-enrich')"
+      >
         <n-icon><SparklesOutline /></n-icon>
         <span>AI Enrich</span>
       </button>

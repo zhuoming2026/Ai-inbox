@@ -20,6 +20,18 @@ import {
   extractMarkdownCardTitle,
   extractMarkdownPreview,
 } from './src/shared/v2-markdown'
+import {
+  buildGenericEnrichMarkdown,
+  createEmptyV2EnrichTaskFile,
+  createSafeEnrichOutputFilename,
+  normalizeV2EnrichCreateTaskInput,
+  normalizeV2EnrichTaskFile,
+  type V2EnrichCreateTaskInput,
+  type V2EnrichGenericContent,
+  type V2EnrichSaveAsArticleInput,
+  type V2EnrichTask,
+  type V2EnrichTaskFile,
+} from './src/shared/v2-enrich'
 import type { CardMetadataFile, V2CardKind, V2InboxCard } from './src/shared/v2-types'
 import type {
   WorkspaceAddInput,
@@ -112,6 +124,14 @@ function getCardsMetadataPath(): string {
 
 function getEnrichOutputsPath(): string {
   return join(getAiInboxRoot(), 'enrich', 'outputs')
+}
+
+function getEnrichPath(): string {
+  return join(getAiInboxRoot(), 'enrich')
+}
+
+function getEnrichTasksPath(): string {
+  return join(getEnrichPath(), 'tasks.json')
 }
 
 function createBuiltinWorkspaces(): WorkspaceConfig[] {
@@ -382,9 +402,208 @@ function ensureDir(dirPath: string) {
 }
 
 function ensureV2Directories() {
-  for (const dirPath of [getAiInboxRoot(), getV2InboxPath(), getMetadataPath(), getEnrichOutputsPath()]) {
+  for (const dirPath of [getAiInboxRoot(), getV2InboxPath(), getMetadataPath(), getEnrichPath(), getEnrichOutputsPath()]) {
     ensureDir(dirPath)
   }
+}
+
+function readEnrichTaskFile(): V2EnrichTaskFile {
+  ensureV2Directories()
+  const filepath = getEnrichTasksPath()
+  if (!fs.existsSync(filepath)) return createEmptyV2EnrichTaskFile()
+  try {
+    return normalizeV2EnrichTaskFile(JSON.parse(fs.readFileSync(filepath, 'utf-8')))
+  } catch {
+    return createEmptyV2EnrichTaskFile()
+  }
+}
+
+function writeEnrichTaskFile(file: V2EnrichTaskFile) {
+  ensureV2Directories()
+  fs.writeFileSync(getEnrichTasksPath(), JSON.stringify(file, null, 2), 'utf-8')
+}
+
+function listEnrichTasks(): V2EnrichTask[] {
+  return readEnrichTaskFile().tasks.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+function createEnrichTask(input: V2EnrichCreateTaskInput): V2EnrichTask {
+  const normalized = normalizeV2EnrichCreateTaskInput(input)
+  const now = new Date().toISOString()
+  const task: V2EnrichTask = {
+    id: `enrich:${randomUUID()}`,
+    url: normalized.url,
+    instruction: normalized.instruction,
+    platform: 'generic',
+    status: 'queued',
+    createdAt: now,
+    updatedAt: now,
+    fromPath: normalized.fromPath,
+  }
+  const file = readEnrichTaskFile()
+  file.tasks.unshift(task)
+  writeEnrichTaskFile(file)
+  return task
+}
+
+function updateEnrichTask(id: string, updater: (task: V2EnrichTask) => V2EnrichTask): V2EnrichTask {
+  const file = readEnrichTaskFile()
+  const index = file.tasks.findIndex((task) => task.id === id)
+  if (index < 0) throw new Error('任务不存在')
+  const nextTask = updater(file.tasks[index])
+  file.tasks[index] = nextTask
+  writeEnrichTaskFile(file)
+  return nextTask
+}
+
+async function fetchGenericLinkContent(task: V2EnrichTask): Promise<V2EnrichGenericContent> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 15000)
+  try {
+    const response = await fetch(task.url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'AI-inbox/1.0 GenericLinkEnrich',
+        Accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
+      },
+    })
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`)
+    const html = await response.text()
+    const title = extractHtmlTitle(html) || new URL(task.url).hostname
+    const description = extractMetaDescription(html)
+    const text = htmlToReadableText(html)
+    const excerpt = text.slice(0, 2400)
+    return {
+      title,
+      sourceUrl: task.url,
+      createdAt: new Date().toISOString(),
+      instruction: task.instruction,
+      summary: description || excerpt.slice(0, 900) || `Fetched ${task.url}`,
+      excerpt,
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function extractHtmlTitle(html: string) {
+  const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+  return match ? decodeHtmlEntities(match[1]).trim().replace(/\s+/g, ' ') : ''
+}
+
+function extractMetaDescription(html: string) {
+  const match = html.match(/<meta\s+[^>]*(?:name|property)=["'](?:description|og:description)["'][^>]*content=["']([^"']+)["'][^>]*>/i)
+    || html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*(?:name|property)=["'](?:description|og:description)["'][^>]*>/i)
+  return match ? decodeHtmlEntities(match[1]).trim().replace(/\s+/g, ' ') : ''
+}
+
+function htmlToReadableText(html: string) {
+  return decodeHtmlEntities(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|section|article|li|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function decodeHtmlEntities(text: string) {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+}
+
+async function runEnrichTask(id: string): Promise<V2EnrichTask> {
+  const startedAt = new Date().toISOString()
+  const runningTask = updateEnrichTask(id, (task) => ({
+    ...task,
+    status: 'running',
+    startedAt,
+    updatedAt: startedAt,
+    error: undefined,
+  }))
+
+  try {
+    const content = await fetchGenericLinkContent(runningTask)
+    const markdown = buildGenericEnrichMarkdown(content)
+    let filename = createSafeEnrichOutputFilename(content.title, content.createdAt)
+    let outputPath = join(getEnrichOutputsPath(), filename)
+    let suffix = 1
+    while (fs.existsSync(outputPath)) {
+      filename = filename.replace(/\.md$/i, `-${suffix}.md`)
+      outputPath = join(getEnrichOutputsPath(), filename)
+      suffix += 1
+    }
+    fs.writeFileSync(outputPath, markdown, 'utf-8')
+    const finishedAt = new Date().toISOString()
+    return updateEnrichTask(id, (task) => ({
+      ...task,
+      status: 'succeeded',
+      updatedAt: finishedAt,
+      finishedAt,
+      error: undefined,
+      outputPath,
+      outputTitle: content.title,
+    }))
+  } catch (error) {
+    const finishedAt = new Date().toISOString()
+    const message = error instanceof Error ? error.message : 'Generic link enrich failed'
+    return updateEnrichTask(id, (task) => ({
+      ...task,
+      status: 'failed',
+      updatedAt: finishedAt,
+      finishedAt,
+      error: message,
+    }))
+  }
+}
+
+function retryEnrichTask(id: string) {
+  updateEnrichTask(id, (task) => ({
+    ...task,
+    status: 'queued',
+    updatedAt: new Date().toISOString(),
+    startedAt: undefined,
+    finishedAt: undefined,
+    error: undefined,
+  }))
+  return runEnrichTask(id)
+}
+
+function deleteEnrichTask(id: string) {
+  const file = readEnrichTaskFile()
+  const nextTasks = file.tasks.filter((task) => task.id !== id)
+  if (nextTasks.length === file.tasks.length) throw new Error('任务不存在')
+  writeEnrichTaskFile({ ...file, tasks: nextTasks })
+}
+
+function readEnrichOutput(filepath: string) {
+  const resolvedPath = resolve(filepath)
+  if (!isPathInside(getEnrichOutputsPath(), resolvedPath) || !isSafeMarkdownFile(resolvedPath)) {
+    throw new Error('文件不属于 Enrich Output')
+  }
+  if (!fs.existsSync(resolvedPath)) return null
+  return fs.readFileSync(resolvedPath, 'utf-8')
+}
+
+function saveEnrichOutputAsArticle(input: V2EnrichSaveAsArticleInput): WorkspaceFileMutationResult {
+  const raw = readEnrichOutput(input.outputPath)
+  if (typeof raw !== 'string') throw new Error('输出文件不存在')
+  const result = createWorkspaceMarkdownFile({
+    workspaceId: input.workspaceId,
+    filename: input.filename,
+  })
+  fs.writeFileSync(result.path, raw, 'utf-8')
+  return result
 }
 
 function readCardMetadataFile(): CardMetadataFile {
@@ -847,6 +1066,67 @@ function devInboxPlugin(): Plugin {
             sendJson(res, 200, { ok: true })
           } catch (error) {
             sendJson(res, 400, { error: error instanceof Error ? error.message : 'Workspace 移除失败' })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/v2/enrich/tasks' && req.method === 'GET') {
+          sendJson(res, 200, listEnrichTasks())
+          return
+        }
+
+        if (url === '/__dev_api/v2/enrich/tasks' && req.method === 'POST') {
+          try {
+            const task = createEnrichTask((await readJsonBody(req)) as V2EnrichCreateTaskInput)
+            sendJson(res, 200, task)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '任务创建失败' })
+          }
+          return
+        }
+
+        const v2EnrichTaskMatch = url.match(/^\/__dev_api\/v2\/enrich\/tasks\/([^/]+)\/(run|retry)$/)
+        if (v2EnrichTaskMatch && req.method === 'POST') {
+          try {
+            const id = decodeURIComponent(v2EnrichTaskMatch[1])
+            const action = v2EnrichTaskMatch[2]
+            const task = action === 'retry' ? await retryEnrichTask(id) : await runEnrichTask(id)
+            refreshWatcher()
+            sendJson(res, 200, task)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '任务执行失败' })
+          }
+          return
+        }
+
+        const v2EnrichTaskDeleteMatch = url.match(/^\/__dev_api\/v2\/enrich\/tasks\/([^/]+)$/)
+        if (v2EnrichTaskDeleteMatch && req.method === 'DELETE') {
+          try {
+            deleteEnrichTask(decodeURIComponent(v2EnrichTaskDeleteMatch[1]))
+            sendJson(res, 200, { ok: true })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '任务删除失败' })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/v2/enrich/output' && req.method === 'GET') {
+          try {
+            const raw = readEnrichOutput(parsedUrl.searchParams.get('path') || '')
+            sendJson(res, raw === null ? 404 : 200, raw === null ? { error: 'File not found' } : { raw })
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '输出读取失败' })
+          }
+          return
+        }
+
+        if (url === '/__dev_api/v2/enrich/save-as-article' && req.method === 'POST') {
+          try {
+            const result = saveEnrichOutputAsArticle((await readJsonBody(req)) as V2EnrichSaveAsArticleInput)
+            refreshWatcher()
+            sendJson(res, 200, result)
+          } catch (error) {
+            sendJson(res, 400, { error: error instanceof Error ? error.message : '保存文章失败' })
           }
           return
         }

@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
 import ArticlePage from '@/pages/ArticlePage.vue'
+import AiEnrichPage from '@/pages/AiEnrichPage.vue'
 import SettingsPage from '@/pages/SettingsPage.vue'
 import DemoNaivePage from '@/pages/DemoNaivePage.vue'
 
@@ -8,6 +9,7 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', name: 'home', component: HomePage },
+    { path: '/ai-enrich', name: 'ai-enrich', component: AiEnrichPage },
     { path: '/article/:slug', name: 'article', component: ArticlePage },
     { path: '/article-path/:encodedPath', name: 'article-path', component: ArticlePage },
     { path: '/settings', name: 'settings', component: SettingsPage },

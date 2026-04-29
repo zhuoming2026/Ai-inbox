@@ -37,6 +37,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('workspace:rename-file', input),
     deleteFile: (path: string) => ipcRenderer.invoke('workspace:delete-file', path),
   },
+  enrich: {
+    listTasks: () => ipcRenderer.invoke('v2:enrich:list'),
+    createTask: (input: { url: string; instruction: string; fromPath?: string }) =>
+      ipcRenderer.invoke('v2:enrich:create', input),
+    runTask: (id: string) => ipcRenderer.invoke('v2:enrich:run', id),
+    retryTask: (id: string) => ipcRenderer.invoke('v2:enrich:retry', id),
+    deleteTask: (id: string) => ipcRenderer.invoke('v2:enrich:delete', id),
+    readOutput: (path: string) => ipcRenderer.invoke('v2:enrich:read-output', path),
+    saveAsArticle: (input: { outputPath: string; workspaceId: string; filename: string }) =>
+      ipcRenderer.invoke('v2:enrich:save-as-article', input),
+  },
 
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:get'),
