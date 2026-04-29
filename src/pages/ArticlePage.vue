@@ -178,7 +178,7 @@ import {
   useMessage,
   type GlobalThemeOverrides,
 } from 'naive-ui'
-import { ArrowBackOutline, ColorPaletteOutline, SparklesOutline } from '@vicons/ionicons5'
+import { ColorPaletteOutline, SparklesOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 import AppSidebar from '../components/AppSidebar.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'

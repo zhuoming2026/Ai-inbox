@@ -460,7 +460,7 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import { NIcon, useMessage } from 'naive-ui'
+import { useMessage } from 'naive-ui'
 import { useTheme } from '../composables/useTheme'
 import { useImportedThemes } from '../composables/useImportedThemes'
 import {
