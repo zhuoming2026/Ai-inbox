@@ -165,7 +165,6 @@ import {
   getAiTitle,
   getContentTitle,
   getDocumentBucket,
-  getTitleSource,
   parseFrontmatter,
   splitRawDocument,
   syncFrontmatterBucket,
@@ -423,7 +422,7 @@ function syncBodyH1ToFrontmatter() {
   const existingAiTitle = getAiTitle(frontmatter)
 
   if (h1 !== existingContentTitle) {
-    const updated = { ...frontmatter, contentTitle: h1 }
+    const updated: InboxFrontmatter = { ...frontmatter, contentTitle: h1 }
     if (!existingAiTitle) {
       updated.title = h1
       updated.titleSource = 'content'
