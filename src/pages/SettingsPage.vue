@@ -88,7 +88,7 @@
                   <select class="form-input preset-header-select" v-model="selectedPreset" @change="applySelectedTheme">
                     <option v-for="preset in editablePresets" :key="`header-${preset.id}`" :value="preset.id">{{ preset.label }}</option>
                   </select>
-                  <button class="btn-copy" type="button" @click="triggerAppearanceImport">导入</button>
+                  <button class="btn-copy" type="button" @click="triggerAppearanceImport">导入 DesignMD</button>
                   <button class="btn-copy" type="button" @click="copyAppearanceTheme">复制</button>
                   <button class="btn-copy" type="button" @click="handleImportTypora">Typora 导入</button>
                   <button v-if="isSelectedBaseTheme" class="btn-copy" type="button" @click="resetAppearancePreset">重置</button>
@@ -107,46 +107,11 @@
               <div class="appearance-row">
                 <span class="appearance-label">强调色</span>
                 <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.system.accent" @update:model-value="setColorToken('system.accent', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">强调色预览</span>
-                <div class="accent-preview appearance-input">
-                  <span class="accent-focus-sample">Focus</span>
-                  <span class="accent-star-sample">★</span>
-                  <span class="accent-link-sample">Link</span>
-                </div>
-              </div>
-              <div class="appearance-section-header">
-                <span class="section-label">主要按钮</span>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">按钮背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.bg" @update:model-value="setColorToken('app.actions.primary.bg', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">按钮悬停背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.bgHover" @update:model-value="setColorToken('app.actions.primary.bgHover', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">按钮文字</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.text" @update:model-value="setColorToken('app.actions.primary.text', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">按钮边框</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.actions.primary.border" @update:model-value="setColorToken('app.actions.primary.border', $event)" />
+                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.system.accent" @update:model-value="setAccentIntent" />
                 </div>
               </div>
               <div class="appearance-row preview-row">
-                <span class="appearance-label">主色预览</span>
+                <span class="appearance-label">派生预览</span>
                 <div class="primary-control-preview appearance-input">
                   <button type="button" class="preview-primary-button">Inbox</button>
                   <button type="button" class="preview-today-button">Today</button>
@@ -163,21 +128,15 @@
                 </div>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">前景</span>
+                <span class="appearance-label">文字</span>
                 <div class="color-input appearance-input">
                   <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.text.primary" @update:model-value="setColorToken('app.text.primary', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">面板色</span>
+                <span class="appearance-label">表面</span>
                 <div class="color-input appearance-input">
                   <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.surfaces.panel" @update:model-value="setColorToken('app.surfaces.panel', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">控件色</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.app.surfaces.control" @update:model-value="setColorToken('app.surfaces.control', $event)" />
                 </div>
               </div>
               <div class="appearance-row">
@@ -196,7 +155,7 @@
                 </select>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">文章正文字体</span>
+                <span class="appearance-label">正文字体</span>
                 <select class="form-input appearance-input" v-model="selectedPresetConfig.tokens.fonts.body" @change="persistAppearanceSettings(false)">
                   <option value="">跟随界面字体</option>
                   <option v-for="font in systemFonts" :key="font" :value="font">{{ font }}</option>
@@ -218,71 +177,28 @@
 
               <!-- 文章正文样式 -->
               <div class="appearance-section-header">
-                <span class="section-label">文章正文</span>
+                <span class="section-label">Markdown 阅读</span>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">标题颜色</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.article.heading" @update:model-value="setColorToken('article.heading', $event)" />
-                </div>
+                <span class="appearance-label">正文宽度</span>
+                <select class="form-input appearance-input" :value="selectedPresetConfig.tokens.article.measure" @change="setArticleMeasure(($event.target as HTMLSelectElement).value)">
+                  <option value="62ch">窄</option>
+                  <option value="70ch">舒适</option>
+                  <option value="78ch">宽</option>
+                </select>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">链接色</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.article.link" @update:model-value="setColorToken('article.link', $event)" />
-                </div>
+                <span class="appearance-label">阅读密度</span>
+                <select class="form-input appearance-input" :value="selectedPresetConfig.tokens.article.lineHeight" @change="setReadingDensity(($event.target as HTMLSelectElement).value)">
+                  <option value="1.68">紧凑</option>
+                  <option value="1.84">舒适</option>
+                  <option value="1.96">宽松</option>
+                </select>
               </div>
               <div class="appearance-row">
-                <span class="appearance-label">引用背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.blockquoteBg" @update:model-value="setColorToken('blocks.blockquoteBg', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">引用边框</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.blockquoteBorder" @update:model-value="setColorToken('blocks.blockquoteBorder', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">表格边框</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.tableBorder" @update:model-value="setColorToken('blocks.tableBorder', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">表头背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.blocks.tableHeaderBg" @update:model-value="setColorToken('blocks.tableHeaderBg', $event)" />
-                </div>
-              </div>
-
-              <!-- 代码区样式 -->
-              <div class="appearance-section-header">
-                <span class="section-label">代码区</span>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">inline 代码背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.inlineBg" @update:model-value="setColorToken('code.inlineBg', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">inline 代码文字</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.inlineText" @update:model-value="setColorToken('code.inlineText', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">代码块背景</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.blockBg" @update:model-value="setColorToken('code.blockBg', $event)" />
-                </div>
-              </div>
-              <div class="appearance-row">
-                <span class="appearance-label">代码块文字</span>
-                <div class="color-input appearance-input">
-                  <ColorField class="appearance-input" :model-value="selectedPresetConfig.tokens.code.blockText" @update:model-value="setColorToken('code.blockText', $event)" />
+                <span class="appearance-label">渲染来源</span>
+                <div class="appearance-input import-hint">
+                  <span>DesignMD 生成 App 气质；Typora CSS 精确控制 Markdown。</span>
                 </div>
               </div>
 
@@ -429,7 +345,7 @@
     <div v-if="showAppearanceImport" class="modal-mask" @click.self="closeAppearanceImport">
       <div class="modal-card">
         <div class="modal-header">
-        <h3 class="modal-title">导入主题文件</h3>
+        <h3 class="modal-title">导入 DesignMD / 主题源码</h3>
         <button class="modal-close" type="button" @click="closeAppearanceImport">×</button>
       </div>
       <label class="form-label modal-name-field">
@@ -439,7 +355,7 @@
       <textarea
         v-model="appearanceImportText"
         class="modal-textarea"
-        placeholder="粘贴 ai-inbox theme v2 JSON"
+        placeholder="粘贴 DESIGN.md，或 ai-inbox theme v2 JSON"
         rows="8"
       ></textarea>
       <div v-if="appearanceImportWarnings.length > 0" class="import-warnings">
@@ -463,6 +379,7 @@ import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, shallowR
 import { useMessage } from 'naive-ui'
 import { useTheme } from '../composables/useTheme'
 import { useImportedThemes } from '../composables/useImportedThemes'
+import { applyAccentToThemeConfig, convertDesignMdToThemeConfig } from '../shared/design-md-converter'
 import {
   defaultThemeConfigs,
   isBaseThemeId,
@@ -978,6 +895,21 @@ function setColorToken(path: string, value: string) {
   persistAppearanceSettings(false)
 }
 
+function setAccentIntent(value: string) {
+  applyAccentToThemeConfig(selectedPresetConfig.value, normalizeColorValue(value))
+  persistAppearanceSettings(false)
+}
+
+function setArticleMeasure(value: string) {
+  selectedPresetConfig.value.tokens.article.measure = value
+  persistAppearanceSettings(false)
+}
+
+function setReadingDensity(value: string) {
+  selectedPresetConfig.value.tokens.article.lineHeight = value
+  persistAppearanceSettings(false)
+}
+
 onMounted(async () => {
   const loaded = await window.electronAPI?.getSettings()
   settings.value = normalizeSettings(loaded || {})
@@ -1254,6 +1186,15 @@ function collectExtraThemeKeys(value: unknown, prefix = ''): string[] {
 
 function parseThemeImport(rawText: string, nameFallback: string) {
   const jsonText = stripThemeFileComments(rawText).replace(/^codex-theme-v[12]:\s*/, '')
+  const looksLikeDesignMd = jsonText.startsWith('---') || /^#\s+.+Design System/im.test(jsonText) || /^##\s+(?:\d+\.\s+)?(?:Color Palette|Colors)/im.test(jsonText)
+  if (looksLikeDesignMd) {
+    return convertDesignMdToThemeConfig({
+      rawText: jsonText,
+      nameFallback: appearanceImportName.value.trim() || nameFallback,
+      existingIds: Object.keys(settings.value?.customThemes || {}),
+    })
+  }
+
   const parsed = JSON.parse(jsonText)
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     throw new Error('主题文件格式错误：根节点必须是对象')
@@ -1940,6 +1881,13 @@ async function stopMcp() {
   justify-content: flex-end;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+.import-hint {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: right;
 }
 
 .accent-focus-sample,
