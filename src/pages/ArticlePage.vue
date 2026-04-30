@@ -1,12 +1,10 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <div class="article-layout">
-      <AppSidebar />
-      <div class="article-page">
-        <header class="header">
+    <div class="article-page content-page">
+      <header class="header content-navbar">
         <div class="header-main">
           <div class="header-meta" :title="workspaceFilePath || documentTitle">
-            <span class="document-chip">{{ documentTitle }}</span>
+            <span class="document-chip content-title">{{ documentTitle }}</span>
           </div>
         </div>
 
@@ -113,7 +111,7 @@
         </div>
       </header>
 
-      <main class="editor-area">
+      <main class="editor-area content-body">
         <section class="edit-panel">
           <div class="editor-shell">
             <div v-if="!isWorkspaceArticle && frontmatterParseError" class="notice notice-warning">
@@ -162,7 +160,6 @@
         <span class="status-item">{{ saveIndicatorLabel }}</span>
         <span class="status-item">更新 {{ workspaceUpdatedLabel }}</span>
       </footer>
-      </div>
     </div>
   </n-config-provider>
 </template>
@@ -180,7 +177,6 @@ import {
 } from 'naive-ui'
 import { ColorPaletteOutline, SparklesOutline } from '@vicons/ionicons5'
 import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
-import AppSidebar from '../components/AppSidebar.vue'
 import type { EditorCodeTheme } from '../modules/rich-editor'
 import { useWorkspaceStore } from '../stores/workspace'
 import type { WorkspaceFileTreeNode } from '../shared/v2-workspace'
@@ -853,32 +849,17 @@ onUnmounted(() => {
 .article-page {
   flex: 1;
   min-width: 0;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg-primary);
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.article-layout {
-  width: 100%;
-  height: 100vh;
-  display: flex;
   overflow: hidden;
-  background: var(--bg-primary);
 }
 
 .header {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 40px;
-  padding: 4px 12px;
-  border-bottom: 1px solid rgba(42, 37, 24, 0.1);
-  background: rgba(250, 249, 246, 0.92);
-  backdrop-filter: blur(14px);
-  flex-shrink: 0;
+  padding: 0 12px;
 }
 
 .header-main {
@@ -895,17 +876,16 @@ onUnmounted(() => {
 }
 
 .document-chip {
-  height: 28px;
+  height: 24px;
   max-width: min(240px, 34vw);
-  border-radius: 8px;
-  border: 1px solid rgba(66, 60, 44, 0.12);
-  background: rgba(255, 254, 250, 0.78);
-  color: var(--text-secondary);
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
   display: inline-flex;
   align-items: center;
-  padding: 0 10px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 650;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -915,8 +895,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .editor-appearance-controls {
@@ -1149,17 +1131,15 @@ onUnmounted(() => {
 
 @media (max-width: 720px) {
   .header {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 6px;
   }
 
   .header-main {
-    align-items: flex-start;
+    min-width: 0;
   }
 
   .header-actions {
-    width: 100%;
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
   .editor-appearance-controls {

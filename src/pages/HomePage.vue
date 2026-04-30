@@ -1,11 +1,8 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <div class="home-layout">
-      <AppSidebar />
-      <div class="home-page">
-        <div class="left-content">
-        <nav class="nav">
-          <h1 class="logo">Inbox</h1>
+    <div class="home-page content-page">
+      <nav class="nav content-navbar">
+          <h1 class="logo content-title">Inbox</h1>
           <div class="search-box">
             <n-input
               v-model:value="searchQuery"
@@ -28,6 +25,8 @@
           />
         </nav>
 
+      <div class="home-content content-body">
+        <div class="left-content">
         <div class="input-section">
           <n-card class="input-card" :bordered="false">
             <n-input
@@ -216,7 +215,7 @@
             </div>
           </div>
         </n-card>
-        </aside>
+      </aside>
       </div>
     </div>
   </n-config-provider>
@@ -240,7 +239,6 @@ import {
   type GlobalThemeOverrides,
 } from 'naive-ui'
 import PillButton from '../components/PillButton.vue'
-import AppSidebar from '../components/AppSidebar.vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import {
   ArrowUndoOutline,
@@ -603,22 +601,20 @@ watch(scratchpadContent, (value) => {
 
 <style scoped>
 .home-page {
-  flex: 1;
-  min-width: 0;
-  height: 100vh;
-  padding: 18px 20px 18px;
-  background: var(--bg-primary);
+  height: 100%;
+  min-height: 0;
   display: flex;
-  gap: 18px;
+  flex-direction: column;
   overflow: hidden;
+  padding: 0;
 }
 
-.home-layout {
-  width: 100%;
-  height: 100vh;
+.home-content {
   display: flex;
+  gap: 18px;
+  padding: 12px 20px 18px;
+  box-sizing: border-box;
   overflow: hidden;
-  background: var(--bg-primary);
 }
 
 .left-content {
@@ -632,21 +628,11 @@ watch(scratchpadContent, (value) => {
 }
 
 .nav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  height: 48px;
-  margin-bottom: 12px;
+  padding: 0 20px;
 }
 
 .logo {
-  font-family: var(--font-display);
-  font-size: 23px;
-  font-weight: 680;
-  line-height: 1.15;
-  color: var(--text-primary);
-  margin: 0;
-  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .search-box {

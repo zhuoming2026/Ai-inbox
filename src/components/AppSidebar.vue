@@ -1,5 +1,5 @@
 <template>
-  <aside class="app-sidebar">
+  <aside v-if="isAppSidebarVisible" class="app-sidebar">
     <nav class="primary-nav" aria-label="Primary">
       <button
         type="button"
@@ -111,6 +111,7 @@ import {
 } from '@vicons/ionicons5'
 import AppSidebarTree from './AppSidebarTree.vue'
 import { useWorkspaceStore } from '../stores/workspace'
+import { isAppSidebarVisible } from '../composables/useAppChrome'
 import type { WorkspaceConfig, WorkspaceFileTreeNode } from '../shared/v2-workspace'
 
 const router = useRouter()
@@ -296,7 +297,7 @@ watch(activeWorkspacePath, (path) => {
 .app-sidebar {
   width: 228px;
   flex: 0 0 228px;
-  height: 100vh;
+  height: 100%;
   min-height: 0;
   border-right: 1px solid rgba(42, 37, 24, 0.1);
   background: #f8f7f1;
@@ -305,6 +306,8 @@ watch(activeWorkspacePath, (path) => {
   overflow: hidden;
   color: var(--text-primary);
   padding: 0;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .primary-nav {

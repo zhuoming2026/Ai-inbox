@@ -1,11 +1,11 @@
 <template>
-  <div class="settings-page">
-    <header class="header">
-      <h1 class="title">设置</h1>
+  <div class="settings-page content-page">
+    <header class="header content-navbar">
+      <h1 class="title content-title">设置</h1>
       <button class="save-btn" @click="handleSaveClick">保存更改</button>
     </header>
 
-    <div class="body" v-if="settings">
+    <div class="body content-body" v-if="settings">
       <aside class="settings-sidebar">
         <button
           v-for="section in settingSections"
@@ -1495,20 +1495,12 @@ async function stopMcp() {
 
 <style scoped>
 .settings-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: var(--bg-primary);
   color: var(--text-primary);
 }
 
 .header {
-  display: flex;
-  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-8) var(--space-3);
-  border-bottom: 1px solid var(--border-color-light);
-  flex-shrink: 0;
+  padding: 0 var(--space-8);
 }
 
 .save-btn,
@@ -1519,19 +1511,17 @@ async function stopMcp() {
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.15;
+  flex: 0 0 auto;
 }
 
 .save-btn {
   margin-left: auto;
-  padding: 10px 16px;
+  padding: 7px 12px;
   border: 1px solid var(--action-primary-border);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--action-primary-bg);
   color: var(--action-primary-text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }

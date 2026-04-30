@@ -1,14 +1,13 @@
 <template>
-  <div class="enrich-layout">
-    <AppSidebar />
-    <main class="enrich-page">
-      <header class="enrich-header">
-        <h1>AI Enrich</h1>
+  <main class="enrich-page content-page">
+      <header class="enrich-header content-navbar">
+        <h1 class="content-title">AI Enrich</h1>
         <n-button size="small" secondary :loading="enrichStore.loading" @click="refreshAll">
           刷新
         </n-button>
       </header>
 
+    <div class="enrich-content content-body">
       <section class="task-composer">
         <div class="composer-fields">
           <label class="field">
@@ -106,15 +105,14 @@
         <span class="failed">{{ statusCounts.failed }} failed</span>
         <span class="output-path">outputs: ~/ai-inbox/enrich/outputs</span>
       </footer>
-    </main>
-  </div>
+    </div>
+  </main>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NInput, NSelect, useMessage } from 'naive-ui'
-import AppSidebar from '../components/AppSidebar.vue'
 import { useEnrichStore } from '../stores/enrich'
 import { useWorkspaceStore } from '../stores/workspace'
 import type { V2EnrichTask, V2EnrichTaskStatus } from '../shared/v2-enrich'
@@ -283,40 +281,28 @@ function defaultArticleFilename(task: V2EnrichTask) {
 </script>
 
 <style scoped>
-.enrich-layout {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  overflow: hidden;
-  background: var(--bg-primary);
-}
-
 .enrich-page {
   flex: 1;
   min-width: 0;
-  height: 100vh;
-  overflow: hidden;
-  padding: 0 18px;
+  padding: 0;
+}
+
+.enrich-content {
   display: grid;
-  grid-template-rows: 44px 184px 42px minmax(0, 1fr) 28px;
-  background: var(--bg-primary);
+  grid-template-rows: 184px 42px minmax(0, 1fr) 28px;
+  gap: 0;
+  padding: 0 18px;
 }
 
 .enrich-header {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
+  padding: 0 18px;
 }
 
 .enrich-header h1 {
-  margin: 0;
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 680;
-  line-height: 1.2;
+  flex: 0 0 auto;
 }
 
 .task-composer,
@@ -633,8 +619,16 @@ function defaultArticleFilename(task: V2EnrichTask) {
 @media (max-width: 1080px) {
   .enrich-page {
     overflow: auto;
+    padding: 0;
+  }
+
+  .enrich-content {
     grid-template-rows: auto;
     padding: 0 10px 14px;
+  }
+
+  .enrich-header {
+    padding: 0 10px;
   }
 
   .composer-fields {
