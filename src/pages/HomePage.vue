@@ -267,8 +267,8 @@ const resolvedThemeTokens = ref({
   primaryColorPressed: '#d9a928',
   primaryTextColor: '#3f2a00',
   primaryBorderColor: 'rgba(183, 133, 10, 0.36)',
-  cardColor: '#ffffff',
-  cardShadow: '0px 4px 20px rgba(0, 0, 0, 0.03)',
+  cardColor: '#fffefa',
+  cardShadow: '0 4px 20px rgba(42, 32, 14, 0.035)',
   inputColor: 'rgba(239, 239, 239, 0.47)',
   inputColorFocus: 'rgba(239, 239, 239, 0.7)',
 })
@@ -316,8 +316,8 @@ function refreshResolvedThemeTokens() {
     primaryColorPressed: styles.getPropertyValue('--action-primary-bg-pressed').trim() || '#d9a928',
     primaryTextColor: styles.getPropertyValue('--action-primary-text').trim() || '#3f2a00',
     primaryBorderColor: styles.getPropertyValue('--action-primary-border').trim() || 'rgba(183, 133, 10, 0.36)',
-    cardColor: styles.getPropertyValue('--bg-card').trim() || '#ffffff',
-    cardShadow: styles.getPropertyValue('--shadow-card').trim() || '0px 4px 20px rgba(0, 0, 0, 0.03)',
+    cardColor: styles.getPropertyValue('--bg-card').trim() || '#fffefa',
+    cardShadow: styles.getPropertyValue('--shadow-card').trim() || '0 4px 20px rgba(42, 32, 14, 0.035)',
     inputColor: styles.getPropertyValue('--bg-input').trim() || 'rgba(239, 239, 239, 0.47)',
     inputColorFocus: styles.getPropertyValue('--bg-input-focus').trim() || 'rgba(239, 239, 239, 0.7)',
   }
@@ -611,8 +611,8 @@ watch(scratchpadContent, (value) => {
 
 .home-content {
   display: flex;
-  gap: 18px;
-  padding: 12px 20px 18px;
+  gap: var(--ui-grid-gap);
+  padding: var(--ui-page-pad-y) var(--ui-page-pad-x) 18px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -657,19 +657,21 @@ watch(scratchpadContent, (value) => {
 }
 
 .input-section {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-4);
 }
 
 .input-card {
   width: 100%;
-  border-radius: 14px;
-  box-shadow: 0 10px 26px rgba(40, 32, 16, 0.04);
-  background: var(--surface-panel-soft);
-  border: 1px solid var(--border-strong);
+  border-radius: var(--ui-panel-radius);
+  box-shadow: var(--ui-shadow-panel);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel-soft) 94%, white), var(--surface-panel-soft)),
+    var(--surface-panel-soft);
+  border: var(--ui-border);
 }
 
 .input-card :deep(.n-card__content) {
-  padding: 12px 14px 10px;
+  padding: 14px 16px 12px;
 }
 
 .input-field :deep(.n-input-wrapper) {
@@ -678,7 +680,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .input-field :deep(.n-input__textarea-el) {
-  min-height: 66px;
+  min-height: 72px;
   resize: none;
   font-family: var(--font-body);
   font-size: 13px;
@@ -696,7 +698,7 @@ watch(scratchpadContent, (value) => {
 .input-actions :deep(.pill-btn) {
   height: 30px;
   min-height: 30px;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   font-size: 12px;
   font-weight: 620;
   box-shadow: 0 0 0 1px rgba(66, 60, 44, 0.14);
@@ -711,21 +713,24 @@ watch(scratchpadContent, (value) => {
 .toolbar-tool-button :deep(.pill-btn) {
   box-shadow: 0 0 0 1px var(--action-icon-border);
   backdrop-filter: blur(8px);
+  transition: transform var(--ui-duration) var(--ui-ease-out), background var(--ui-duration) var(--ui-ease-out), box-shadow var(--ui-duration) var(--ui-ease-out);
 }
 
 .toolbar-tool-button :deep(.pill-btn:hover) {
   background: var(--action-icon-bg-hover) !important;
   box-shadow: 0 0 0 1px var(--action-icon-border-hover);
+  transform: translateY(-1px);
 }
 
 .submit-button :deep(.pill-btn) {
   padding: 0 12px !important;
-  box-shadow: 0 0 0 1px rgba(66, 60, 44, 0.14), 0 4px 12px rgba(36, 31, 18, 0.04);
+  box-shadow: 0 0 0 1px var(--action-secondary-border), var(--shadow-button);
 }
 
 .submit-button :deep(.pill-btn:hover) {
-  background: rgba(42, 37, 24, 0.055) !important;
-  box-shadow: 0 0 0 1px rgba(66, 60, 44, 0.22), 0 4px 12px rgba(36, 31, 18, 0.04);
+  background: var(--action-secondary-bg-hover) !important;
+  box-shadow: 0 0 0 1px var(--action-secondary-border-hover), var(--shadow-button);
+  transform: translateY(-1px);
 }
 
 .ai-submit-button :deep(.pill-btn) {
@@ -756,11 +761,11 @@ watch(scratchpadContent, (value) => {
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-3);
   position: sticky;
   top: 0;
   z-index: 5;
-  padding: 2px 0 10px;
+  padding: 2px 0 var(--space-3);
   background: var(--overlay-page-fade);
 }
 
@@ -787,7 +792,7 @@ watch(scratchpadContent, (value) => {
   border: none;
   background: transparent;
   padding: 0 12px;
-  height: 32px;
+  height: var(--ui-control-height);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -812,9 +817,9 @@ watch(scratchpadContent, (value) => {
 }
 
 .filter-button.active {
-  color: var(--text-primary);
-  background: rgba(42, 37, 24, 0.075);
-  border-radius: 8px;
+  color: var(--nav-tab-active-text);
+  background: var(--nav-tab-active-bg);
+  border-radius: var(--ui-control-radius);
 }
 
 .filter-chip {
@@ -891,28 +896,32 @@ watch(scratchpadContent, (value) => {
 }
 
 .cards-grid {
-  column-width: 280px;
-  column-gap: 12px;
+  column-width: 286px;
+  column-gap: var(--space-3);
 }
 
 .card {
   display: inline-block;
   width: 100%;
   position: relative;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   background: var(--card-item-bg);
-  border-radius: 12px;
+  border-radius: var(--ui-card-radius);
   border: 1px solid var(--card-item-border);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--ui-shadow-card);
   overflow: hidden;
   cursor: pointer;
   break-inside: avoid;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  transition:
+    transform var(--ui-duration) var(--ui-ease-out),
+    box-shadow var(--ui-duration) var(--ui-ease-out),
+    border-color var(--ui-duration) var(--ui-ease-out),
+    background var(--ui-duration) var(--ui-ease-out);
 }
 
 .card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-card-hover-soft);
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-card-hover);
 }
 
 .card.collected {
@@ -933,7 +942,7 @@ watch(scratchpadContent, (value) => {
 }
 
 .card-body {
-  padding: 14px 14px 12px;
+  padding: 15px 15px 13px;
 }
 
 .card-title {
@@ -941,7 +950,7 @@ watch(scratchpadContent, (value) => {
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
-  line-height: 1.28;
+  line-height: 1.32;
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1010,7 +1019,7 @@ watch(scratchpadContent, (value) => {
 .icon-action {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   border: 1px solid var(--action-icon-border);
   background: var(--action-icon-bg);
   color: var(--action-icon-text);
@@ -1018,12 +1027,25 @@ watch(scratchpadContent, (value) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition:
+    transform var(--ui-duration) var(--ui-ease-out),
+    background var(--ui-duration) var(--ui-ease-out),
+    border-color var(--ui-duration) var(--ui-ease-out),
+    color var(--ui-duration) var(--ui-ease-out);
 }
 
 .icon-action:hover {
   border-color: var(--action-icon-border-hover);
   background: var(--action-icon-bg-hover);
+  transform: translateY(-1px);
+}
+
+.icon-action:focus-visible,
+.filter-button:focus-visible,
+.calendar-inline-btn:focus-visible,
+.clear-filter-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
 }
 
 .icon-action.active {
@@ -1042,7 +1064,7 @@ watch(scratchpadContent, (value) => {
   align-items: center;
   min-height: 300px;
   border: 1px dashed var(--border-empty);
-  border-radius: 14px;
+  border-radius: var(--ui-panel-radius);
   background: var(--surface-empty);
 }
 
@@ -1061,16 +1083,16 @@ watch(scratchpadContent, (value) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--ui-grid-gap);
   min-height: 0;
 }
 
 .sidebar-card {
-  border-radius: 14px;
-  border: 1px solid var(--border-strong);
-  box-shadow: 0 10px 26px rgba(40, 32, 16, 0.04);
+  border-radius: var(--ui-panel-radius);
+  border: var(--ui-border);
+  box-shadow: var(--ui-shadow-card);
   overflow: hidden;
-  background: var(--surface-panel);
+  background: var(--ui-surface-panel);
 }
 
 .sidebar-card :deep(.n-card__content),
@@ -1111,7 +1133,7 @@ watch(scratchpadContent, (value) => {
 .calendar-inline-btn {
   width: 26px;
   height: 26px;
-  border-radius: 999px;
+  border-radius: var(--ui-control-radius);
   border: 1px solid var(--action-icon-border);
   background: var(--calendar-control-bg);
   color: var(--calendar-control-text);
@@ -1133,8 +1155,8 @@ watch(scratchpadContent, (value) => {
   width: auto;
   padding: 0 8px;
   color: var(--text-primary);
-  border-color: rgba(66, 60, 44, 0.14);
-  background: rgba(42, 37, 24, 0.06);
+  border-color: var(--action-secondary-border);
+  background: var(--surface-neutral-soft);
 }
 
 .calendar-inline-month {
@@ -1175,7 +1197,7 @@ watch(scratchpadContent, (value) => {
   font-weight: 500;
   padding: 6px 10px;
   color: var(--text-primary);
-  background: rgba(42, 37, 24, 0.06);
+  background: var(--surface-neutral-soft);
 }
 
 .scratchpad-body {

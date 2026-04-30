@@ -151,7 +151,7 @@ onUnmounted(() => {
   grid-template-rows: var(--app-topbar-height) minmax(0, 1fr);
   position: relative;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: var(--ui-surface-page-wash, var(--bg-primary));
 }
 
 .app-shell--sidebar-hidden {
@@ -162,9 +162,9 @@ onUnmounted(() => {
   grid-column: 1;
   grid-row: 1;
   min-width: 0;
-  border-right: 1px solid var(--app-sidebar-border, var(--border-default));
-  border-bottom: 1px solid var(--app-sidebar-border-subtle, var(--border-subtle));
-  background: var(--app-sidebar-bg, var(--bg-sidebar));
+  border-right: var(--ui-border-soft);
+  border-bottom: var(--ui-border-soft);
+  background: color-mix(in srgb, var(--app-sidebar-bg, var(--bg-sidebar)) 94%, transparent);
   display: flex;
   align-items: center;
   padding-left: 12px;
@@ -213,7 +213,7 @@ onUnmounted(() => {
   height: 100%;
   min-width: 0;
   min-height: 0;
-  background: var(--bg-primary);
+  background: transparent;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -227,7 +227,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-3);
   background: transparent;
-  border-bottom: 1px solid rgba(42, 37, 24, 0.08);
+  border-bottom: var(--ui-border-soft);
 }
 
 .app-content :deep(.content-title) {
@@ -265,8 +265,8 @@ onUnmounted(() => {
   width: 28px;
   height: 28px;
   border: 0;
-  border-radius: 8px;
-  background: var(--action-icon-bg, rgba(255, 255, 255, 0.56));
+  border-radius: var(--ui-control-radius, 8px);
+  background: var(--ui-surface-control, var(--action-icon-bg, rgba(255, 255, 255, 0.56)));
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
@@ -274,12 +274,22 @@ onUnmounted(() => {
   padding: 0;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px var(--app-sidebar-border-subtle, rgba(42, 37, 24, 0.06));
-  transition: background var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    background var(--ui-duration, var(--transition-fast)) var(--ui-ease-out, ease),
+    color var(--ui-duration, var(--transition-fast)) var(--ui-ease-out, ease),
+    transform var(--ui-duration, var(--transition-fast)) var(--ui-ease-out, ease),
+    opacity var(--transition-fast);
 }
 
 .window-nav-button:hover:not(:disabled) {
   background: var(--action-icon-bg-hover, rgba(255, 255, 255, 0.88));
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.window-nav-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--border-focus), var(--ui-focus-ring);
 }
 
 .window-nav-button:disabled {

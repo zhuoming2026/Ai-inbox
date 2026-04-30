@@ -130,6 +130,12 @@ function applyPresetOverrides(config: ThemePresetConfig) {
     '--shadow-collected': app.cards.collectedShadow,
     '--shadow-deleted-hover': app.cards.deletedHoverShadow,
     '--shadow-accent-soft-hover': primary.shadow || app.shadow.button,
+    '--ui-shadow-panel': app.shadow.panel,
+    '--ui-shadow-card': app.shadow.card,
+    '--ui-shadow-card-hover': app.cards.itemHoverShadow,
+    '--ui-surface-panel': app.surfaces.panel,
+    '--ui-surface-panel-strong': app.surfaces.card,
+    '--ui-surface-control': app.surfaces.control,
 
     // Action tokens.
     '--action-primary-bg': primary.bg,

@@ -98,7 +98,7 @@ function isCollapsed(path: string) {
   width: 100%;
   min-height: 28px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-secondary);
   display: flex;
@@ -126,8 +126,14 @@ function isCollapsed(path: string) {
 
 .tree-file.active {
   background: var(--app-sidebar-active-bg, var(--surface-accent-faint));
-  box-shadow: inset 0 0 0 1px var(--border-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--border-accent-soft), 0 8px 18px rgba(42, 32, 14, 0.045);
   color: var(--app-sidebar-active-text, var(--text-primary));
+}
+
+.tree-node:focus-visible,
+.tree-action:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
 }
 
 .tree-actions {
@@ -150,7 +156,7 @@ function isCollapsed(path: string) {
   width: 22px;
   height: 22px;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-muted);
   display: inline-flex;

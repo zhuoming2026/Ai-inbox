@@ -299,8 +299,8 @@ watch(activeWorkspacePath, (path) => {
   flex: 0 0 228px;
   height: 100%;
   min-height: 0;
-  border-right: 1px solid var(--app-sidebar-border, var(--border-default));
-  background: var(--app-sidebar-bg, var(--bg-sidebar));
+  border-right: var(--ui-border-soft);
+  background: color-mix(in srgb, var(--app-sidebar-bg, var(--bg-sidebar)) 96%, transparent);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -312,7 +312,7 @@ watch(activeWorkspacePath, (path) => {
 
 .primary-nav {
   padding: 12px;
-  border-bottom: 1px solid var(--app-sidebar-border-subtle, var(--border-subtle));
+  border-bottom: var(--ui-border-soft);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -330,7 +330,7 @@ watch(activeWorkspacePath, (path) => {
 
 .primary-nav-item {
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-secondary);
   display: flex;
@@ -350,8 +350,18 @@ watch(activeWorkspacePath, (path) => {
 
 .primary-nav-item.active {
   background: var(--app-sidebar-active-bg, var(--surface-accent-faint));
-  box-shadow: inset 0 0 0 1px var(--border-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--border-accent-soft), 0 8px 18px rgba(42, 32, 14, 0.045);
   color: var(--app-sidebar-active-text, var(--text-primary));
+}
+
+.primary-nav-item:focus-visible,
+.icon-button:focus-visible,
+.collapse-btn:focus-visible,
+.workspace-action:focus-visible,
+.remove-workspace:focus-visible,
+.settings-link:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
 }
 
 .primary-nav-item:disabled {
@@ -386,7 +396,7 @@ watch(activeWorkspacePath, (path) => {
 .remove-workspace {
   width: 24px;
   height: 24px;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-muted);
   display: inline-flex;
@@ -444,7 +454,7 @@ watch(activeWorkspacePath, (path) => {
   flex: 1;
   min-width: 0;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-primary);
   display: flex;
@@ -465,7 +475,7 @@ watch(activeWorkspacePath, (path) => {
 .sidebar-footer {
   flex: 0 0 42px;
   position: relative;
-  border-top: 1px solid var(--app-sidebar-border, var(--border-default));
+  border-top: var(--ui-border-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -477,7 +487,7 @@ watch(activeWorkspacePath, (path) => {
   width: 28px;
   height: 28px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: transparent;
   color: var(--text-secondary);
   display: inline-flex;
@@ -504,8 +514,8 @@ watch(activeWorkspacePath, (path) => {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #4caf5a;
-  box-shadow: 0 0 0 3px rgba(76, 175, 90, 0.1);
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--status-success-bg);
 }
 
 @media (max-width: 720px) {

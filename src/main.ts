@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import { ensureElectronApi } from './lib/browser-electron-api'
 import './styles/tailwind.css'
+import './styles/theme.css'
 
 ensureElectronApi()
 

@@ -1500,7 +1500,7 @@ async function stopMcp() {
 
 .header {
   gap: var(--space-3);
-  padding: 0 var(--space-8);
+  padding: 0 var(--ui-page-pad-x);
 }
 
 .save-btn,
@@ -1518,7 +1518,7 @@ async function stopMcp() {
   margin-left: auto;
   padding: 7px 12px;
   border: 1px solid var(--action-primary-border);
-  border-radius: 8px;
+  border-radius: var(--ui-control-radius);
   background: var(--action-primary-bg);
   color: var(--action-primary-text);
   font-size: 13px;
@@ -1536,7 +1536,7 @@ async function stopMcp() {
   display: grid;
   grid-template-columns: 176px minmax(0, 1fr);
   gap: var(--space-6);
-  padding: 0 var(--space-8) var(--space-8);
+  padding: 0 var(--ui-page-pad-x) var(--space-8);
   overflow: hidden;
 }
 
@@ -1554,7 +1554,7 @@ async function stopMcp() {
 
 .sidebar-item {
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: var(--ui-card-radius);
   background: transparent;
   padding: 10px 12px;
   text-align: left;
@@ -1567,9 +1567,17 @@ async function stopMcp() {
 }
 
 .sidebar-item.active {
-  background: var(--surface-panel);
+  background: var(--ui-surface-panel-strong);
   border-color: var(--border-accent-soft);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.sidebar-item:focus-visible,
+.save-btn:focus-visible,
+.btn-secondary:focus-visible,
+.btn-copy:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
 }
 
 .sidebar-label {
@@ -1620,9 +1628,9 @@ async function stopMcp() {
 }
 
 .theme-routing-card {
-  border: 1px solid var(--border-strong);
-  border-radius: 18px;
-  background: transparent;
+  border: var(--ui-border);
+  border-radius: var(--ui-panel-radius);
+  background: var(--ui-surface-panel);
   overflow: hidden;
 }
 
@@ -1686,9 +1694,9 @@ async function stopMcp() {
 
 .appearance-config-card {
   margin-top: var(--space-6);
-  border: 1px solid var(--border-strong);
-  border-radius: 18px;
-  background: transparent;
+  border: var(--ui-border);
+  border-radius: var(--ui-panel-radius);
+  background: var(--ui-surface-panel);
   overflow: hidden;
 }
 

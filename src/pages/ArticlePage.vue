@@ -859,7 +859,7 @@ onUnmounted(() => {
 .header {
   justify-content: space-between;
   gap: 10px;
-  padding: 0 12px;
+  padding: 0 var(--ui-page-pad-x);
 }
 
 .header-main {
@@ -926,7 +926,7 @@ onUnmounted(() => {
   height: var(--editor-control-height, 2rem);
   padding: 0 24px 0 8px;
   border: 1px solid var(--editor-toolbar-border, var(--border-control, rgba(64, 72, 87, 0.12)));
-  border-radius: var(--editor-control-radius, 0.7rem);
+  border-radius: var(--ui-control-radius, var(--editor-control-radius, 0.7rem));
   background: var(--editor-toolbar-bg, var(--bg-card, #ffffff));
   color: var(--editor-toolbar-icon, var(--text-primary, #333639));
   font-size: 11px;
@@ -942,6 +942,7 @@ onUnmounted(() => {
 
 .editor-appearance-select:focus {
   border-color: var(--color-primary);
+  box-shadow: var(--ui-focus-ring);
 }
 
 .save-indicator {
@@ -977,8 +978,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 18px;
   padding: 0 14px;
-  border-top: 1px solid rgba(42, 37, 24, 0.1);
-  background: rgba(250, 249, 246, 0.92);
+  border-top: var(--ui-border-soft);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
   color: var(--text-tertiary);
   font-size: 11.5px;
   line-height: 1;
@@ -1011,7 +1012,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   position: relative;
-  background: #fffefa;
+  background: var(--editor-bg, var(--ui-surface-panel-strong));
 }
 
 .notice {
@@ -1060,7 +1061,7 @@ onUnmounted(() => {
 .frontmatter-toggle {
   width: 100%;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill, 999px);
   background: var(--editor-frontmatter-bg);
   padding: 8px 14px;
   display: flex;
@@ -1079,6 +1080,11 @@ onUnmounted(() => {
   box-shadow: var(--editor-frontmatter-shadow);
 }
 
+.frontmatter-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--editor-frontmatter-shadow), var(--ui-focus-ring);
+}
+
 .frontmatter-toggle-title {
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -1086,7 +1092,7 @@ onUnmounted(() => {
 }
 
 .frontmatter-body {
-  border-radius: 24px;
+  border-radius: var(--ui-panel-radius);
   background: var(--editor-frontmatter-body-bg);
   border: 1px solid var(--editor-frontmatter-border);
   box-shadow: var(--editor-frontmatter-shadow);
