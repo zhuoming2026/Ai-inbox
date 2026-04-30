@@ -207,6 +207,15 @@ function applyPresetOverrides(config: ThemePresetConfig) {
     '--overlay-modal-shadow': app.overlay.modalShadow,
     '--app-header-bg': app.header.bg,
     '--app-header-border': app.header.border,
+    '--app-sidebar-bg': app.surfaces.sidebar,
+    '--app-sidebar-border': app.border.default,
+    '--app-sidebar-border-subtle': app.border.divider,
+    '--app-sidebar-hover-bg': app.actions.ghost.bgHover,
+    '--app-sidebar-active-bg': app.navigation.tabActiveBg,
+    '--app-sidebar-active-text': app.navigation.tabActiveText,
+    '--app-sidebar-action-hover-bg': app.actions.icon.bgHover,
+    '--app-sidebar-footer-bg': app.surfaces.sidebar,
+    '--app-sidebar-tree-fade-bg': app.surfaces.sidebar,
 
     // Editor chrome tokens.
     '--editor-border': editorChrome.border,

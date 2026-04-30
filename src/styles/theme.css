@@ -4,6 +4,15 @@
   --bg-secondary: #faf9f6;
   --bg-card: #ffffff;
   --bg-sidebar: #f9f9f9;
+  --app-sidebar-bg: #f8f7f1;
+  --app-sidebar-border: rgba(42, 37, 24, 0.1);
+  --app-sidebar-border-subtle: rgba(42, 37, 24, 0.08);
+  --app-sidebar-hover-bg: rgba(42, 37, 24, 0.045);
+  --app-sidebar-active-bg: #efede4;
+  --app-sidebar-active-text: #171717;
+  --app-sidebar-action-hover-bg: rgba(42, 37, 24, 0.055);
+  --app-sidebar-footer-bg: #f8f7f1;
+  --app-sidebar-tree-fade-bg: #f8f7f1;
   --bg-modal: #ffffff;
   --bg-embedded: #fafaf8;
   --bg-tertiary: #f0efeb;

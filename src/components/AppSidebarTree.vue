@@ -120,14 +120,14 @@ function isCollapsed(path: string) {
 
 .tree-file:hover,
 .tree-folder-button:hover {
-  background: rgba(42, 37, 24, 0.045);
+  background: var(--app-sidebar-hover-bg, var(--surface-neutral-soft));
   color: var(--text-primary);
 }
 
 .tree-file.active {
-  background: #efede4;
-  box-shadow: inset 0 0 0 1px rgba(42, 37, 24, 0.04);
-  color: var(--text-primary);
+  background: var(--app-sidebar-active-bg, var(--surface-accent-faint));
+  box-shadow: inset 0 0 0 1px var(--border-accent-soft);
+  color: var(--app-sidebar-active-text, var(--text-primary));
 }
 
 .tree-actions {
@@ -138,7 +138,7 @@ function isCollapsed(path: string) {
   align-items: center;
   gap: 2px;
   padding-left: 16px;
-  background: linear-gradient(90deg, transparent, #f8f7f1 28%);
+  background: linear-gradient(90deg, transparent, var(--app-sidebar-tree-fade-bg, var(--app-sidebar-bg, var(--bg-sidebar))) 28%);
 }
 
 .workspace-tree-item:hover > .tree-actions,
@@ -160,7 +160,7 @@ function isCollapsed(path: string) {
 }
 
 .tree-action:hover {
-  background: rgba(42, 37, 24, 0.055);
+  background: var(--app-sidebar-action-hover-bg, var(--action-icon-bg-hover));
   color: var(--text-primary);
 }
 

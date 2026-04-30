@@ -162,9 +162,9 @@ onUnmounted(() => {
   grid-column: 1;
   grid-row: 1;
   min-width: 0;
-  border-right: 1px solid rgba(42, 37, 24, 0.1);
-  border-bottom: 1px solid rgba(42, 37, 24, 0.08);
-  background: #f8f7f1;
+  border-right: 1px solid var(--app-sidebar-border, var(--border-default));
+  border-bottom: 1px solid var(--app-sidebar-border-subtle, var(--border-subtle));
+  background: var(--app-sidebar-bg, var(--bg-sidebar));
   display: flex;
   align-items: center;
   padding-left: 12px;
@@ -266,19 +266,19 @@ onUnmounted(() => {
   height: 28px;
   border: 0;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.56);
+  background: var(--action-icon-bg, rgba(255, 255, 255, 0.56));
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(42, 37, 24, 0.06);
+  box-shadow: inset 0 0 0 1px var(--app-sidebar-border-subtle, rgba(42, 37, 24, 0.06));
   transition: background var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
 }
 
 .window-nav-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--action-icon-bg-hover, rgba(255, 255, 255, 0.88));
   color: var(--text-primary);
 }
 

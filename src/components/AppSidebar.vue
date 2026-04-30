@@ -299,8 +299,8 @@ watch(activeWorkspacePath, (path) => {
   flex: 0 0 228px;
   height: 100%;
   min-height: 0;
-  border-right: 1px solid rgba(42, 37, 24, 0.1);
-  background: #f8f7f1;
+  border-right: 1px solid var(--app-sidebar-border, var(--border-default));
+  background: var(--app-sidebar-bg, var(--bg-sidebar));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -312,7 +312,7 @@ watch(activeWorkspacePath, (path) => {
 
 .primary-nav {
   padding: 12px;
-  border-bottom: 1px solid rgba(42, 37, 24, 0.08);
+  border-bottom: 1px solid var(--app-sidebar-border-subtle, var(--border-subtle));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -344,14 +344,14 @@ watch(activeWorkspacePath, (path) => {
 }
 
 .primary-nav-item:hover {
-  background: rgba(42, 37, 24, 0.045);
+  background: var(--app-sidebar-hover-bg, var(--surface-neutral-soft));
   color: var(--text-primary);
 }
 
 .primary-nav-item.active {
-  background: #efede4;
-  box-shadow: inset 0 0 0 1px rgba(42, 37, 24, 0.04);
-  color: var(--text-primary);
+  background: var(--app-sidebar-active-bg, var(--surface-accent-faint));
+  box-shadow: inset 0 0 0 1px var(--border-accent-soft);
+  color: var(--app-sidebar-active-text, var(--text-primary));
 }
 
 .primary-nav-item:disabled {
@@ -400,7 +400,7 @@ watch(activeWorkspacePath, (path) => {
 .collapse-btn:hover,
 .workspace-action:hover,
 .remove-workspace:hover {
-  background: rgba(42, 37, 24, 0.055);
+  background: var(--app-sidebar-action-hover-bg, var(--action-icon-bg-hover));
   color: var(--text-primary);
 }
 
@@ -465,12 +465,12 @@ watch(activeWorkspacePath, (path) => {
 .sidebar-footer {
   flex: 0 0 42px;
   position: relative;
-  border-top: 1px solid rgba(42, 37, 24, 0.1);
+  border-top: 1px solid var(--app-sidebar-border, var(--border-default));
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  background: rgba(248, 247, 241, 0.92);
+  background: var(--app-sidebar-footer-bg, var(--app-sidebar-bg, var(--bg-sidebar)));
 }
 
 .settings-link {
@@ -487,7 +487,7 @@ watch(activeWorkspacePath, (path) => {
 }
 
 .settings-link:hover {
-  background: rgba(42, 37, 24, 0.055);
+  background: var(--app-sidebar-action-hover-bg, var(--action-icon-bg-hover));
   color: var(--text-primary);
 }
 
