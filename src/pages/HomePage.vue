@@ -775,7 +775,7 @@ watch(scratchpadContent, (value) => {
   color: var(--nav-tab-text);
   cursor: pointer;
   position: relative;
-  transition: color var(--transition-base), opacity var(--transition-base), background var(--transition-base);
+  transition: color var(--transition-base), opacity var(--transition-base);
 }
 
 .filter-button:not(:last-child)::after {
@@ -793,9 +793,19 @@ watch(scratchpadContent, (value) => {
 }
 
 .filter-button.active {
-  color: var(--nav-tab-active-text);
-  background: var(--nav-tab-active-bg);
-  border-radius: var(--ui-control-radius);
+  color: var(--color-primary);
+}
+
+.filter-button.active::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--color-primary) 22%, transparent);
 }
 
 .filter-chip {

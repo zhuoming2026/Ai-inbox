@@ -227,7 +227,8 @@ watch(() => props.selectedDate, (newDate) => {
 }
 
 .calendar-number.is-selected {
-  color: var(--color-primary);
+  background: var(--calendar-cell-selected-bg);
+  color: var(--calendar-cell-selected-text);
   font-weight: 600;
 }
 

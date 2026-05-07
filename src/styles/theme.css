@@ -135,10 +135,7 @@
   --ui-shadow-panel: 0 18px 44px rgba(47, 36, 16, 0.07), 0 2px 10px rgba(47, 36, 16, 0.04);
   --ui-shadow-card: 0 10px 26px rgba(42, 32, 14, 0.055);
   --ui-shadow-card-hover: 0 18px 38px rgba(42, 32, 14, 0.09);
-  --ui-surface-page-wash:
-    radial-gradient(circle at 14% 0%, rgba(250, 187, 24, 0.11), transparent 28%),
-    radial-gradient(circle at 100% 18%, rgba(201, 100, 66, 0.09), transparent 30%),
-    var(--bg-primary);
+  --ui-surface-page-wash: var(--bg-primary);
   --ui-surface-panel: color-mix(in srgb, var(--surface-panel) 86%, transparent);
   --ui-surface-panel-strong: color-mix(in srgb, var(--bg-card) 92%, var(--bg-primary));
   --ui-surface-control: color-mix(in srgb, var(--surface-control) 88%, transparent);

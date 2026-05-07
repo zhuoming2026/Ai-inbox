@@ -259,6 +259,10 @@ watch(
   color: var(--calendar-cell-selected-text);
 }
 
+.calendar-cell.is-selected .cell-number {
+  color: var(--calendar-cell-selected-text);
+}
+
 .calendar-cell.is-today .cell-number {
   color: var(--calendar-cell-today-text);
   font-weight: 700;
