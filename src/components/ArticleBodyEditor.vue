@@ -7,6 +7,7 @@
       :typography-theme="resolvedTypographyTheme"
       :code-theme="resolvedCodeTheme"
       placeholder="开始写作，输入 / 调出命令菜单…"
+      :toolbar="toolbar"
       min-height="100%"
       max-width="100%"
       :on-insert-image="handleInsertImage"
@@ -29,7 +30,10 @@ import { isBuiltInTypographyTheme } from '../modules/rich-editor/types/editor'
 const props = defineProps<{
   typographyTheme?: TypographyTheme
   codeTheme?: EditorCodeTheme
+  toolbar?: boolean
 }>()
+
+const toolbar = computed(() => props.toolbar ?? true)
 
 const emit = defineEmits<{
   (e: 'selectionChange', selection: { from: number; to: number }): void

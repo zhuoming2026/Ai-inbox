@@ -186,33 +186,11 @@
           <template #header>
             <div class="sidebar-header">
               <h3 class="sidebar-title">Scratchpad</h3>
-              <div class="scratchpad-modes">
-                <n-tag
-                  :type="scratchpadMode === 'edit' ? 'warning' : 'default'"
-                  :bordered="false"
-                  @click="scratchpadMode = 'edit'"
-                >Edit</n-tag>
-                <n-tag
-                  :type="scratchpadMode === 'preview' ? 'warning' : 'default'"
-                  :bordered="false"
-                  @click="scratchpadMode = 'preview'"
-                >Preview</n-tag>
-              </div>
             </div>
           </template>
 
           <div class="scratchpad-body">
-            <div v-if="scratchpadMode === 'edit'" class="scratchpad-edit">
-              <textarea
-                v-model="scratchpadContent"
-                class="scratchpad-textarea"
-                placeholder="临时笔记，随便写点什么吧"
-              ></textarea>
-            </div>
-            <div v-else class="scratchpad-preview">
-              <p v-if="!scratchpadContent" class="scratchpad-placeholder">临时笔记，随便写点什么吧</p>
-              <div v-else class="scratchpad-rendered" v-html="scratchpadPreview"></div>
-            </div>
+            <ArticleBodyEditor v-model="scratchpadContent" :toolbar="false" />
           </div>
         </n-card>
       </aside>
@@ -224,7 +202,6 @@
 <script setup lang="ts">
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { marked } from 'marked'
 import { useInboxStore, type InboxCard } from '@/stores/inbox'
 import { useEnrichStore } from '@/stores/enrich'
 import type { DocumentBucket } from '@/shared/inbox-document'
@@ -253,6 +230,7 @@ import {
   StarOutline,
   TrashOutline,
 } from '@vicons/ionicons5'
+import ArticleBodyEditor from '../components/ArticleBodyEditor.vue'
 
 const router = useRouter()
 const inboxStore = useInboxStore()
@@ -328,7 +306,6 @@ const selectedDateTs = ref<number | undefined>(undefined)
 const dateFilterActive = ref(false)
 const inputText = ref('')
 const activeBucket = ref<DocumentBucket | 'all'>('all')
-const scratchpadMode = ref<'edit' | 'preview'>('edit')
 const scratchpadContent = ref('')
 const articleListRef = ref<HTMLElement | null>(null)
 const calendarRef = ref<InstanceType<typeof MonthCalendar> | null>(null)
@@ -349,7 +326,6 @@ yesterday.setDate(yesterday.getDate() - 1)
 const yesterdayStr = yesterday.toISOString().split('T')[0]
 
 const markedDates = computed(() => Array.from(new Set(inboxStore.cards.map((card) => card.created))))
-const scratchpadPreview = computed(() => marked.parse(scratchpadContent.value || ''))
 const visibleMonthLabel = computed(() => {
   const date = new Date(visibleMonthTs.value)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -1095,6 +1071,8 @@ watch(scratchpadContent, (value) => {
   background: var(--ui-surface-panel);
 }
 
+.sidebar-card :deep(.n-card-content),
+.sidebar-card :deep(.n-card-header),
 .sidebar-card :deep(.n-card__content),
 .sidebar-card :deep(.n-card__header) {
   padding-left: 16px;
@@ -1174,11 +1152,13 @@ watch(scratchpadContent, (value) => {
   min-height: 0;
 }
 
+.scratchpad-card :deep(.n-card-header),
 .scratchpad-card :deep(.n-card__header) {
   flex-shrink: 0;
   padding-bottom: 8px;
 }
 
+.scratchpad-card :deep(.n-card-content),
 .scratchpad-card :deep(.n-card__content) {
   flex: 1;
   min-height: 0;
@@ -1187,67 +1167,51 @@ watch(scratchpadContent, (value) => {
   padding-top: 0;
 }
 
-.scratchpad-modes {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.scratchpad-modes :deep(.n-tag) {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  padding: 6px 10px;
-  color: var(--text-primary);
-  background: var(--surface-neutral-soft);
-}
-
 .scratchpad-body {
   flex: 1;
   min-height: 0;
   display: flex;
-  height: 100%;
+  height: auto;
+  overflow: hidden;
 }
 
-.scratchpad-edit,
-.scratchpad-preview {
+.scratchpad-body :deep(.article-body-editor) {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scratchpad-body :deep(.rich-editor) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scratchpad-body :deep(.rich-editor::before) {
+  display: none;
+}
+
+.scratchpad-body :deep(.rich-editor__scroll-wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   scrollbar-width: none;
 }
 
-.scratchpad-edit::-webkit-scrollbar,
-.scratchpad-preview::-webkit-scrollbar,
-.scratchpad-textarea::-webkit-scrollbar {
+.scratchpad-body :deep(.tiptap),
+.scratchpad-body :deep(.rich-editor__content) {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.scratchpad-body :deep(.rich-editor__scroll-wrapper::-webkit-scrollbar) {
   width: 0;
   height: 0;
-}
-
-.scratchpad-textarea {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  resize: none;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-editor);
-  font-size: 13px;
-  line-height: 1.65;
-  overflow: auto;
-  scrollbar-width: none;
-}
-
-.scratchpad-placeholder {
-  color: var(--text-placeholder);
-  margin: 0;
-}
-
-.scratchpad-rendered {
-  color: var(--text-primary);
-  font-family: var(--font-editor);
-  font-size: var(--text-base);
-  line-height: 1.65;
 }
 
 @media (max-width: 900px) {
@@ -1265,25 +1229,6 @@ watch(scratchpadContent, (value) => {
     width: 100%;
     min-height: 520px;
   }
-}
-
-.scratchpad-rendered :deep(h1),
-.scratchpad-rendered :deep(h2),
-.scratchpad-rendered :deep(h3) {
-  margin-top: 0;
-  font-family: var(--font-body);
-  font-weight: 700;
-}
-
-.scratchpad-rendered :deep(p) {
-  margin: 0 0 var(--space-3);
-}
-
-.scratchpad-rendered :deep(pre) {
-  white-space: pre-wrap;
-  background: var(--surface-code-block);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
 }
 
 @media (max-width: 1320px) {
