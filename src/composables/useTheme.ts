@@ -290,6 +290,7 @@ function applyPresetOverrides(config: ThemePresetConfig) {
     '--typography-h1-size': article.h1Size,
     '--typography-h2-size': article.h2Size,
     '--typography-h3-size': article.h3Size,
+    '--typography-h1-align': article.h1Align,
     '--typography-h1-weight': article.h1Weight,
     '--typography-h2-weight': article.h2Weight,
     '--typography-h3-weight': article.h3Weight,

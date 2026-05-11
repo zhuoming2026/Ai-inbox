@@ -11,7 +11,7 @@
   color: var(--typography-text, var(--text-body, #333639));
   font-family: var(--typography-font-body, var(--font-editor, var(--font-body, sans-serif)));
   font-size: var(--typography-font-size, 1rem);
-  line-height: var(--typography-line-height, 1.85);
+  line-height: var(--typography-line-height, 1.68);
   letter-spacing: var(--typography-letter-spacing, 0.003em);
   caret-color: var(--typography-link, var(--color-link, #097FE8));
 }
@@ -40,8 +40,9 @@
   line-height: var(--typography-h1-line-height, 1.12);
   letter-spacing: var(--typography-h1-letter-spacing, -0.04em);
   margin-top: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   color: var(--typography-heading, var(--text-primary, #1a1a1a));
+  text-align: var(--typography-h1-align, center);
 }
 
 .tiptap h2,
@@ -51,8 +52,8 @@
   font-weight: var(--typography-h2-weight, 700);
   line-height: 1.2;
   letter-spacing: -0.03em;
-  margin-top: 2.15rem;
-  margin-bottom: 0.8rem;
+  margin-top: 1.85rem;
+  margin-bottom: 0.7rem;
   color: var(--typography-heading, var(--text-primary, #1a1a1a));
 }
 
@@ -63,8 +64,8 @@
   font-weight: var(--typography-h3-weight, 680);
   line-height: 1.28;
   letter-spacing: -0.02em;
-  margin-top: 1.85rem;
-  margin-bottom: 0.65rem;
+  margin-top: 1.6rem;
+  margin-bottom: 0.55rem;
   color: var(--typography-heading, var(--text-primary, #1a1a1a));
 }
 
@@ -81,7 +82,7 @@
 
 .tiptap p,
 .rich-editor__content p {
-  margin: 0 0 var(--typography-paragraph-spacing, 1rem);
+  margin: 0 0 var(--typography-paragraph-spacing, 0.78rem);
   color: var(--typography-text, var(--text-body, #333639));
   max-width: var(--typography-measure, 70ch);
 }

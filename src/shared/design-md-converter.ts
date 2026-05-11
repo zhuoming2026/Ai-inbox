@@ -506,8 +506,6 @@ export function applyAccentToThemeConfig(config: ThemePresetConfig, accent: stri
   tokens.editorChrome.toolbarIconActive = accent
   tokens.editorChrome.popoverItemActive = alphaColor(accent, isDark ? 0.18 : 0.14)
   tokens.editorChrome.popoverIconActive = accent
-  tokens.article.link = accent
-  tokens.blocks.blockquoteBorder = alphaColor(accent, 0.48)
 }
 
 function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: PlainObject, variant: 'light' | 'dark') {
@@ -543,8 +541,6 @@ function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: Pl
     tokens.app.surfaces.modal = panel
     tokens.app.surfaces.cardHover = firstString(colors['surface-soft']) || mixColor(panel, isDark ? '#ffffff' : '#ffffff', isDark ? 0.08 : 0.35)
     tokens.app.cards.itemBg = panel
-    tokens.article.bg = panel
-    tokens.blocks.tableCellBg = panel
   }
   if (control) {
     tokens.app.surfaces.control = secondaryButtonBg || control
@@ -557,12 +553,9 @@ function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: Pl
   if (text) {
     tokens.app.text.primary = text
     tokens.app.text.inverse = readableTextOn(isDark ? '#ffffff' : '#111111') === '#ffffff' ? '#ffffff' : '#171717'
-    tokens.article.heading = text
   }
   if (firstString(colors['body-strong'])) {
     tokens.app.text.body = colors['body-strong'] as string
-    tokens.article.text = colors['body-strong'] as string
-    tokens.code.blockText = colors['body-strong'] as string
   }
   if (body) {
     tokens.app.text.body = body
@@ -570,14 +563,11 @@ function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: Pl
     tokens.app.actions.ghost.text = body
     tokens.app.actions.subtle.text = body
     tokens.app.actions.icon.text = body
-    tokens.article.text = body
   }
   if (muted) {
     tokens.app.text.muted = muted
     tokens.app.text.subtle = subtle || alphaColor(muted, isDark ? 0.72 : 0.82)
     tokens.app.navigation.tabText = muted
-    tokens.article.textMuted = muted
-    tokens.blocks.blockquoteText = muted
   }
   if (border) {
     tokens.app.border.default = border
@@ -587,9 +577,6 @@ function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: Pl
     tokens.app.border.divider = border
     tokens.app.cards.itemBorder = border
     tokens.editorChrome.border = border
-    tokens.code.blockBorder = border
-    tokens.blocks.tableBorder = border
-    tokens.blocks.hr = border
   }
   if (focus) {
     tokens.system.focus = focus
@@ -636,21 +623,6 @@ function applyPalette(tokens: ThemePresetTokens, colors: PlainObject, source: Pl
   if (badgeText) {
     tokens.app.navigation.tabActiveText = badgeText
   }
-  if (colors['surface-soft']) {
-    tokens.code.inlineBg = colors['surface-soft'] as string
-    tokens.code.blockBg = colors['surface-soft'] as string
-    tokens.blocks.blockquoteBg = colors['surface-soft'] as string
-    tokens.blocks.tableHeaderBg = colors['surface-soft'] as string
-  }
-  if (body) {
-    tokens.code.blockText = body
-  }
-  if (warning) {
-    tokens.code.inlineText = warning
-  }
-  if (colors.primary) {
-    tokens.blocks.blockquoteBorder = colors.primary as string
-  }
 }
 
 function applyTypography(tokens: ThemePresetTokens, typography: unknown) {
@@ -661,28 +633,8 @@ function applyTypography(tokens: ThemePresetTokens, typography: unknown) {
     getPath(typography, 'nav-link.fontFamily'),
     getPath(typography, 'title-md.fontFamily'),
   )
-  const headingFont = firstString(
-    getPath(typography, 'display-lg.fontFamily'),
-    getPath(typography, 'display-xl.fontFamily'),
-    getPath(typography, 'display-md.fontFamily'),
-    getPath(typography, 'title-lg.fontFamily'),
-  )
-  const codeFont = firstString(getPath(typography, 'code.fontFamily'))
-  const bodySize = firstString(getPath(typography, 'body-md.fontSize'))
-  const bodyLineHeight = firstString(getPath(typography, 'body-md.lineHeight'))
-  const h1Size = firstString(getPath(typography, 'display-lg.fontSize'), getPath(typography, 'display-xl.fontSize'))
-  const h2Size = firstString(getPath(typography, 'display-md.fontSize'))
-  const h3Size = firstString(getPath(typography, 'display-sm.fontSize'), getPath(typography, 'title-lg.fontSize'))
 
   if (uiFont) tokens.fonts.ui = uiFont
-  if (headingFont) tokens.fonts.heading = headingFont
-  if (uiFont) tokens.fonts.body = uiFont
-  if (codeFont) tokens.fonts.code = codeFont
-  if (bodySize) tokens.article.fontSize = bodySize
-  if (bodyLineHeight) tokens.article.lineHeight = String(bodyLineHeight)
-  if (h1Size) tokens.article.h1Size = h1Size
-  if (h2Size) tokens.article.h2Size = h2Size
-  if (h3Size) tokens.article.h3Size = h3Size
 }
 
 function applyRadius(tokens: ThemePresetTokens, rounded: unknown) {
@@ -747,7 +699,7 @@ export function convertDesignMdToThemeConfig(input: {
   if (!isObject(source.typography)) {
     warnings.push('未检测到结构化 typography，字体设置已沿用默认值。')
   }
-  warnings.push('DesignMD 只生成 App 外观与文章语义 token；Markdown 精确渲染请继续用 Typora CSS 导入。')
+  warnings.push('DesignMD 只生成 App 外观；Markdown 精确渲染请继续用 Typora CSS 导入。')
 
   return {
     id,

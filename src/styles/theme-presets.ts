@@ -211,6 +211,7 @@ export interface ThemePresetTokens {
     h1Size: string
     h2Size: string
     h3Size: string
+    h1Align: string
     h1Weight: string
     h2Weight: string
     h3Weight: string
@@ -520,12 +521,13 @@ export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
         link: '#0969da',
         measure: '70ch',
         fontSize: '16px',
-        lineHeight: '1.84',
+        lineHeight: '1.68',
         letterSpacing: '0',
-        paragraphSpacing: '1rem',
+        paragraphSpacing: '0.78rem',
         h1Size: '2.35rem',
         h2Size: '1.78rem',
         h3Size: '1.34rem',
+        h1Align: 'center',
         h1Weight: '750',
         h2Weight: '700',
         h3Weight: '680',
@@ -808,12 +810,13 @@ export const defaultThemeConfigs: Record<ThemePresetId, ThemePresetConfig> = {
         link: '#78a9ff',
         measure: '70ch',
         fontSize: '16px',
-        lineHeight: '1.84',
+        lineHeight: '1.68',
         letterSpacing: '0',
-        paragraphSpacing: '1rem',
+        paragraphSpacing: '0.78rem',
         h1Size: '2.35rem',
         h2Size: '1.78rem',
         h3Size: '1.34rem',
+        h1Align: 'center',
         h1Weight: '750',
         h2Weight: '700',
         h3Weight: '680',

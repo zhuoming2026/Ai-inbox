@@ -425,20 +425,6 @@ function extractTokens(rules: postcss.Rule[], _themeId: string): TokenExtraction
     }
   }
 
-  // Typora 的 root 变量只能作为文章主题候选，不写入 app action。
-  for (const rule of rules) {
-    if (rule.type === 'rule' && rule.selector === ':root') {
-      rule.walkDecls((decl) => {
-        if (decl.prop === '--primary-color' && decl.value && !themeTokens.system.accent) {
-          themeTokens.system.accent = decl.value
-        }
-        if (decl.prop === '--accent-color' && decl.value && !themeTokens.system.accent) {
-          themeTokens.system.accent = decl.value
-        }
-      })
-    }
-  }
-
   for (const rule of rules) {
     const selector = rule.selector
 
@@ -502,7 +488,6 @@ function extractTokens(rules: postcss.Rule[], _themeId: string): TokenExtraction
         if (isLink) {
           add(tokens.typographyTokens, '--typography-link', value)
           if (!themeTokens.article.link) themeTokens.article.link = value
-          if (!themeTokens.system.accent) themeTokens.system.accent = value
         } else if (isHeading) {
           add(tokens.typographyTokens, '--typography-heading', value)
           if (!themeTokens.article.heading) themeTokens.article.heading = value
@@ -568,19 +553,23 @@ function extractTokens(rules: postcss.Rule[], _themeId: string): TokenExtraction
           add(tokens.typographyTokens, '--typography-line-height', value)
           themeTokens.article.lineHeight = value
         }
+      } else if (prop === 'text-align') {
+        if ((selector === '#write h1' || selector === 'h1') && !themeTokens.article.h1Align) {
+          add(tokens.typographyTokens, '--typography-h1-align', value)
+          themeTokens.article.h1Align = value
+        }
+      } else if (prop === 'margin-bottom') {
+        if ((selector === '#write p' || selector === 'p') && !themeTokens.article.paragraphSpacing) {
+          add(tokens.typographyTokens, '--typography-paragraph-spacing', value)
+          themeTokens.article.paragraphSpacing = value
+        }
       } else if (prop === 'height' && selector.match(/^hr$|#write\s+hr/)) {
         add(tokens.typographyTokens, '--typography-hr', value)
         if (!themeTokens.blocks.hr) themeTokens.blocks.hr = value
       }
 
-      if (/::selection/.test(selector)) {
-        if ((prop === 'background' || prop === 'background-color') && !themeTokens.system.selectionBg) {
-          themeTokens.system.selectionBg = value
-        }
-        if (prop === 'color' && !themeTokens.system.selectionText) {
-          themeTokens.system.selectionText = value
-        }
-      }
+      // Typora import is scoped to Markdown rendering; app/system selection
+      // tokens remain owned by the App/DesignMD theme path.
     })
   }
 

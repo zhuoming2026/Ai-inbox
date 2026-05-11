@@ -109,10 +109,10 @@ let allPassed = true
 
 const themeConfigTests = [
   {
-    name: '提取 system.accent（链接色候选）',
+    name: 'Typora 链接色不写入 system.accent',
     css: '#write a { color: #2875d9; }',
     expectedPath: 'tokens.system.accent',
-    expectedValue: '#2875d9',
+    expectedValue: undefined,
   },
   {
     name: '提取 article.bg（背景色）',
@@ -131,6 +131,18 @@ const themeConfigTests = [
     css: '#write h1 { color: #1a1a1a; }',
     expectedPath: 'tokens.article.heading',
     expectedValue: '#1a1a1a',
+  },
+  {
+    name: '提取 article.h1Align',
+    css: '#write h1 { text-align: center; }',
+    expectedPath: 'tokens.article.h1Align',
+    expectedValue: 'center',
+  },
+  {
+    name: '提取 article.paragraphSpacing',
+    css: '#write p { margin-bottom: 0.72rem; }',
+    expectedPath: 'tokens.article.paragraphSpacing',
+    expectedValue: '0.72rem',
   },
   {
     name: '提取 fonts.body',
